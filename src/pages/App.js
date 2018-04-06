@@ -198,7 +198,10 @@ require('react-styl')(`
   .navbar-light .navbar-text .dropdown-item.active,
   .navbar-light .navbar-text .dropdown-item:active
     color: #fff;
-
+  .pointer
+    cursor: pointer
+  .no-wrap
+    white-space: nowrap
   .footer
     display: flex
     align-items: center;

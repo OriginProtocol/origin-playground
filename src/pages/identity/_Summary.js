@@ -7,6 +7,7 @@ import Loading from 'components/Loading'
 import ValidateClaim from './_ValidateClaim'
 
 import ClaimDetail from './modals/ClaimDetail'
+import KeyDetail from './modals/KeyDetail'
 
 import { claimType, keyPurpose, keyType } from 'actions/Identity'
 
@@ -38,7 +39,7 @@ class IdentitySummary extends Component {
 
     return (
       <>
-        <table className="table table-sm">
+        <table className="table table-sm table-hover">
           <thead>
             <tr>
               <th>
@@ -67,7 +68,13 @@ class IdentitySummary extends Component {
               </tr>
             )}
             {keys.map((key, idx) => (
-              <tr key={idx}>
+              <tr
+                className="pointer"
+                key={idx}
+                onClick={() => {
+                  this.setState({ keyDetail: key.returnValues.key })
+                }}
+              >
                 <td>{`${key.returnValues.key.substr(0, 8)}...`}</td>
                 <td>{keyPurpose(key.returnValues.purpose)}</td>
                 <td>{keyType(key.returnValues.keyType)}</td>
@@ -94,6 +101,13 @@ class IdentitySummary extends Component {
             claimId={this.state.claimDetail}
             identity={this.props.identity}
             onClose={() => this.setState({ claimDetail: false })}
+          />
+        )}
+        {!this.state.keyDetail ? null : (
+          <KeyDetail
+            keyId={this.state.keyDetail}
+            identity={this.props.identity}
+            onClose={() => this.setState({ keyDetail: false })}
           />
         )}
       </>
@@ -141,8 +155,7 @@ class IdentitySummary extends Component {
                 </a>
               )}
             </th>
-            <th>From</th>
-            <th>URI</th>
+            <th>Issuer</th>
             <th />
           </tr>
         </thead>
@@ -154,6 +167,7 @@ class IdentitySummary extends Component {
           )}
           {claims.map((claim, idx) => (
             <tr
+              className="pointer"
               key={`c-${idx}`}
               onClick={() => {
                 this.setState({ claimDetail: claim.returnValues.claimId })
@@ -167,7 +181,6 @@ class IdentitySummary extends Component {
                 {this.props.names[claim.returnValues.issuer] ||
                   String(claim.returnValues.issuer).substr(0, 8)}
               </td>
-              <td>{claim.returnValues.uri}</td>
               <td className="text-right">
                 {this.props.isOwner && (
                   <a

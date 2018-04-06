@@ -37,78 +37,85 @@ class NewIdentity extends Component {
         style={{ maxWidth: 375 }}
         shouldClose={this.state.shouldClose}
         submitted={this.state.submitted}
+        className="p-3"
         onClose={() => this.props.onClose()}
         onOpen={() => this.nameInput.focus()}
         onPressEnter={() => this.onDeploy()}
       >
-        <div className="p-3">
-          <Loading show={this.state.loading} />
-          <div
-            className={`font-weight-bold${otherTypeSameOwner ? '' : ' mb-3'}`}
-          >{`Deploy a new ${
-            identityType === 'identity' ? 'Identity' : 'Certifier'
-          } contract:`}</div>
-          {otherTypeSameOwner && (
-            <div className="alert alert-warning py-1 px-2 mt-2">
-              {`You may want to use a different wallet`}
-            </div>
-          )}
-          <FormRow label="Name">
-            <input
-              type="text"
-              className="form-control"
-              value={this.state.name}
-              ref={r => (this.nameInput = r)}
-              onChange={e => this.setState({ name: e.currentTarget.value })}
-            />
-          </FormRow>
-          {identityType === 'identity' ? null : (
-            <FormRow label="URI">
+        <Loading show={this.state.loading} />
+        <div
+          className={`font-weight-bold${otherTypeSameOwner ? '' : ' mb-3'}`}
+        >{`Deploy a new ${
+          identityType === 'identity' ? 'Identity' : 'Certifier'
+        } contract:`}</div>
+        {otherTypeSameOwner && (
+          <div className="alert alert-warning py-1 px-2 mt-2">
+            {`You may want to use a different wallet`}
+          </div>
+        )}
+        <table className="w-100">
+          <tbody>
+            <FormRow label="Name">
               <input
                 type="text"
                 className="form-control"
-                value={this.state.uri}
-                onChange={e => this.setState({ uri: e.currentTarget.value })}
+                value={this.state.name}
+                ref={r => (this.nameInput = r)}
+                onChange={e => this.setState({ name: e.currentTarget.value })}
               />
             </FormRow>
-          )}
+            {identityType === 'identity' ? null : (
+              <FormRow label="URI">
+                <input
+                  type="text"
+                  className="form-control"
+                  value={this.state.uri}
+                  onChange={e => this.setState({ uri: e.currentTarget.value })}
+                />
+              </FormRow>
+            )}
+          </tbody>
+        </table>
 
-          <div className="d-flex">
-            <button
-              className={`btn btn-${
-                this.state['claimData-3'] ? 'success' : 'outline-secondary'
-              }`}
-              onClick={() => {
-                this.onCertify(
-                  '0x7478258bf67bDFbdAAE71A963DA1119240088074',
-                  '3',
-                  'http://localhost:3001/r?dataOnly=1&target=123&issuer=456'
-                )
-              }}
-            >
-              <i className="fa fa-facebook" />
-            </button>
-            <button
-              className={`btn btn-${
-                this.state['claimData-4'] ? 'success' : 'outline-secondary'
-              } ml-2`}
-              onClick={() => {
-                this.onCertify(
-                  '0xbb67846882b43D64251732C926108c5faDB99809',
-                  '4',
-                  'http://localhost:3001/t'
-                )
-              }}
-            >
-              <i className="fa fa-twitter" />
-            </button>
-            <button
-              className="btn btn-primary ml-auto"
-              onClick={() => this.onDeploy()}
-            >
-              Deploy
-            </button>
-          </div>
+        <div className="d-flex mt-2">
+          {identityType !== 'identity' ? null : (
+            <>
+              <button
+                className={`btn btn-${
+                  this.state['claimData-3'] ? 'success' : 'outline-secondary'
+                }`}
+                onClick={() => {
+                  this.onCertify(
+                    '0x7478258bf67bDFbdAAE71A963DA1119240088074',
+                    '3',
+                    'http://localhost:3001/r?dataOnly=1&target=123&issuer=456'
+                  )
+                }}
+              >
+                <i className="fa fa-facebook" />
+              </button>
+              <button
+                className={`btn btn-${
+                  this.state['claimData-4'] ? 'success' : 'outline-secondary'
+                } ml-2`}
+                onClick={() => {
+                  this.onCertify(
+                    '0xbb67846882b43D64251732C926108c5faDB99809',
+                    '4',
+                    'http://localhost:3001/t'
+                  )
+                }}
+              >
+                <i className="fa fa-twitter" />
+              </button>
+            </>
+          )}
+          <button
+            className="btn btn-primary ml-auto"
+            onClick={() => this.onDeploy()}
+          >
+            Deploy
+          </button>
         </div>
       </Modal>
     )

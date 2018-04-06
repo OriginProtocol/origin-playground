@@ -1,10 +1,12 @@
 import React from 'react'
 
 const FormRow = props => (
-  <div className="form-group row mb-2">
-    <label className="col-sm-4 col-form-label text-right">{props.label}</label>
-    <div className="col-sm-8">{props.children}</div>
-  </div>
+  <tr>
+    <td className="text-right pr-3 pb-2 no-wrap">{props.label}</td>
+    <td className="w-100 pb-2">
+      {props.children}
+    </td>
+  </tr>
 )
 
 export default FormRow

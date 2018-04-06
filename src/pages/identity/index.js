@@ -34,7 +34,9 @@ import RemoveIdentity from './modals/_RemoveIdentity'
 class Identity extends Component {
   constructor() {
     super()
-    this.state = { mode: 'summary' }
+    this.state = {
+      mode: 'summary'
+    }
   }
 
   render() {
@@ -214,19 +216,22 @@ class Identity extends Component {
                     <td>
                       {identity.uri ? (
                         activeIdentity && activeIdentity.type === 'identity' ? (
-                          <><a
-                            target="_blank"
-                            href={identity.uri}
-                            onClick={e => this.onCertify(e, identity)}
-                          >
-                            certify
-                          </a>{' or '}<a
-                            target="_blank"
-                            href={identity.uri}
-                            onClick={e => this.onCertify(e, identity, true)}
-                          >
-                            self-certify
-                          </a>
+                          <>
+                            <a
+                              target="_blank"
+                              href={identity.uri}
+                              onClick={e => this.onCertify(e, identity)}
+                            >
+                              certify
+                            </a>
+                            {' or '}
+                            <a
+                              target="_blank"
+                              href={identity.uri}
+                              onClick={e => this.onCertify(e, identity, true)}
+                            >
+                              self-certify
+                            </a>
                           </>
                         ) : null
                       ) : null}

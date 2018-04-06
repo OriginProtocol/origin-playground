@@ -25,26 +25,25 @@ class NewIdentity extends Component {
     return (
       <Modal
         style={{ maxWidth: 375 }}
+        className="p-3"
         shouldClose={this.state.shouldClose}
         submitted={this.state.submitted}
         onClose={() => this.props.onClose()}
       >
         <Loading show={this.state.loading} />
-        <div className="p-3">
-          <div className="mb-3">Are you sure?</div>
-          <div className="text-right">
-            <button
-              className="btn btn-primary"
-              onClick={() => {
-                this.props.approveExecution(
-                  this.props.identity,
-                  this.props.executionId
-                )
-              }}
-            >
-              Approve
-            </button>
-          </div>
+        <div className="mb-3">Are you sure?</div>
+        <div className="text-right">
+          <button
+            className="btn btn-primary"
+            onClick={() => {
+              this.props.approveExecution(
+                this.props.identity,
+                this.props.executionId
+              )
+            }}
+          >
+            Approve
+          </button>
         </div>
       </Modal>
     )

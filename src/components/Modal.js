@@ -83,6 +83,18 @@ export default class Modal extends Component {
                 className={`pl-modal-content ${this.props.className}`}
                 style={{ ...this.props.style }}
               >
+                {!this.props.closeBtn ? null : (
+                  <a
+                    href="#"
+                    className="close"
+                    onClick={e => {
+                      e.preventDefault()
+                      this.doClose()
+                    }}
+                  >
+                    &times;
+                  </a>
+                )}
                 {this.props.children}
               </div>
             </div>
