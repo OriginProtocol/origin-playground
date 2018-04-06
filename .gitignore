@@ -1,0 +1,8 @@
+node_modules
+.DS_Store
+public/app*.js
+public/vendor*.js
+public/css/app.css
+data/db
+data/ipfs
+src/contracts/deployed.js
