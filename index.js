@@ -5,6 +5,8 @@ import Ganache from 'ganache-core'
 import opener from 'opener'
 import fs from 'fs'
 
+import fb from './facebook-auth'
+
 const HOST = process.env.HOST || 'localhost'
 const app = express()
 

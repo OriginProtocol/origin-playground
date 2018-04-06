@@ -31,7 +31,7 @@ app.use(
   })
 )
 
-app.get('/r', (req, res) => {
+app.get('/t', (req, res) => {
   if (!req.query.target) {
     res.send('No target identity contract provided')
     return
@@ -54,7 +54,7 @@ app.get('/r', (req, res) => {
   res.redirect(`https://www.facebook.com/v2.12/dialog/oauth?${query.join('&')}`)
 })
 
-app.get('/t', async (req, res) => {
+app.get('/r', async (req, res) => {
     var data = JSON.stringify({ twitter_handle: 'nick_p' })
 
     req.signedData = await web3.eth.accounts.sign(
