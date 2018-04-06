@@ -523,6 +523,7 @@ class Identity extends Component {
                 events={this.props.events}
                 response={this.props.eventsResponse}
                 names={this.props.identity.names}
+                identity={identity}
                 isOwner={isOwner}
                 onAddKey={() => this.setState({ addKey: true })}
                 onRemoveKey={key => this.setState({ removeKey: key })}

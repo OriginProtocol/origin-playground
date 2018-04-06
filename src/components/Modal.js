@@ -66,27 +66,29 @@ export default class Modal extends Component {
 
   renderContent() {
     var content = (
-      <div className="pl-modal" onMouseDown={e => this.onClose(e)}>
+      <>
         <div
           className={`pl-modal-bg ${this.state.anim}${
             this.state.active ? ' is-active' : ''
           }`}
         />
-        <div className="pl-modal-table">
-          <div
-            className={`pl-modal-cell ${this.state.anim}${
-              this.state.active ? ' is-active' : ''
-            }`}
-          >
+        <div className="pl-modal" onMouseDown={e => this.onClose(e)}>
+          <div className="pl-modal-table">
             <div
-              className={`pl-modal-content ${this.props.className}`}
-              style={{ ...this.props.style }}
+              className={`pl-modal-cell ${this.state.anim}${
+                this.state.active ? ' is-active' : ''
+              }`}
             >
-              {this.props.children}
+              <div
+                className={`pl-modal-content ${this.props.className}`}
+                style={{ ...this.props.style }}
+              >
+                {this.props.children}
+              </div>
             </div>
           </div>
         </div>
-      </div>
+      </>
     )
 
     ReactDOM.render(content, this.portal)
@@ -112,10 +114,12 @@ export default class Modal extends Component {
   }
 
   onKeyDown(e) {
-    if (e.keyCode === 27) { // Esc
+    if (e.keyCode === 27) {
+      // Esc
       this.doClose()
     }
-    if (e.keyCode === 13 && this.props.onPressEnter) { // Enter
+    if (e.keyCode === 13 && this.props.onPressEnter) {
+      // Enter
       this.props.onPressEnter()
     }
   }
@@ -211,7 +215,7 @@ require('react-styl')(`
 
   .pl-modal-bg
       background: rgba(0,0,0,.6);
-      z-index: -1
+      z-index: 1
 
   .pl-modal-bg.is-entering
       opacity: 0;

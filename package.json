@@ -67,6 +67,7 @@
             "actions": "./src/actions",
             "components": "./src/components",
             "constants": "./src/constants",
+            "contracts": "./src/contracts",
             "pages": "./src/pages",
             "reducers": "./src/reducers",
             "utils": "./src/utils"

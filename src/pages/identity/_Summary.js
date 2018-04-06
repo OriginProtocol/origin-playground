@@ -6,9 +6,15 @@ import ClaimHolder from '../../contracts/ClaimHolder'
 import Loading from 'components/Loading'
 import ValidateClaim from './_ValidateClaim'
 
+import ClaimDetail from './modals/ClaimDetail'
+
 import { claimType, keyPurpose, keyType } from 'actions/Identity'
 
 class IdentitySummary extends Component {
+  constructor() {
+    super()
+    this.state = {}
+  }
   render() {
     return (
       <div className="mt-3 position-relative">
@@ -31,57 +37,66 @@ class IdentitySummary extends Component {
     )
 
     return (
-      <table className="table table-sm">
-        <thead>
-          <tr>
-            <th>
-              Keys{this.props.isOwner && (
-                <a
-                  href="#"
-                  className="ml-2"
-                  onClick={e => {
-                    e.preventDefault()
-                    this.props.onAddKey()
-                  }}
-                >
-                  <i className="fa fa-plus" />
-                </a>
-              )}
-            </th>
-            <th>Purpose</th>
-            <th>Type</th>
-            <th />
-          </tr>
-        </thead>
-        <tbody>
-          {keys.length ? null : (
+      <>
+        <table className="table table-sm">
+          <thead>
             <tr>
-              <td colSpan={4}>No Keys</td>
-            </tr>
-          )}
-          {keys.map((key, idx) => (
-            <tr key={idx}>
-              <td>{`${key.returnValues.key.substr(0, 8)}...`}</td>
-              <td>{keyPurpose(key.returnValues.purpose)}</td>
-              <td>{keyType(key.returnValues.keyType)}</td>
-              <td className="text-right">
-                {this.props.isOwner && (
+              <th>
+                Keys{this.props.isOwner && (
                   <a
                     href="#"
-                    className="btn btn-sm btn-outline-danger"
+                    className="ml-2"
                     onClick={e => {
                       e.preventDefault()
-                      this.props.onRemoveKey(key.returnValues.key)
+                      this.props.onAddKey()
                     }}
                   >
-                    <i className="fa fa-trash" />
+                    <i className="fa fa-plus" />
                   </a>
                 )}
-              </td>
+              </th>
+              <th>Purpose</th>
+              <th>Type</th>
+              <th />
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {keys.length ? null : (
+              <tr>
+                <td colSpan={4}>No Keys</td>
+              </tr>
+            )}
+            {keys.map((key, idx) => (
+              <tr key={idx}>
+                <td>{`${key.returnValues.key.substr(0, 8)}...`}</td>
+                <td>{keyPurpose(key.returnValues.purpose)}</td>
+                <td>{keyType(key.returnValues.keyType)}</td>
+                <td className="text-right">
+                  {this.props.isOwner && (
+                    <a
+                      href="#"
+                      className="btn btn-sm btn-outline-danger"
+                      onClick={e => {
+                        e.preventDefault()
+                        this.props.onRemoveKey(key.returnValues.key)
+                      }}
+                    >
+                      <i className="fa fa-trash" />
+                    </a>
+                  )}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+        {!this.state.claimDetail ? null : (
+          <ClaimDetail
+            claimId={this.state.claimDetail}
+            identity={this.props.identity}
+            onClose={() => this.setState({ claimDetail: false })}
+          />
+        )}
+      </>
     )
   }
 
@@ -109,7 +124,7 @@ class IdentitySummary extends Component {
     })
 
     return (
-      <table className="table table-sm">
+      <table className="table table-sm table-hover">
         <thead>
           <tr>
             <th>
@@ -138,7 +153,12 @@ class IdentitySummary extends Component {
             </tr>
           )}
           {claims.map((claim, idx) => (
-            <tr key={`c-${idx}`}>
+            <tr
+              key={`c-${idx}`}
+              onClick={() => {
+                this.setState({ claimDetail: claim.returnValues.claimId })
+              }}
+            >
               <td>
                 {claimType(claim.returnValues.claimType)}{' '}
                 <ValidateClaim claim={claim.returnValues} />
