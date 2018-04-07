@@ -4,8 +4,9 @@ import { spawn } from 'child_process'
 import Ganache from 'ganache-core'
 import opener from 'opener'
 import fs from 'fs'
+import Web3 from 'web3'
 
-import fb from './facebook-auth'
+import simpleIssuer from './issuer-services/_simple'
 
 const HOST = process.env.HOST || 'localhost'
 const app = express()
@@ -15,6 +16,12 @@ app.get('/', (req, res) => {
   res.send(html.replace(/\{HOST\}/g, `http://${HOST}:8081/`))
 })
 app.use(serveStatic('public'))
+
+simpleIssuer(app, {
+  web3: new Web3(),
+  privateKey:
+    '0xdb99a8d1fab57cb1d558973d2b1785232aaca4ee5e4e2224ef4a33e429cd5e00'
+})
 
 const startGanache = () =>
   new Promise((resolve, reject) => {

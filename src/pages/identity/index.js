@@ -211,20 +211,15 @@ class Identity extends Component {
                             : ''
                         }lock`}
                       />
+                      {!identity.icon ? null : (
+                        <i className={`fa fa-${identity.icon} mr-2 ml-1`} />
+                      )}
                       {identity.name}
                     </td>
                     <td>
                       {identity.uri ? (
                         activeIdentity && activeIdentity.type === 'identity' ? (
                           <>
-                            <a
-                              target="_blank"
-                              href={identity.uri}
-                              onClick={e => this.onCertify(e, identity)}
-                            >
-                              certify
-                            </a>
-                            {' or '}
                             <a
                               target="_blank"
                               href={identity.uri}
@@ -346,6 +341,7 @@ class Identity extends Component {
             onClose={() => this.setState({ deploy: false })}
             identityType={this.state.identityType}
             identities={this.props.identities}
+            certifiers={certifiers}
             activeAddress={this.props.wallet.activeAddress}
             response={this.props.identity.createIdentityResponse}
             deployIdentityContract={this.props.deployIdentityContract}
@@ -540,16 +536,18 @@ class Identity extends Component {
               />
               <hr />
 
-              <button
-                className={`btn btn-sm btn-outline-danger ml-auto${
-                  isOwner ? '' : ' disabled'
-                }`}
-                onClick={() =>
-                  isOwner ? this.setState({ removeIdentity: true }) : null
-                }
-              >
-                <i className="fa fa-trash" /> Remove Identity
-              </button>
+              {identity.official ? null : (
+                <button
+                  className={`btn btn-sm btn-outline-danger ml-auto${
+                    isOwner ? '' : ' disabled'
+                  }`}
+                  onClick={() =>
+                    isOwner ? this.setState({ removeIdentity: true }) : null
+                  }
+                >
+                  <i className="fa fa-trash" /> Remove Identity
+                </button>
+              )}
             </div>
           ) : (
             <Events
@@ -692,11 +690,9 @@ class Identity extends Component {
       }
       window.removeEventListener('message', finish, false)
 
-      setTimeout(() => {
-        if (!w.closed) {
-          w.close()
-        }
-      }, 1500)
+      if (!w.closed) {
+        w.close()
+      }
 
       this.props.getEvents(this.state.activeType, this.state.activeIdentity)
     }
@@ -707,7 +703,10 @@ class Identity extends Component {
 
 const mapStateToProps = state => ({
   identity: state.identity,
-  identities: state.identity.identities,
+  identities: [
+    ...state.identity.identities,
+    ...state.identity.officialIdentities
+  ],
   verifiers: state.identity.claimVerifiers,
   events: state.identity.events,
   eventsResponse: state.identity.eventsResponse,

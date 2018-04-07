@@ -14,7 +14,7 @@
     "test:watch": "mocha -r @babel/register -w --watch-extensions sol -t 5000 test",
     "start": "node -r @babel/register index",
     "build:contracts": "BUILD=1 mocha -r @babel/register -t 10000 test",
-    "build:js": "webpack --config webpack.prod.js",
+    "build:js": "webpack --config webpack.prod.js --progress",
     "build:css": "node -r @babel/register -r ./src/pages/App -e \"console.log(require('react-styl').getCss())\" > public/css/app.css",
     "build": "npm run build:js && npm run build:css",
     "lint": "eslint .",

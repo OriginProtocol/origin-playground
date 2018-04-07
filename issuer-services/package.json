@@ -1,0 +1,19 @@
+{
+  "name": "issuer-services",
+  "version": "1.0.0",
+  "description": "",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server.js"
+  },
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "express": "^4.16.3",
+    "express-session": "^1.15.6",
+    "superagent": "^3.8.2",
+    "ws": "^5.1.1",
+    "xhr2": "^0.1.4"
+  }
+}

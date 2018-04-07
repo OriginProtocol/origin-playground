@@ -211,7 +211,6 @@ class IdentitySummary extends Component {
                   {this.props.names[decoded.params._issuer] ||
                     decoded.params._issuer}
                 </td>
-                <td>{decoded.params._uri}</td>
                 <td className="text-right pr-3">
                   {this.props.isOwner ? (
                     <a

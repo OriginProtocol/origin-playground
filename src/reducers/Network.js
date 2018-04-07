@@ -5,7 +5,7 @@ import Providers from 'constants/Providers'
 const HOST = process.env.HOST || 'localhost'
 let ipfsGateway = 'https://gateway.originprotocol.com',
   ipfsRPC = 'https://gateway.originprotocol.com',
-  provider = 'https://ropsten.infura.io'
+  provider = 'https://rinkeby.infura.io'
 
 if (process.env.NODE_ENV !== 'production') {
   ipfsGateway = `http://${HOST}:9090`

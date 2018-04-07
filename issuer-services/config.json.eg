@@ -1,0 +1,9 @@
+{
+  "provider": "ws://localhost:8545",
+  "facebookApp": {
+    "id": "000000000000000",
+    "secret": "00000000000000000000000000000000",
+    "redirectURI": "https://my-app.com/fb-auth-response"
+  },
+  "privateKey": "0x0000000000000000000000000000000000000000000000000000000000000000"
+}

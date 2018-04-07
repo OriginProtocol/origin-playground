@@ -159,26 +159,6 @@ class AddClaim extends Component {
         </table>
         <div className="text-right mt-3">
           <button
-            className="btn btn-primary mr-3"
-            onClick={() => {
-              window.queuedClaims = window.queuedClaims || []
-              window.queuedClaims.push({
-                data: this.state.claimData,
-                prvSigner: this.state.privateKey,
-                claimIssuer: this.state.issuer,
-                targetIdentity: this.state.targetIdentity,
-                uri: this.state.claimUri,
-                claimType: this.state.claimType,
-                scheme: this.state.claimScheme,
-                messageHash: this.state.messageHash,
-                signature: this.state.signature
-              })
-              this.setState({ shouldClose: true })
-            }}
-          >
-            Queue
-          </button>
-          <button
             className="btn btn-primary"
             onClick={() => {
               this.props.addClaim({

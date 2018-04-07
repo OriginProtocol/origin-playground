@@ -1,8 +1,11 @@
 import { IdentityConstants } from 'actions/Identity'
-// import { NetworkConstants } from 'actions/Network'
+import { NetworkConstants } from 'actions/Network'
+
+const officialIdentities = {}
 
 const initialState = {
   contract: null,
+  officialIdentities: [],
   identities: [],
   claimVerifiers: [],
   keys: [],
@@ -53,8 +56,8 @@ export const KeyTypes = [{ id: '1', name: 'ECDSA' }, { id: '2', name: 'RSA' }]
 
 export default function Identity(state = getInitialState(), action = {}) {
   switch (action.type) {
-    // case NetworkConstants.CHANGE:
-    //   return initialState
+    case NetworkConstants.CHANGE_SUCCESS:
+      return { ...state, officialIdentities: officialIdentities[action.id] || [] }
 
     case IdentityConstants.RESET:
       return getInitialState()
@@ -151,7 +154,8 @@ export default function Identity(state = getInitialState(), action = {}) {
             address: action.receipt.contractAddress,
             owner: action.owner,
             type: action.identityType,
-            uri: action.uri
+            uri: action.uri,
+            icon: action.icon
           }
         ]
       }

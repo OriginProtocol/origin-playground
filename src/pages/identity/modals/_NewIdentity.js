@@ -9,8 +9,9 @@ class NewIdentity extends Component {
     super(props)
     this.state = {
       name: '',
-      uri: 'http://localhost:3001/r?target=TARGET&issuer=ISSUER',
-      preAdd: false
+      uri: '',
+      preAdd: false,
+      icon: null
     }
   }
 
@@ -30,6 +31,21 @@ class NewIdentity extends Component {
     var { identityType, activeAddress, identities } = this.props
     var otherTypeSameOwner = identities.find(
       i => i.type !== identityType && i.owner === activeAddress
+    )
+
+    const Btn = props => (
+      <button
+        className={`btn btn-outline-secondary${
+          props.icon === this.state.icon ? ' active' : ''
+        }`}
+        onClick={() => {
+          this.setState({
+            icon: props.icon === this.state.icon ? null : props.icon
+          })
+        }}
+      >
+        <i className={`fa fa-${props.icon}`} />
+      </button>
     )
 
     return (
@@ -65,14 +81,29 @@ class NewIdentity extends Component {
               />
             </FormRow>
             {identityType === 'identity' ? null : (
-              <FormRow label="URI">
-                <input
-                  type="text"
-                  className="form-control"
-                  value={this.state.uri}
-                  onChange={e => this.setState({ uri: e.currentTarget.value })}
-                />
-              </FormRow>
+              <>
+                <FormRow label="URI">
+                  <input
+                    type="text"
+                    className="form-control"
+                    value={this.state.uri}
+                    onChange={e =>
+                      this.setState({ uri: e.currentTarget.value })
+                    }
+                  />
+                </FormRow>
+                <FormRow label="Icon">
+                  <div className="btn-group">
+                    <Btn icon="facebook" />
+                    <Btn icon="twitter" />
+                    <Btn icon="google" />
+                    <Btn icon="envelope-o" />
+                    <Btn icon="phone" />
+                    <Btn icon="cc-visa" />
+                    <Btn icon="key" />
+                  </div>
+                </FormRow>
+              </>
             )}
           </tbody>
         </table>
@@ -80,34 +111,19 @@ class NewIdentity extends Component {
         <div className="d-flex mt-2">
           {identityType !== 'identity' ? null : (
             <>
-              <button
-                className={`btn btn-${
-                  this.state['claimData-3'] ? 'success' : 'outline-secondary'
-                }`}
-                onClick={() => {
-                  this.onCertify(
-                    '0x7478258bf67bDFbdAAE71A963DA1119240088074',
-                    '3',
-                    'http://localhost:3001/r?dataOnly=1&target=123&issuer=456'
-                  )
-                }}
-              >
-                <i className="fa fa-facebook" />
-              </button>
-              <button
-                className={`btn btn-${
-                  this.state['claimData-4'] ? 'success' : 'outline-secondary'
-                } ml-2`}
-                onClick={() => {
-                  this.onCertify(
-                    '0xbb67846882b43D64251732C926108c5faDB99809',
-                    '4',
-                    'http://localhost:3001/t'
-                  )
-                }}
-              >
-                <i className="fa fa-twitter" />
-              </button>
+              {(this.props.certifiers || []).map((c, idx) =>
+                <button
+                  key={idx}
+                  className={`btn btn-${
+                    this.state[`claimData-${c.address}`] ? 'success' : 'outline-secondary'
+                  }`}
+                  onClick={() => {
+                    this.onCertify(c.address, '3', c.uri)
+                  }}
+                >
+                  <i className="fa fa-facebook" />
+                </button>
+              )}
             </>
           )}
           <button
@@ -128,35 +144,28 @@ class NewIdentity extends Component {
       var claim
 
       args = args || [[], [], [], '', [], '', [], []]
-      if (this.state['claimData-3']) {
-        claim = this.state['claimData-3']
-        args[0].push(claim.claimType)
-        args[1].push(claim.claimScheme)
-        args[2].push(claim.issuer)
-        args[3] += args[3].length ? claim.signature.slice(2) : claim.signature
-        args[4].push(claim.messageHash)
-        args[5] += claim.uri
-        args[6].push(claim.messageHash.length - 1)
-        args[7].push(claim.uri.length)
-      }
-      if (this.state['claimData-4']) {
-        claim = this.state['claimData-4']
-        args[0].push(claim.claimType)
-        args[1].push(claim.claimScheme)
-        args[2].push(claim.issuer)
-        args[3] += args[3].length ? claim.signature.slice(2) : claim.signature
-        args[4].push(claim.messageHash)
-        args[5] += claim.uri
-        args[6].push(claim.messageHash.length - 1)
-        args[7].push(claim.uri.length)
-      }
+      Object.keys(this.state).forEach(k => {
+        var match = k.match(/^claimData-(.*)$/)
+        if (match) {
+          claim = this.state[k]
+          args[0].push(claim.claimType)
+          args[1].push(claim.claimScheme)
+          args[2].push(claim.issuer)
+          args[3] += args[3].length ? claim.signature.slice(2) : claim.signature
+          args[4].push(claim.messageHash)
+          args[5] += claim.uri
+          args[6].push(claim.messageHash.length - 1)
+          args[7].push(claim.uri.length)
+        }
+      })
     }
 
     this.props.deployIdentityContract(
       this.state.name,
       this.props.identityType,
       this.state.uri,
-      args
+      args,
+      this.state.icon
     )
   }
 
@@ -167,7 +176,7 @@ class NewIdentity extends Component {
       if (String(e.data).match(/^signed-data:/)) {
         this.setState({
           preAdd: true,
-          [`claimData-${claimType}`]: {
+          [`claimData-${identity}`]: {
             claimType,
             claimScheme: '1',
             claimData: '{"username":"abc"}',
@@ -182,11 +191,9 @@ class NewIdentity extends Component {
       }
       window.removeEventListener('message', finish, false)
 
-      setTimeout(() => {
-        if (!w.closed) {
-          w.close()
-        }
-      }, 1500)
+      if (!w.closed) {
+        w.close()
+      }
     }
 
     window.addEventListener('message', finish, false)

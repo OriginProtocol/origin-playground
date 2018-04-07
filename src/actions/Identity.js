@@ -71,14 +71,15 @@ export const IdentityConstants = keyMirror(
   'IDENTITY'
 )
 
-export function deployIdentityContract(name, identityType, uri, preAdd) {
+export function deployIdentityContract(name, identityType, uri, preAdd, icon) {
   return async function(dispatch, getState) {
     dispatch({
       type: IdentityConstants.DEPLOY,
       name,
       identityType,
       uri,
-      preAdd
+      preAdd,
+      icon
     })
 
     var RawContract = preAdd ? Identity : ClaimHolder
@@ -130,7 +131,8 @@ export function deployIdentityContract(name, identityType, uri, preAdd) {
             receipt,
             owner: state.wallet.activeAddress,
             identityType,
-            uri
+            uri,
+            icon
           })
         } else {
           dispatch({ type: IdentityConstants.DEPLOY_CONFIRMATION, name, num })
