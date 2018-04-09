@@ -110,8 +110,12 @@ contract ClaimHolder is KeyHolder, ERC735 {
         bytes32 sa;
         uint8 va;
 
+        bytes memory prefix = "\x19Ethereum Signed Message:\n32"; // prefix used by web3
         bytes memory sig = claims[_claimId].signature;
+        uint256 claimType = claims[_claimId].claimType;
         bytes32 claimData = claims[_claimId].data;
+        bytes32 dataHash = keccak256(address(this), claimType, claimData);
+        bytes32 prefixedHash = keccak256(prefix, dataHash);
 
         // Check the signature length
         if (sig.length != 65) {
@@ -129,7 +133,7 @@ contract ClaimHolder is KeyHolder, ERC735 {
           va += 27;
         }
 
-        return (claimData, ra, sa, va);
+        return (prefixedHash, ra, sa, va);
     }
 
     function recoverIssuer(bytes32 _claimId)
