@@ -43,16 +43,18 @@ describe('ClaimVerifier.sol', async function() {
   })
 
   it('should allow Verifier to post a claim to User identity via execute', async function() {
-    var data = '{ "did": "did:facebook:12345" }'
-    var signed = await web3.eth.accounts.sign(data, prvSigner)
+    var data = web3.utils.sha3('{ "did": "did:facebook:12345" }')
+    var claimType = 3
+    var hashed = web3.utils.soliditySha3(UserIdentity._address, claimType, data)
+    var signed = await web3.eth.accounts.sign(hashed, prvSigner)
 
     var abi = await UserIdentity.methods
       .addClaim(
-        3,
+        claimType,
         2,
         IdentityVerifier._address,
         signed.signature,
-        signed.messageHash,
+        data,
         'abc.com'
       )
       .encodeABI()
