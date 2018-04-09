@@ -85,6 +85,7 @@ class IdentitySummary extends Component {
                       className="btn btn-sm btn-outline-danger"
                       onClick={e => {
                         e.preventDefault()
+                        e.stopPropagation()
                         this.props.onRemoveKey(key.returnValues.key)
                       }}
                     >
@@ -188,6 +189,7 @@ class IdentitySummary extends Component {
                     className="btn btn-sm btn-outline-danger"
                     onClick={e => {
                       e.preventDefault()
+                      e.stopPropagation()
                       this.props.onRemoveClaim(claim.returnValues.claimId)
                     }}
                   >

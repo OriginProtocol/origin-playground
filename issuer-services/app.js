@@ -4,6 +4,9 @@ var Web3 = require('web3')
 
 var simple = require('./_simple')
 var facebook = require('./_facebook')
+var twitter = require('./_twitter')
+var github = require('./_github')
+var google = require('./_google')
 
 try {
   var Config = require('./config.json')
@@ -13,7 +16,7 @@ try {
 }
 
 Config.web3 = new Web3(Config.provider)
-Config.facebookApp.redirectURI = 'http://localhost:3001/fb-auth-response'
+Config.baseUrl = 'http://localhost:3001'
 
 const app = express()
 app.use(
@@ -30,6 +33,9 @@ app.get('/', (req, res) => {
 
 simple(app, Config)
 facebook(app, Config)
+twitter(app, Config)
+github(app, Config)
+google(app, Config)
 
 const PORT = process.env.PORT || 3001
 app.listen(PORT, () => {

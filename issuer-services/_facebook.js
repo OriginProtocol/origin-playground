@@ -3,7 +3,8 @@
 var superagent = require('superagent')
 var HTML = require('./html')
 
-module.exports = function facebook(app, { web3, facebookApp, privateKey }) {
+module.exports = function facebook(app, { web3, facebookApp, baseUrl }) {
+  const redirect_uri = `${baseUrl}/fb-auth-response`
   app.get('/fb-auth', (req, res) => {
     if (!req.query.target) {
       res.send('No target identity contract provided')
@@ -19,8 +20,8 @@ module.exports = function facebook(app, { web3, facebookApp, privateKey }) {
     req.session.state = web3.utils.randomHex(8)
 
     var query = [
-      `client_id=${facebookApp.id}`,
-      `redirect_uri=${facebookApp.redirectURI}`,
+      `client_id=${facebookApp.client_id}`,
+      `redirect_uri=${redirect_uri}`,
       `state=${req.session.state}`
     ]
     res.redirect(
@@ -47,9 +48,9 @@ module.exports = function facebook(app, { web3, facebookApp, privateKey }) {
       superagent
         .get(`https://graph.facebook.com/v2.12/oauth/access_token`)
         .query({
-          client_id: facebookApp.id,
+          client_id: facebookApp.client_id,
           client_secret: facebookApp.secret,
-          redirect_uri: facebookApp.redirectURI,
+          redirect_uri,
           code: req.query.code
         })
         .then(response => {
@@ -65,12 +66,12 @@ module.exports = function facebook(app, { web3, facebookApp, privateKey }) {
         .get(`https://graph.facebook.com/debug_token`)
         .query({
           input_token: req.userToken.access_token,
-          access_token: `${facebookApp.id}|${facebookApp.secret}`
+          access_token: `${facebookApp.client_id}|${facebookApp.secret}`
         })
         .then(response => {
           req.tokenDebug = JSON.parse(response.text).data
 
-          if (req.tokenDebug.app_id !== facebookApp.id) {
+          if (req.tokenDebug.app_id !== facebookApp.client_id) {
             return res.send("Token's App does not match")
           }
           if (!req.tokenDebug.is_valid) {
@@ -86,7 +87,7 @@ module.exports = function facebook(app, { web3, facebookApp, privateKey }) {
     async (req, res) => {
       var data = JSON.stringify({ user_id: req.tokenDebug.user_id })
 
-      req.signedData = await web3.eth.accounts.sign(data, privateKey)
+      req.signedData = await web3.eth.accounts.sign(data, facebookApp.claimSignerKey)
 
       res.send(HTML(`
         <div class="mb-2">Successfully signed claim:</div>
@@ -100,7 +101,7 @@ module.exports = function facebook(app, { web3, facebookApp, privateKey }) {
           window.done = function() {
             window.opener.postMessage('signed-data:${
               req.signedData.signature
-            }:${req.signedData.messageHash}', '*')
+            }:${req.signedData.messageHash}:3', '*')
           }
         </script>`
       ))

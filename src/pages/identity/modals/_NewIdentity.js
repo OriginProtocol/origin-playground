@@ -93,10 +93,11 @@ class NewIdentity extends Component {
                   />
                 </FormRow>
                 <FormRow label="Icon">
-                  <div className="btn-group">
+                  <div className="btn-group btn-group-sm">
                     <Btn icon="facebook" />
                     <Btn icon="twitter" />
                     <Btn icon="google" />
+                    <Btn icon="github" />
                     <Btn icon="envelope-o" />
                     <Btn icon="phone" />
                     <Btn icon="cc-visa" />
@@ -116,12 +117,12 @@ class NewIdentity extends Component {
                   key={idx}
                   className={`btn btn-${
                     this.state[`claimData-${c.address}`] ? 'success' : 'outline-secondary'
-                  }`}
+                  } mr-1`}
                   onClick={() => {
                     this.onCertify(c.address, '3', c.uri)
                   }}
                 >
-                  <i className="fa fa-facebook" />
+                  <i className={`fa fa-${c.icon}`} />
                 </button>
               )}
             </>
@@ -170,6 +171,10 @@ class NewIdentity extends Component {
   }
 
   onCertify(identity, claimType, href) {
+    href = href
+      .replace('TARGET', this.props.activeAddress)
+      .replace('ISSUER', identity)
+
     var w = window.open(href, '', 'width=650,height=500')
 
     const finish = e => {
@@ -177,7 +182,7 @@ class NewIdentity extends Component {
         this.setState({
           preAdd: true,
           [`claimData-${identity}`]: {
-            claimType,
+            claimType: e.data.split(':')[3],
             claimScheme: '1',
             claimData: '{"username":"abc"}',
             uri: 'id.originprotocol.com/user/abc',

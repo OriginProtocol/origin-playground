@@ -1,6 +1,13 @@
 var path = require('path')
 var webpack = require('webpack')
 
+var OfficialIdentities = []
+try {
+  OfficialIdentities = require('./data/OfficialIdentities')
+} catch (e) {
+  /* Ignore */
+}
+
 var config = {
   entry: {
     app: './src/index.js'
@@ -37,7 +44,12 @@ var config = {
     }
   },
   mode: 'development',
-  plugins: [new webpack.EnvironmentPlugin({ HOST: 'localhost' })],
+  plugins: [
+    new webpack.EnvironmentPlugin({ HOST: 'localhost' }),
+    new webpack.DefinePlugin({
+      OfficialIdentities: JSON.stringify(OfficialIdentities)
+    })
+  ],
 
   optimization: {
     splitChunks: {

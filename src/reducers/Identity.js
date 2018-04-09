@@ -1,7 +1,8 @@
 import { IdentityConstants } from 'actions/Identity'
 import { NetworkConstants } from 'actions/Network'
 
-const officialIdentities = {}
+const officialIdentities =
+  typeof OfficialIdentities !== 'undefined' ? OfficialIdentities : []
 
 const initialState = {
   contract: null,
@@ -57,7 +58,10 @@ export const KeyTypes = [{ id: '1', name: 'ECDSA' }, { id: '2', name: 'RSA' }]
 export default function Identity(state = getInitialState(), action = {}) {
   switch (action.type) {
     case NetworkConstants.CHANGE_SUCCESS:
-      return { ...state, officialIdentities: officialIdentities[action.id] || [] }
+      return {
+        ...state,
+        officialIdentities: officialIdentities[action.id] || []
+      }
 
     case IdentityConstants.RESET:
       return getInitialState()

@@ -17,11 +17,7 @@ app.get('/', (req, res) => {
 })
 app.use(serveStatic('public'))
 
-simpleIssuer(app, {
-  web3: new Web3(),
-  privateKey:
-    '0xdb99a8d1fab57cb1d558973d2b1785232aaca4ee5e4e2224ef4a33e429cd5e00'
-})
+simpleIssuer(app, { web3: new Web3() })
 
 const startGanache = () =>
   new Promise((resolve, reject) => {

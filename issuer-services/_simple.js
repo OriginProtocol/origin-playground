@@ -1,6 +1,6 @@
 var HTML = require('./html')
 
-module.exports = function dummyService(app, { web3, privateKey }) {
+module.exports = function dummyService(app, { web3, simpleApp }) {
 
   app.get('/simple-auth', async (req, res) => {
     var issuer = req.query.issuer,
@@ -14,13 +14,13 @@ module.exports = function dummyService(app, { web3, privateKey }) {
       res.send(HTML('No issuer identity contract provided'))
       return
     }
-    if (!privateKey) {
+    if (!simpleApp.claimSignerKey) {
       res.send(HTML('No private key specified.'))
       return
     }
 
     var data = 'Identity Verified OK!'
-    var signedData = await web3.eth.accounts.sign(data, privateKey)
+    var signedData = await web3.eth.accounts.sign(data, simpleApp.claimSignerKey)
 
     res.send(
       HTML(

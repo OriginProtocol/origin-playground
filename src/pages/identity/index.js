@@ -212,7 +212,7 @@ class Identity extends Component {
                         }lock`}
                       />
                       {!identity.icon ? null : (
-                        <i className={`fa fa-${identity.icon} mr-2 ml-1`} />
+                        <i className={`fa fa-${identity.icon} fa-fw mr-1`} />
                       )}
                       {identity.name}
                     </td>
@@ -225,7 +225,7 @@ class Identity extends Component {
                               href={identity.uri}
                               onClick={e => this.onCertify(e, identity, true)}
                             >
-                              self-certify
+                              Get Claim
                             </a>
                           </>
                         ) : null
@@ -325,13 +325,6 @@ class Identity extends Component {
                 })}
               </tbody>
             </table>
-            <hr />
-            <button
-              className="btn btn-outline-danger btn-sm"
-              onClick={() => this.setState({ removeAll: true })}
-            >
-              Remove All Contracts
-            </button>
           </div>
           <div className="col-md-6">{this.renderDetails()}</div>
         </div>
@@ -656,17 +649,13 @@ class Identity extends Component {
     return cls
   }
 
-  onCertify(e, identity, selfCertify) {
+  onCertify(e, identity) {
     e.stopPropagation()
     e.preventDefault()
 
     var href = e.currentTarget.href
       .replace('TARGET', this.state.activeIdentity)
       .replace('ISSUER', identity.address)
-
-    if (selfCertify) {
-      href = href + '&dataOnly=true'
-    }
 
     var w = window.open(href, '', 'width=650,height=500')
 
@@ -675,7 +664,7 @@ class Identity extends Component {
         this.setState({
           addClaim: true,
           claimData: {
-            claimType: '3',
+            claimType: e.data.split(':')[3],
             claimScheme: '1',
             claimData: '{"username":"abc"}',
             claimUri: 'id.originprotocol.com/user/abc',
