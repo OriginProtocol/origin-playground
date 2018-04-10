@@ -54,9 +54,9 @@ More explanation to follow...
 
 You can see the address of the contract, as well as the wallet ID of the owner. 
 
-3. Switch the active wallet to the second. (`0x56BEaa` in our screenshot) We are now playing the role of a service that can verify user's emails.
+3. Switch the active wallet to the second. (`0x56BEaa` in our screenshot) We are now playing the role of a service that can verify a GitHub account.
 
-4. Click "Add a Certifier" and deploy a certifier contract called "Github". This would be service to verify a Github account. For now we'll use an example URL for our service. 
+4. Click "Add a Certifier" and deploy a certifier contract called "Github". For now we'll use an example URL for our service. 
 
 ![image](https://user-images.githubusercontent.com/673455/38567509-3fcf75dc-3c9b-11e8-836d-f419ec3297a0.png)
 
