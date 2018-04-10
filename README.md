@@ -7,6 +7,14 @@ This app is a working implementation of the [ERC 725](https://github.com/ethereu
 Using ERC 725, a smart contract can protect function calls from being executed unless the sender has a verified claim
 from a trusted issuer.
 
+## Live Demo
+
+You can try a deployed version of this app at http://erc725.originprotocol.com/#/
+
+It has several Certifiers pre-populated that are not present when running the demo locally. 
+
+The [screenshot walkthrough](#walkthrough) below shows an example of verifying a claims of a person's identity.
+
 ## Explanation
 
 Imagine we want to deploy a Listing contract to sell a concert ticket, but only allow interactions from
