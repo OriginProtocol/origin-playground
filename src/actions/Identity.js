@@ -210,7 +210,13 @@ export function deployClaimVerifier(name, trustedIdentity) {
 
 export function addKey({ purpose, keyType, key, identity }) {
   return async function(dispatch, getState) {
-    dispatch({ type: IdentityConstants.ADD_KEY })
+    dispatch({
+      type: IdentityConstants.ADD_KEY,
+      purpose,
+      keyType,
+      key,
+      identity
+    })
 
     var state = getState()
 
@@ -388,7 +394,7 @@ export function addClaim({
     })
 
     var state = getState()
-    var hashedData = web3.utils.soliditySha3(data);
+    var hashedData = web3.utils.soliditySha3(data)
 
     if (!signature) {
       ({ signature } = await web3.eth.accounts.sign(
