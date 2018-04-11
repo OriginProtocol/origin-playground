@@ -4,6 +4,8 @@ var OAuth = require('oauth').OAuth2
 var HTML = require('./html')
 var superagent = require('superagent')
 
+const ClaimType = 6 // Has Google
+
 module.exports = function facebook(app, { web3, googleApp, baseUrl }) {
   const redirect_uri = `${baseUrl}/google-auth-response`
 
@@ -73,16 +75,19 @@ module.exports = function facebook(app, { web3, googleApp, baseUrl }) {
         })
     },
     async (req, res) => {
-      var data = JSON.stringify({ user_id: req.googleUser.id })
+      // var data = JSON.stringify({ user_id: req.googleUser.id })
 
-      req.signedData = await web3.eth.accounts.sign(data, googleApp.claimSignerKey)
+      var rawData = 'Verified OK'
+      var hashedData = web3.utils.soliditySha3(rawData)
+      var hashed = web3.utils.soliditySha3(req.session.targetIdentity, ClaimType, hashedData)
+      req.signedData = await web3.eth.accounts.sign(hashed, googleApp.claimSignerKey)
 
       res.send(
         HTML(`
         <div class="mb-2">Successfully signed claim:</div>
         <div class="mb-2"><b>Issuer:</b> ${req.session.issuer}</div>
         <div class="mb-2"><b>Target:</b> ${req.session.targetIdentity}</div>
-        <div class="mb-2"><b>Data:</b> ${data}</div>
+        <div class="mb-2"><b>Data:</b> ${rawData}</div>
         <div class="mb-2"><b>Signature:</b> ${req.signedData.signature}</div>
         <div class="mb-2"><b>Hash:</b> ${req.signedData.messageHash}</div>
         <div><button class="btn btn-primary" onclick="window.done()">OK</button></div>
@@ -90,7 +95,7 @@ module.exports = function facebook(app, { web3, googleApp, baseUrl }) {
           window.done = function() {
             window.opener.postMessage('signed-data:${
               req.signedData.signature
-            }:${req.signedData.messageHash}:6', '*')
+            }:${req.signedData.messageHash}:${ClaimType}', '*')
           }
         </script>`)
       )

@@ -17,7 +17,12 @@ app.get('/', (req, res) => {
 })
 app.use(serveStatic('public'))
 
-simpleIssuer(app, { web3: new Web3() })
+try {
+  var { simpleApp } = require('./issuer-services/config.json')
+  simpleIssuer(app, { web3: new Web3(), simpleApp })
+} catch(e) {
+  /* Ignore */
+}
 
 const startGanache = () =>
   new Promise((resolve, reject) => {

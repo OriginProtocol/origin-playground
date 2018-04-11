@@ -1,4 +1,5 @@
 import React, { Component } from 'react'
+import RLP from 'rlp'
 
 import Modal from 'components/Modal'
 import Loading from 'components/Loading'
@@ -13,6 +14,14 @@ class NewIdentity extends Component {
       preAdd: false,
       icon: null
     }
+  }
+
+  async componentDidMount() {
+    var address = this.props.activeAddress
+    var nonce = await web3.eth.getTransactionCount(this.props.activeAddress)
+    var nextContract =
+      '0x' + web3.utils.sha3(RLP.encode([address, nonce])).substring(26, 66)
+    this.setState({ nextContract })
   }
 
   componentWillReceiveProps(nextProps) {
@@ -112,11 +121,13 @@ class NewIdentity extends Component {
         <div className="d-flex mt-2">
           {identityType !== 'identity' ? null : (
             <>
-              {(this.props.certifiers || []).map((c, idx) =>
+              {(this.props.certifiers || []).map((c, idx) => (
                 <button
                   key={idx}
                   className={`btn btn-${
-                    this.state[`claimData-${c.address}`] ? 'success' : 'outline-secondary'
+                    this.state[`claimData-${c.address}`]
+                      ? 'success'
+                      : 'outline-secondary'
                   } mr-1`}
                   onClick={() => {
                     this.onCertify(c.address, '3', c.uri)
@@ -124,7 +135,7 @@ class NewIdentity extends Component {
                 >
                   <i className={`fa fa-${c.icon}`} />
                 </button>
-              )}
+              ))}
             </>
           )}
           <button
@@ -171,9 +182,7 @@ class NewIdentity extends Component {
   }
 
   onCertify(identity, claimType, href) {
-    href = href
-      .replace('TARGET', this.props.activeAddress)
-      .replace('ISSUER', identity)
+    href = `${href}?target=${this.state.nextContract}&issuer=${identity}`
 
     var w = window.open(href, '', 'width=650,height=500')
 
@@ -184,11 +193,11 @@ class NewIdentity extends Component {
           [`claimData-${identity}`]: {
             claimType: e.data.split(':')[3],
             claimScheme: '1',
-            claimData: '{"username":"abc"}',
-            uri: 'id.originprotocol.com/user/abc',
+            claimData: 'Verified OK',
+            uri: '',
             issuer: identity,
             signature: e.data.split(':')[1],
-            messageHash: e.data.split(':')[2]
+            messageHash: web3.utils.soliditySha3('Verified OK')
           }
         })
       } else if (e.data !== 'success') {

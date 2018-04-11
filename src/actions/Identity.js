@@ -45,7 +45,9 @@ export const ClaimTypes = [
   { id: '3', value: 'Has Facebook' },
   { id: '4', value: 'Has Twitter' },
   { id: '5', value: 'Has GitHub' },
-  { id: '6', value: 'Has Google' }
+  { id: '6', value: 'Has Google' },
+  { id: '7', value: 'Verified' },
+  { id: '8', value: 'Email' }
 ]
 export const claimType = lookup(ClaimTypes)
 
@@ -369,8 +371,7 @@ export function addClaim({
   uri,
   claimType,
   scheme,
-  signature,
-  messageHash
+  signature
 }) {
   return async function(dispatch, getState) {
     dispatch({
@@ -382,16 +383,16 @@ export function addClaim({
         uri,
         claimType,
         scheme,
-        signature,
-        messageHash
+        signature
       }
     })
 
     var state = getState()
+    var hashedData = web3.utils.soliditySha3(data);
 
-    if (!signature && !messageHash) {
-      ({ signature, messageHash } = await web3.eth.accounts.sign(
-        data,
+    if (!signature) {
+      ({ signature } = await web3.eth.accounts.sign(
+        web3.utils.soliditySha3(targetIdentity, claimType, hashedData),
         state.wallet.active.privateKey
       ))
     }
@@ -399,7 +400,7 @@ export function addClaim({
     var UserIdentity = new web3.eth.Contract(ClaimHolder.abi, targetIdentity)
 
     var abi = await UserIdentity.methods
-      .addClaim(claimType, scheme, claimIssuer, signature, messageHash, uri)
+      .addClaim(claimType, scheme, claimIssuer, signature, hashedData, uri)
       .encodeABI()
 
     var executeAbi = await UserIdentity.methods

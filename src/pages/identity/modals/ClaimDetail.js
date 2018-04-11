@@ -20,13 +20,19 @@ class ClaimDetail extends Component {
   }
 
   async componentDidMount() {
-    var identity = new web3.eth.Contract(
-      Identity.abi,
-      this.props.identity.address
-    )
+    var { address } = this.props.identity
+    var identity = new web3.eth.Contract(Identity.abi, address)
     var claim = await identity.methods.getClaim(this.props.claimId).call()
     if (claim) {
-      var dataBuf = toBuffer(claim.data)
+      var expectedData = web3.utils.soliditySha3('Verified OK')
+      var hashedSignature = web3.utils.soliditySha3(
+        address,
+        claim.claimType,
+        claim.data
+      )
+      const prefixedMsg = web3.eth.accounts.hashMessage(hashedSignature)
+
+      var dataBuf = toBuffer(prefixedMsg)
       var sig = fromRpcSig(claim.signature)
       var recovered = ecrecover(dataBuf, sig.v, sig.r, sig.s)
       var recoveredKeyBuf = pubToAddress(recovered)
@@ -36,7 +42,14 @@ class ClaimDetail extends Component {
       var issuer = new web3.eth.Contract(Identity.abi, claim.issuer)
       var hasKey = await issuer.methods.keyHasPurpose(hashedRecovered, 3).call()
 
-      this.setState({ claim, recoveredKey, hasKey, hashedRecovered })
+      this.setState({
+        claim,
+        recoveredKey,
+        hasKey,
+        hashedSignature,
+        hashedRecovered,
+        expectedData
+      })
     }
   }
 
@@ -92,6 +105,12 @@ class ClaimDetail extends Component {
               info="The hash of the claim data sitting at the URI, a bit-mask, call data, or actual data based on the claim scheme."
             >
               {claim.data}
+            </Row>
+            <Row
+              label="Combined"
+              info="keccak256(subject_address, claimType, data)"
+            >
+              {this.state.hashedSignature}
             </Row>
             <Row
               label="Signature"

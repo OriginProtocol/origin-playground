@@ -21,7 +21,10 @@ class CheckClaim extends Component {
     if (this.props.response !== 'success' && nextProps.response === 'success') {
       this.setState({ shouldClose: true, submitted: true })
     }
-    if (this.props.response !== 'submitted' && nextProps.response === 'submitted') {
+    if (
+      this.props.response !== 'submitted' &&
+      nextProps.response === 'submitted'
+    ) {
       this.setState({ loading: true })
     }
   }
@@ -37,55 +40,61 @@ class CheckClaim extends Component {
         <Loading show={this.state.loading} />
         <div className="p-3">
           <div className="mb-2 font-weight-bold">Check for valid claim:</div>
-          <FormRow label="Verifier">
-            <select
-              className="form-control"
-              value={this.state.verifier}
-              onChange={e => {
-                this.setState({
-                  verifier: e.currentTarget.value
-                })
-              }}
-            >
-              {(this.props.verifiers || []).map((identity, idx) => (
-                <option key={idx} value={identity.address}>
-                  {identity.name}
-                </option>
-              ))}
-            </select>
-          </FormRow>
-          <FormRow label="Identity">
-            <select
-              className="form-control"
-              value={this.state.identity}
-              onChange={e => {
-                this.setState({
-                  identity: e.currentTarget.value
-                })
-              }}
-            >
-              {(this.props.identities || []).map((identity, idx) => (
-                <option key={idx} value={identity.address}>
-                  {identity.name}
-                </option>
-              ))}
-            </select>
-          </FormRow>
-          <FormRow label="Claim Type">
-            <select
-              className="form-control"
-              value={this.state.claimType}
-              onChange={e => {
-                this.setState({
-                  claimType: e.currentTarget.value
-                })
-              }}
-            >
-              {ClaimTypes.map(ct =>
-                <option key={ct.id} value={ct.id}>{ct.value}</option>
-              )}
-            </select>
-          </FormRow>
+          <table>
+            <tbody>
+              <FormRow label="Verifier">
+                <select
+                  className="form-control"
+                  value={this.state.verifier}
+                  onChange={e => {
+                    this.setState({
+                      verifier: e.currentTarget.value
+                    })
+                  }}
+                >
+                  {(this.props.verifiers || []).map((identity, idx) => (
+                    <option key={idx} value={identity.address}>
+                      {identity.name}
+                    </option>
+                  ))}
+                </select>
+              </FormRow>
+              <FormRow label="Identity">
+                <select
+                  className="form-control"
+                  value={this.state.identity}
+                  onChange={e => {
+                    this.setState({
+                      identity: e.currentTarget.value
+                    })
+                  }}
+                >
+                  {(this.props.identities || []).map((identity, idx) => (
+                    <option key={idx} value={identity.address}>
+                      {identity.name}
+                    </option>
+                  ))}
+                </select>
+              </FormRow>
+              <FormRow label="Claim Type">
+                <select
+                  className="form-control"
+                  value={this.state.claimType}
+                  onChange={e => {
+                    this.setState({
+                      claimType: e.currentTarget.value
+                    })
+                  }}
+                >
+                  {ClaimTypes.map(ct => (
+                    <option key={ct.id} value={ct.id}>
+                      {ct.value}
+                    </option>
+                  ))}
+                </select>
+              </FormRow>
+            </tbody>
+          </table>
           <div className="text-right">
             <button
               className="btn btn-primary"

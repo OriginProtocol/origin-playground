@@ -2,6 +2,7 @@ const express = require('express')
 const session = require('express-session')
 const crypto = require('crypto')
 const WebSocket = require('ws')
+const serveStatic = require('serve-static')
 
 global.XMLHttpRequest = require('xhr2')
 global.window = { Promise, WebSocket, crypto }
@@ -18,6 +19,7 @@ let Config = require('./config.json')
 Config.web3 = new Web3(Config.provider)
 
 const app = express()
+app.use(serveStatic('public'))
 app.use(
   session({
     secret: 'top secret string',

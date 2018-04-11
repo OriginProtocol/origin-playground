@@ -21,12 +21,20 @@ class ValidateClaim extends Component {
 
   async validate() {
     var claim = this.props.claim
-    var dataBuf = toBuffer(claim.data)
+
+    var hashedSignature = web3.utils.soliditySha3(
+      this.props.subject,
+      claim.claimType,
+      claim.data
+    )
+    const prefixedMsg = web3.eth.accounts.hashMessage(hashedSignature)
+
+    var dataBuf = toBuffer(prefixedMsg)
     var sig = fromRpcSig(claim.signature)
     var recovered = ecrecover(dataBuf, sig.v, sig.r, sig.s)
-    var recoveredAddrBuf = pubToAddress(recovered)
-    var recoveredAddr = bufferToHex(recoveredAddrBuf)
-    var hashedRecovered = web3.utils.soliditySha3(recoveredAddr)
+    var recoveredKeyBuf = pubToAddress(recovered)
+    var recoveredKey = bufferToHex(recoveredKeyBuf)
+    var hashedRecovered = web3.utils.soliditySha3(recoveredKey)
 
     var issuer = new web3.eth.Contract(ClaimHolder.abi, claim.issuer)
     var hasKey = await issuer.methods.keyHasPurpose(hashedRecovered, 3).call()

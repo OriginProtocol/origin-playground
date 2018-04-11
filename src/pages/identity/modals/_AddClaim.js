@@ -12,12 +12,11 @@ class AddClaim extends Component {
     this.state = props.claimData || {
       claimType: '3',
       claimScheme: '1',
-      claimData: '{"username":"abc"}',
-      claimUri: 'id.originprotocol.com/user/abc',
+      claimData: '',
+      claimUri: '',
       issuer: props.issuer || props.identity,
       targetIdentity: props.identities[0].address,
-      signature: '',
-      messageHash: ''
+      signature: ''
     }
   }
 
@@ -145,16 +144,6 @@ class AddClaim extends Component {
                 }
               />
             </FormRow>
-            <FormRow label="Hash">
-              <input
-                className="form-control"
-                type="text"
-                value={this.state.messageHash}
-                onChange={e =>
-                  this.setState({ messageHash: e.currentTarget.value })
-                }
-              />
-            </FormRow>
           </tbody>
         </table>
         <div className="text-right mt-3">
@@ -169,7 +158,6 @@ class AddClaim extends Component {
                 uri: this.state.claimUri,
                 claimType: this.state.claimType,
                 scheme: this.state.claimScheme,
-                messageHash: this.state.messageHash,
                 signature: this.state.signature
               })
             }}

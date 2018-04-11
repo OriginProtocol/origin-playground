@@ -176,7 +176,7 @@ class IdentitySummary extends Component {
             >
               <td>
                 {claimType(claim.returnValues.claimType)}{' '}
-                <ValidateClaim claim={claim.returnValues} />
+                <ValidateClaim claim={claim.returnValues} subject={this.props.identity.address} />
               </td>
               <td>
                 {this.props.names[claim.returnValues.issuer] ||
@@ -211,7 +211,7 @@ class IdentitySummary extends Component {
                 <td>{claimType(decoded.params._claimType)}</td>
                 <td>
                   {this.props.names[decoded.params._issuer] ||
-                    decoded.params._issuer}
+                    decoded.params._issuer.substr(0, 8)}
                 </td>
                 <td className="text-right pr-3">
                   {this.props.isOwner ? (

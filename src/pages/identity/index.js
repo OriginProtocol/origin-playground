@@ -31,6 +31,17 @@ import RemoveClaim from './modals/_RemoveClaim'
 import Approve from './modals/_Approve'
 import RemoveIdentity from './modals/_RemoveIdentity'
 
+function identityLogo(identity) {
+  if (identity.official) {
+    return (
+      <img
+        src="images/origin-logo-dark.png"
+        style={{ height: 14, opacity: 0.6, verticalAlign: -1 }}
+      />
+    )
+  }
+  return identity.owner.substr(0, 8)
+}
 class Identity extends Component {
   constructor() {
     super()
@@ -170,7 +181,7 @@ class Identity extends Component {
                     Addr
                   </th>
                   <th className="text-center" style={{ width: 100 }}>
-                    Owner
+                    Issuer
                   </th>
                 </tr>
               </thead>
@@ -223,9 +234,9 @@ class Identity extends Component {
                             <a
                               target="_blank"
                               href={identity.uri}
-                              onClick={e => this.onCertify(e, identity, true)}
+                              onClick={e => this.onCertify(e, identity)}
                             >
-                              Get Claim
+                              Verify
                             </a>
                           </>
                         ) : null
@@ -235,7 +246,7 @@ class Identity extends Component {
                       {!identity.address ? '' : identity.address.substr(0, 8)}
                     </td>
                     <td className="text-center">
-                      {!identity.owner ? '' : identity.owner.substr(0, 8)}
+                      {!identity.owner ? '' : identityLogo(identity)}
                     </td>
                   </tr>
                 ))}
@@ -653,9 +664,7 @@ class Identity extends Component {
     e.stopPropagation()
     e.preventDefault()
 
-    var href = e.currentTarget.href
-      .replace('TARGET', this.state.activeIdentity)
-      .replace('ISSUER', identity.address)
+    var href = `${e.currentTarget.href}?target=${this.state.activeIdentity}&issuer=${identity.address}`
 
     var w = window.open(href, '', 'width=650,height=500')
 
@@ -666,12 +675,11 @@ class Identity extends Component {
           claimData: {
             claimType: e.data.split(':')[3],
             claimScheme: '1',
-            claimData: '{"username":"abc"}',
-            claimUri: 'id.originprotocol.com/user/abc',
+            claimData: 'Verified OK',
+            claimUri: '',
             issuer: identity.address,
             targetIdentity: this.state.activeIdentity,
-            signature: e.data.split(':')[1],
-            messageHash: e.data.split(':')[2]
+            signature: e.data.split(':')[1]
           }
         })
       } else if (e.data !== 'success') {
