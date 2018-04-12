@@ -140,7 +140,9 @@ class App extends Component {
           </Switch>
           <div className="footer">
             <div className="powered-by">
-              <img src="images/origin-logo-dark.png" />
+              <a href="https://www.originprotocol.com">
+                <img src="images/origin-logo-dark.png" />
+              </a>
             </div>
             <div className="middle">
               &copy; 2018{' '}
