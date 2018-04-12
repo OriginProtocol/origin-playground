@@ -126,6 +126,10 @@ Alice is ready to start shopping!
 
     npm run test
 
+## Related
+
+* https://github.com/mirceapasoi/erc725-735
+
 ## Credits
 
 * [JosefJ](https://github.com/JosefJ) for the original contract [implementation](https://github.com/JosefJ/IdentityContract)
