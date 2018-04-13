@@ -18,10 +18,12 @@ class NewIdentity extends Component {
 
   async componentDidMount() {
     var address = this.props.activeAddress
-    var nonce = await web3.eth.getTransactionCount(this.props.activeAddress)
-    var nextContract =
-      '0x' + web3.utils.sha3(RLP.encode([address, nonce])).substring(26, 66)
-    this.setState({ nextContract })
+    if (address) {
+      var nonce = await web3.eth.getTransactionCount(address)
+      var nextContract =
+        '0x' + web3.utils.sha3(RLP.encode([address, nonce])).substring(26, 66)
+      this.setState({ nextContract })
+    }
   }
 
   componentWillReceiveProps(nextProps) {

@@ -5,7 +5,8 @@ import Providers from 'constants/Providers'
 const HOST = process.env.HOST || 'localhost'
 let ipfsGateway = 'https://gateway.originprotocol.com',
   ipfsRPC = 'https://gateway.originprotocol.com',
-  provider = 'https://rinkeby.infura.io'
+  provider = 'https://rinkeby.infura.io',
+  browserHasProvider = false
 
 if (process.env.NODE_ENV !== 'production') {
   ipfsGateway = `http://${HOST}:9090`
@@ -15,7 +16,12 @@ if (process.env.NODE_ENV !== 'production') {
 
 if (typeof window !== 'undefined') {
   provider = window.sessionStorage.provider || provider
-  window.web3 = new Web3(provider)
+  if (window.web3) {
+    browserHasProvider = true
+  }
+  window.web3 = new Web3(
+    typeof web3 !== 'undefined' ? web3.currentProvider : provider
+  )
 }
 
 const initialState = {
@@ -25,6 +31,7 @@ const initialState = {
   account: null,
   status: 'disconnected',
 
+  browserHasProvider,
   providers: Providers,
   provider,
 

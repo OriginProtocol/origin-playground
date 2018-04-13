@@ -144,10 +144,7 @@ export default function Identity(state = getInitialState(), action = {}) {
     case IdentityConstants.DEPLOY_HASH:
       return { ...state, createIdentityResponse: 'in-pool' }
 
-    case IdentityConstants.DEPLOY_RECEIPT:
-      return { ...state, contract: action.contract }
-
-    case IdentityConstants.DEPLOY_SUCCESS: {
+    case IdentityConstants.DEPLOY_RECEIPT: {
       let newState = {
         ...state,
         createIdentityResponse: 'success',

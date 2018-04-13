@@ -7,6 +7,10 @@ export const WalletConstants = keyMirror(
     LOAD_SUCCESS: null,
     LOAD_ERROR: null,
 
+    LOAD_EXTERNAL: null,
+    LOAD_EXTERNAL_SUCCESS: null,
+    LOAD_EXTERNAL_ERROR: null,
+
     ADD_ACCOUNT: null,
     ADD_ACCOUNT_SUCCESS: null,
     ADD_ACCOUNT_ERROR: null,
@@ -39,15 +43,46 @@ export const WalletConstants = keyMirror(
   'WALLET'
 )
 
-export function loadWallet() {
+var watchMetaMaskInterval
+function watchMetaMask(dispatch, currentAccount) {
+  watchMetaMaskInterval = setInterval(async function() {
+    var accounts = await web3.eth.getAccounts()
+    if (currentAccount !== accounts[0]) {
+      dispatch(loadWallet(true))
+    }
+  }, 1000)
+}
+
+export function loadWallet(external) {
   return async function(dispatch, getState) {
     var state = getState()
-    dispatch({ type: WalletConstants.LOAD })
+
+    dispatch({ type: WalletConstants.LOAD, external })
     var wallet = web3.eth.accounts.wallet,
       accounts = [],
       balanceWei,
       balances = {}
+
+    clearInterval(watchMetaMaskInterval)
+
     try {
+      if (external) {
+        accounts = await web3.eth.getAccounts()
+
+        balanceWei = await web3.eth.getBalance(accounts[0])
+        balances[accounts[0]] = balance(balanceWei, state.wallet.exchangeRates)
+
+        web3.eth.accounts.wallet.clear()
+        web3.eth.defaultAccount = accounts[0]
+        dispatch({
+          type: WalletConstants.LOAD_EXTERNAL_SUCCESS,
+          activeAddress: accounts[0],
+          balances
+        })
+        watchMetaMask(dispatch, accounts[0])
+        return
+      }
+
       // wallet.load is expensive, so cache private keys in sessionStorage
       if (window.sessionStorage.privateKeys) {
         JSON.parse(window.sessionStorage.privateKeys).forEach(key =>
@@ -73,6 +108,8 @@ export function loadWallet() {
         balanceWei = await web3.eth.getBalance(hash)
         balances[hash] = balance(balanceWei, state.wallet.exchangeRates)
       }
+
+      web3.eth.defaultAccount = accounts[0]
 
       dispatch({
         type: WalletConstants.LOAD_SUCCESS,

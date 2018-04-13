@@ -4,18 +4,21 @@ import { NetworkConstants } from 'actions/Network'
 import balance from 'utils/balance'
 
 const initialState = {
+  externalProvider: false,
+
+  activeAddress: null,
+  balances: {},
+  currency: 'eth',
+  currencyStr: '$',
+  exchangeRates: {
+    usd: 400
+  },
+
   unsaved: false,
   loaded: false,
   raw: {},
   accounts: [],
   active: null,
-  activeAddress: null,
-  balances: {},
-  currency: 'usd',
-  currencyStr: '$',
-  exchangeRates: {
-    usd: 400
-  },
   locked: false,
   tryUnlock: false
 }
@@ -25,9 +28,21 @@ export default function Wallet(state = initialState, action = {}) {
     case WalletConstants.SELECT_ACCOUNT_SUCCESS:
       return {
         ...state,
-        active: action.account,
-        activeAddress: action.account.address
+        activeAddress: action.activeAddress
       }
+
+    case WalletConstants.LOAD_EXTERNAL_SUCCESS:
+      return {
+        ...state,
+        activeAddress: action.activeAddress,
+        accounts: [],
+        balances: action.balances,
+        active: null,
+        loaded: false
+      }
+
+    case WalletConstants.LOAD:
+      return { ...state, externalProvider: action.external }
 
     case WalletConstants.LOAD_SUCCESS:
       return {

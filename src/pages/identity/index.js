@@ -63,10 +63,12 @@ class Identity extends Component {
       <div className="pt-3">
         <div className="row">
           <div className="col-md-6">
-            <WalletChooser
-              wallet={this.props.wallet}
-              selectAccount={this.props.selectAccount}
-            />
+            {this.props.wallet.externalProvider ? null : (
+              <WalletChooser
+                wallet={this.props.wallet}
+                selectAccount={this.props.selectAccount}
+              />
+            )}
 
             <table
               className={`table table-sm${
@@ -664,7 +666,9 @@ class Identity extends Component {
     e.stopPropagation()
     e.preventDefault()
 
-    var href = `${e.currentTarget.href}?target=${this.state.activeIdentity}&issuer=${identity.address}`
+    var href = `${e.currentTarget.href}?target=${
+      this.state.activeIdentity
+    }&issuer=${identity.address}`
 
     var w = window.open(href, '', 'width=650,height=500')
 

@@ -18,9 +18,6 @@ class WalletChooser extends Component {
             </button>
           ))}
         </div>
-        <a href="#/console" className="btn btn-outline-secondary btn-sm ml-3">
-          <i className="fa fa-cogs" />
-        </a>
       </div>
     )
   }

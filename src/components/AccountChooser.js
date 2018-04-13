@@ -19,21 +19,21 @@ export default class AccountChooser extends Component {
           linkClass=" nav-link"
           label={
             <span
-              className={
-                this.props.wallet.locked ? 'wallet-locked' : 'wallet-unlocked'
-              }
+              // className={
+              //   this.props.wallet.locked ? 'wallet-locked' : 'wallet-unlocked'
+              // }
             >
               {`Balance: ${balance[currency]}`}
-              <i
+              {/* <i
                 className={`fa fa-${
                   this.props.wallet.locked ? '' : 'un'
                 }lock ml-2`}
-              />
+              /> */}
               <i className="fa fa-caret-down ml-2" />
             </span>
           }
         >
-          <div className="d-flex px-2" style={{ whiteSpace: 'nowrap' }}>
+          {/* <div className="d-flex px-2" style={{ whiteSpace: 'nowrap' }}>
             <div className="btn-group btn-group-sm mx-auto align-items-baseline">
               <button
                 className={`btn btn-outline-secondary${
@@ -63,7 +63,7 @@ export default class AccountChooser extends Component {
               <i className="fa fa-cogs" />
             </a>
           </div>
-          <div className="dropdown-divider" />
+          <div className="dropdown-divider" /> */}
           {wallet.accounts.map((a, idx) => (
             <a
               key={idx}
