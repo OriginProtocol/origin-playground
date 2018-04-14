@@ -6,7 +6,7 @@ const HOST = process.env.HOST || 'localhost'
 let ipfsGateway = 'https://gateway.originprotocol.com',
   ipfsRPC = 'https://gateway.originprotocol.com',
   provider = 'https://rinkeby.infura.io',
-  browserHasProvider = false
+  browserProvider = false
 
 if (process.env.NODE_ENV !== 'production') {
   ipfsGateway = `http://${HOST}:9090`
@@ -17,11 +17,9 @@ if (process.env.NODE_ENV !== 'production') {
 if (typeof window !== 'undefined') {
   provider = window.sessionStorage.provider || provider
   if (window.web3) {
-    browserHasProvider = true
+    browserProvider = web3.currentProvider
   }
-  window.web3 = new Web3(
-    typeof web3 !== 'undefined' ? web3.currentProvider : provider
-  )
+  window.web3 = new Web3(provider)
 }
 
 const initialState = {
@@ -31,7 +29,7 @@ const initialState = {
   account: null,
   status: 'disconnected',
 
-  browserHasProvider,
+  browserProvider,
   providers: Providers,
   provider,
 

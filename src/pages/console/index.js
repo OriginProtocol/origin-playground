@@ -59,7 +59,7 @@ class Console extends Component {
 
 const mapStateToProps = state => ({
   externalProvider: state.wallet.externalProvider,
-  browserHasProvider: state.network.browserHasProvider
+  browserHasProvider: state.network.browserProvider ? true : false
 })
 
 const mapDispatchToProps = dispatch => ({

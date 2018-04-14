@@ -3,6 +3,11 @@ import Identity from '../contracts/Identity'
 import ClaimHolder from '../contracts/ClaimHolder'
 import ClaimVerifier from '../contracts/ClaimVerifier'
 
+window.contracts = {
+  ClaimHolder: (addr) => new web3.eth.Contract(ClaimHolder.abi, addr),
+  ClaimVerifier: (addr) => new web3.eth.Contract(ClaimVerifier.abi, addr),
+}
+
 function lookup(Types) {
   return function claimType(id) {
     var type = Types.find(t => t.id === id)
@@ -309,7 +314,9 @@ export function addClaim({
       })
 
     dispatch(sendTransaction(tx, IdentityConstants.ADD_CLAIM, txData, () => {
-      dispatch(getEvents('ClaimHolder', targetIdentity))
+      if (web3.eth.defaultAccount === targetIdentity) {
+        dispatch(getEvents('ClaimHolder', targetIdentity))
+      }
     }))
   }
 }
@@ -335,7 +342,7 @@ export function removeClaim({ identity, claim }) {
 
 function sendTransaction(transaction, type, data, callback) {
   return async function(dispatch) {
-    dispatch({ type })
+    dispatch({ type, ...data })
 
     transaction
       .on('error', error => {

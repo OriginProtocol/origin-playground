@@ -4,8 +4,8 @@ import './ClaimHolder.sol';
 
 contract ClaimVerifier {
 
-  event ClaimValid(ClaimHolder _identity, uint256 claimType);
-  event ClaimInvalid(ClaimHolder _identity, uint256 claimType);
+  event ClaimValid(ClaimHolder _identity, uint256 claimType, bytes32 recoveredKey);
+  event ClaimInvalid(ClaimHolder _identity, uint256 claimType, bytes32 recoveredKey);
 
   ClaimHolder public trustedClaimHolder;
 
@@ -35,10 +35,10 @@ contract ClaimVerifier {
 
     // Does the trusted identifier have they key which signed the user's claim?
     if (trustedClaimHolder.keyHasPurpose(hashedAddr, 3)) {
-      emit ClaimValid(_identity, claimType);
+      emit ClaimValid(_identity, claimType, hashedAddr);
       return true;
     } else {
-      emit ClaimInvalid(_identity, claimType);
+      emit ClaimInvalid(_identity, claimType, hashedAddr);
       return false;
     }
   }

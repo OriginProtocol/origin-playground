@@ -110,12 +110,7 @@ contract ClaimHolder is KeyHolder, ERC735 {
         bytes32 sa;
         uint8 va;
 
-        bytes memory prefix = "\x19Ethereum Signed Message:\n32"; // prefix used by web3
         bytes memory sig = claims[_claimId].signature;
-        uint256 claimType = claims[_claimId].claimType;
-        bytes32 claimData = claims[_claimId].data;
-        bytes32 dataHash = keccak256(address(this), claimType, claimData);
-        bytes32 prefixedHash = keccak256(prefix, dataHash);
 
         // Check the signature length
         if (sig.length != 65) {
@@ -132,6 +127,9 @@ contract ClaimHolder is KeyHolder, ERC735 {
         if (va < 27) {
           va += 27;
         }
+
+        bytes32 dataHash = keccak256(address(this), claims[_claimId].claimType, claims[_claimId].data);
+        bytes32 prefixedHash = keccak256("\x19Ethereum Signed Message:\n32", dataHash);
 
         return (prefixedHash, ra, sa, va);
     }

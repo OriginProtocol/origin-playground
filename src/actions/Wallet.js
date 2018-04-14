@@ -67,6 +67,7 @@ export function loadWallet(external) {
 
     try {
       if (external) {
+        web3.setProvider(state.network.browserProvider)
         accounts = await web3.eth.getAccounts()
 
         balanceWei = await web3.eth.getBalance(accounts[0])
@@ -82,6 +83,8 @@ export function loadWallet(external) {
         watchMetaMask(dispatch, accounts[0])
         return
       }
+
+      web3.setProvider(state.network.provider)
 
       // wallet.load is expensive, so cache private keys in sessionStorage
       if (window.sessionStorage.privateKeys) {
@@ -129,10 +132,12 @@ export function selectAccount(address) {
 
     try {
       var account = web3.eth.accounts.wallet[address]
+      web3.eth.defaultAccount = address
 
       dispatch({
         type: WalletConstants.SELECT_ACCOUNT_SUCCESS,
-        account
+        account,
+        activeAddress: address
       })
     } catch (error) {
       dispatch({ type: WalletConstants.SELECT_ACCOUNT_ERROR, error })
