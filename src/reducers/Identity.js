@@ -19,6 +19,7 @@ const initialState = {
   checkClaimResponse: undefined,
   approveExecutionResponse: undefined,
   eventsResponse: undefined,
+  lastDeployedIdentity: undefined,
   events: []
 }
 
@@ -156,9 +157,11 @@ export default function Identity(state = getInitialState(), action = {}) {
             owner: action.owner,
             type: action.identityType,
             uri: action.uri,
-            icon: action.icon
+            icon: action.icon,
+            signerServices: action.signerServices
           }
-        ]
+        ],
+        lastDeployedIdentity: action.receipt.contractAddress
       }
       localStorage.identities = JSON.stringify(newState.identities)
       return applyContractNames(newState)
@@ -193,7 +196,7 @@ export default function Identity(state = getInitialState(), action = {}) {
     }
 
     case IdentityConstants.GET_EVENTS:
-      return { ...state, events: [], eventsResponse: null }
+      return { ...state, eventsResponse: null }
 
     case IdentityConstants.GET_EVENTS_SUCCESS:
       return { ...state, events: action.events, eventsResponse: 200 }

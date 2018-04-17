@@ -44,24 +44,9 @@ class NewIdentity extends Component {
       i => i.type !== identityType && i.owner === activeAddress
     )
 
-    const Btn = props => (
-      <button
-        className={`btn btn-outline-secondary${
-          props.icon === this.state.icon ? ' active' : ''
-        }`}
-        onClick={() => {
-          this.setState({
-            icon: props.icon === this.state.icon ? null : props.icon
-          })
-        }}
-      >
-        <i className={`fa fa-${props.icon}`} />
-      </button>
-    )
-
     return (
       <Modal
-        style={{ maxWidth: 375 }}
+        style={{ maxWidth: 425 }}
         shouldClose={this.state.shouldClose}
         submitted={this.state.submitted}
         className="p-3"
@@ -70,11 +55,9 @@ class NewIdentity extends Component {
         onPressEnter={() => this.onDeploy()}
       >
         <Loading show={this.state.loading} />
-        <div
-          className={`font-weight-bold${otherTypeSameOwner ? '' : ' mb-3'}`}
-        >{`Deploy a new ${
-          identityType === 'identity' ? 'Identity' : 'Certifier'
-        } contract:`}</div>
+        <div className={`font-weight-bold${otherTypeSameOwner ? '' : ' mb-3'}`}>
+          Deploy a new Identity contract:
+        </div>
         {otherTypeSameOwner && (
           <div className="alert alert-warning py-1 px-2 mt-2">
             {`You may want to use a different wallet`}
@@ -91,54 +74,20 @@ class NewIdentity extends Component {
                 onChange={e => this.setState({ name: e.currentTarget.value })}
               />
             </FormRow>
-            {identityType === 'identity' ? null : (
-              <>
-                <FormRow label="URI">
-                  <input
-                    type="text"
-                    className="form-control"
-                    value={this.state.uri}
-                    onChange={e =>
-                      this.setState({ uri: e.currentTarget.value })
-                    }
-                  />
-                </FormRow>
-                <FormRow label="Icon">
-                  <div className="btn-group btn-group-sm">
-                    <Btn icon="facebook" />
-                    <Btn icon="twitter" />
-                    <Btn icon="google" />
-                    <Btn icon="github" />
-                    <Btn icon="envelope-o" />
-                    <Btn icon="phone" />
-                    <Btn icon="cc-visa" />
-                    <Btn icon="key" />
-                  </div>
-                </FormRow>
-              </>
-            )}
           </tbody>
         </table>
 
-        <div className="d-flex mt-2">
-          {identityType !== 'identity' ? null : (
-            <>
-              {(this.props.certifiers || []).map((c, idx) => (
-                <button
-                  key={idx}
-                  className={`btn btn-${
-                    this.state[`claimData-${c.address}`]
-                      ? 'success'
-                      : 'outline-secondary'
-                  } mr-1`}
-                  onClick={() => {
-                    this.onCertify(c.address, '3', c.uri)
-                  }}
-                >
-                  <i className={`fa fa-${c.icon}`} />
-                </button>
-              ))}
-            </>
+        <div className="d-flex mt-2 align-items-center">
+          {this.state.preSign ? null : (
+            <a
+              href="#"
+              onClick={e => {
+                e.preventDefault()
+                this.setState({ preSign: true })
+              }}
+            >
+              Pre-Sign Claims
+            </a>
           )}
           <button
             className="btn btn-primary ml-auto"
@@ -147,6 +96,41 @@ class NewIdentity extends Component {
             Deploy
           </button>
         </div>
+
+        {!this.state.preSign ? null : (
+          <table className="table table-sm mt-3">
+            <thead>
+              <tr>
+                <th>Issuer</th>
+                <th>Available Claims</th>
+              </tr>
+            </thead>
+            <tbody>
+              {(this.props.certifiers || []).map((c, idx) => (
+                <tr key={idx}>
+                  <td>{c.name}</td>
+                  <td>
+                    {(c.signerServices || []).map((s, sidx) => (
+                      <button
+                        key={sidx}
+                        className={`btn btn-sm btn-${
+                          this.state[`claimData-${c.address}-${s.claimType}`]
+                            ? 'success'
+                            : 'outline-secondary'
+                        } mr-1`}
+                        onClick={() => {
+                          this.onCertify(c.address, s.claimType, s.uri)
+                        }}
+                      >
+                        <i className={`fa fa-${s.icon}`} />
+                      </button>
+                    ))}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
       </Modal>
     )
   }
@@ -192,7 +176,7 @@ class NewIdentity extends Component {
       if (String(e.data).match(/^signed-data:/)) {
         this.setState({
           preAdd: true,
-          [`claimData-${identity}`]: {
+          [`claimData-${identity}-${claimType}`]: {
             claimType: e.data.split(':')[3],
             claimScheme: '1',
             claimData: 'Verified OK',

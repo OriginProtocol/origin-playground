@@ -35,7 +35,7 @@ class NewVerifier extends Component {
       >
         <Loading show={this.state.loading} />
         <div className="font-weight-bold mb-3">
-          Deploy a new Protected Contract:
+          Deploy a new Claim Checker Contract:
         </div>
         {!this.props.identities.length && (
           <div className="alert alert-warning py-1 px-2 mt-2">
@@ -54,7 +54,7 @@ class NewVerifier extends Component {
                 onChange={e => this.setState({ name: e.currentTarget.value })}
               />
             </FormRow>
-            <FormRow label="Certifier">
+            <FormRow label="Trusted Issuer">
               <select
                 className="form-control"
                 value={this.state.trustedIdentity}

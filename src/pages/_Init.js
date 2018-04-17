@@ -44,15 +44,42 @@ class Event extends Component {
         this.props.sendFromNode(nodeAccounts[0].hash, walletAccounts[2], '2')
       }, 500)
     } else if (this.stage === 3 && balances[walletAccounts[2]].eth === '0') {
-      this.next('Add Facebook certifier...')
+      this.next('Add Origin certifier...')
       setTimeout(() => {
         this.props.selectAccount(walletAccounts[1])
         this.props.deployIdentityContract(
-          'Facebook',
+          'Origin',
           'certifier',
           'https://erc725.originprotocol.com/fb-auth',
           false,
-          'facebook'
+          'facebook',
+          [
+            {
+              uri: 'https://erc725.originprotocol.com/fb-auth',
+              icon: 'facebook',
+              claimType: '3'
+            },
+            {
+              uri: 'https://erc725.originprotocol.com/twitter-auth',
+              icon: 'twitter',
+              claimType: '4'
+            },
+            {
+              uri: 'https://erc725.originprotocol.com/github-auth',
+              icon: 'github',
+              claimType: '5'
+            },
+            {
+              uri: 'https://erc725.originprotocol.com/google-auth',
+              icon: 'google',
+              claimType: '6'
+            },
+            {
+              uri: 'https://erc725.originprotocol.com/linkedin-auth',
+              icon: 'linkedin',
+              claimType: '9'
+            }
+          ]
         )
       }, 500)
     } else if (
@@ -60,54 +87,9 @@ class Event extends Component {
       this.props.createIdentityResponse !== 'success' &&
       nextProps.createIdentityResponse === 'success'
     ) {
-      this.next('Add Google certifier...')
+      this.next('Add Claim Signer key...')
       setTimeout(() => {
-        this.props.deployIdentityContract(
-          'Google',
-          'certifier',
-          'https://erc725.originprotocol.com/google-auth',
-          false,
-          'google'
-        )
-      }, 500)
-    } else if (
-      this.stage === 5 &&
-      this.props.createIdentityResponse !== 'success' &&
-      nextProps.createIdentityResponse === 'success'
-    ) {
-      this.next('Add Twitter certifier...')
-      setTimeout(() => {
-        this.props.deployIdentityContract(
-          'Twitter',
-          'certifier',
-          'https://erc725.originprotocol.com/twitter-auth',
-          false,
-          'twitter'
-        )
-      }, 500)
-    } else if (
-      this.stage === 6 &&
-      this.props.createIdentityResponse !== 'success' &&
-      nextProps.createIdentityResponse === 'success'
-    ) {
-      this.next('Add GitHub certifier...')
-      setTimeout(() => {
-        this.props.deployIdentityContract(
-          'GitHub',
-          'certifier',
-          'https://erc725.originprotocol.com/github-auth',
-          false,
-          'github'
-        )
-      }, 500)
-    } else if (
-      this.stage === 7 &&
-      this.props.createIdentityResponse !== 'success' &&
-      nextProps.createIdentityResponse === 'success'
-    ) {
-      this.next('Add Facebook key...')
-      setTimeout(() => {
-        var fb = this.props.identity.identities.find(i => i.name === 'Facebook')
+        var fb = this.props.identity.identities.find(i => i.name === 'Origin')
         this.props.addKey({
           purpose: '3',
           keyType: '1',
@@ -117,61 +99,13 @@ class Event extends Component {
         })
       }, 500)
     } else if (
-      this.stage === 8 &&
-      this.props.addKeyResponse !== 'success' &&
-      nextProps.addKeyResponse === 'success'
-    ) {
-      this.next('Add Google key...')
-      setTimeout(() => {
-        var fb = this.props.identity.identities.find(i => i.name === 'Google')
-        this.props.addKey({
-          purpose: '3',
-          keyType: '1',
-          key:
-            '0xbd3f1e807a497a8064af41cb716433b5da63a9d13830e7bd2ed442bbf686540b',
-          identity: fb.address
-        })
-      }, 500)
-    } else if (
-      this.stage === 9 &&
-      this.props.addKeyResponse !== 'success' &&
-      nextProps.addKeyResponse === 'success'
-    ) {
-      this.next('Add Twitter key...')
-      setTimeout(() => {
-        var fb = this.props.identity.identities.find(i => i.name === 'Twitter')
-        this.props.addKey({
-          purpose: '3',
-          keyType: '1',
-          key:
-            '0x17c0aaec6eb7b9964a2bd253a15bf395fe24db56ec03dea486680564f5c5033c',
-          identity: fb.address
-        })
-      }, 500)
-    } else if (
-      this.stage === 10 &&
-      this.props.addKeyResponse !== 'success' &&
-      nextProps.addKeyResponse === 'success'
-    ) {
-      this.next('Add GitHub key...')
-      setTimeout(() => {
-        var fb = this.props.identity.identities.find(i => i.name === 'GitHub')
-        this.props.addKey({
-          purpose: '3',
-          keyType: '1',
-          key:
-            '0x586bbc218986f20ddd4fb1b23a51897536c1ae0a380ff106151741a01a8d15ff',
-          identity: fb.address
-        })
-      }, 500)
-    } else if (
-      this.stage === 11 &&
+      this.stage === 5 &&
       this.props.addKeyResponse !== 'success' &&
       nextProps.addKeyResponse === 'success'
     ) {
       this.next('Done!')
+      this.props.selectAccount(walletAccounts[0])
       setTimeout(() => {
-        this.props.selectAccount(walletAccounts[0])
         this.setState({ shouldClose: true })
       }, 1500)
     }
@@ -188,7 +122,12 @@ class Event extends Component {
     }
     return (
       <Modal
-        onClose={() => this.setState({ modal: false })}
+        onClose={() => {
+          this.setState({ modal: false })
+          if (this.props.onClose) {
+            this.props.onClose()
+          }
+        }}
         shouldClose={this.state.shouldClose}
         style={{ maxWidth: 375 }}
       >

@@ -10,7 +10,7 @@ export default class AccountChooser extends Component {
   }
 
   render() {
-    const { wallet, balance } = this.props
+    const { wallet, balance, account } = this.props
     const currency = `${wallet.currency}Str`
     return (
       <div>
@@ -18,52 +18,12 @@ export default class AccountChooser extends Component {
           style={{ position: 'relative' }}
           linkClass=" nav-link"
           label={
-            <span
-              // className={
-              //   this.props.wallet.locked ? 'wallet-locked' : 'wallet-unlocked'
-              // }
-            >
-              {`Balance: ${balance[currency]}`}
-              {/* <i
-                className={`fa fa-${
-                  this.props.wallet.locked ? '' : 'un'
-                }lock ml-2`}
-              /> */}
+            <>
+              {`Wallet ${account.substr(0, 6)}: ${balance[currency]}`}
               <i className="fa fa-caret-down ml-2" />
-            </span>
+            </>
           }
         >
-          {/* <div className="d-flex px-2" style={{ whiteSpace: 'nowrap' }}>
-            <div className="btn-group btn-group-sm mx-auto align-items-baseline">
-              <button
-                className={`btn btn-outline-secondary${
-                  this.props.wallet.locked ? ' active' : ''
-                }`}
-                onClick={() => {
-                  this.props.lockWallet()
-                }}
-              >
-                <i className="fa fa-lock" /> Lock
-              </button>
-              <button
-                className={`btn btn-outline-secondary${
-                  this.props.wallet.locked ? '' : ' active'
-                }`}
-                onClick={() => {
-                  this.props.unlockWallet()
-                }}
-              >
-                <i className="fa fa-unlock" /> Unlock
-              </button>
-            </div>
-            <a
-              className="ml-2 btn btn-outline-secondary btn-sm"
-              href="#/console"
-            >
-              <i className="fa fa-cogs" />
-            </a>
-          </div>
-          <div className="dropdown-divider" /> */}
           {wallet.accounts.map((a, idx) => (
             <a
               key={idx}
@@ -80,6 +40,11 @@ export default class AccountChooser extends Component {
               <span className="ml-3">{`${a.substr(0, 8)}`}</span>
             </a>
           ))}
+          <div className="dropdown-divider" />
+
+          <a className="dropdown-item" href="#/console">
+            Network / Wallet Settings
+          </a>
           <div className="dropdown-divider" />
           <div className="d-flex px-3" style={{ whiteSpace: 'nowrap' }}>
             <div className="btn-group btn-group-sm mx-auto align-items-baseline">

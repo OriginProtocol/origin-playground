@@ -15,7 +15,7 @@ class AddClaim extends Component {
       claimData: '',
       claimUri: '',
       issuer: props.issuer || props.identity,
-      targetIdentity: props.identities[0].address,
+      targetIdentity: props.identity || props.identities[0].address,
       signature: ''
     }
   }
@@ -48,7 +48,7 @@ class AddClaim extends Component {
         <div className="font-weight-bold mb-2">Add a Claim to an Identity:</div>
         <table className="w-100">
           <tbody>
-            <FormRow label="Subject">
+            <FormRow label="Target">
               <select
                 className="form-control"
                 value={this.state.targetIdentity}
@@ -114,16 +114,6 @@ class AddClaim extends Component {
                 <option value="3">Contract Call</option>
               </select>
             </FormRow>
-            <FormRow label="URI">
-              <input
-                className="form-control"
-                type="text"
-                value={this.state.claimUri}
-                onChange={e =>
-                  this.setState({ claimUri: e.currentTarget.value })
-                }
-              />
-            </FormRow>
             <FormRow label="Data">
               <input
                 className="form-control"
@@ -131,6 +121,16 @@ class AddClaim extends Component {
                 value={this.state.claimData}
                 onChange={e =>
                   this.setState({ claimData: e.currentTarget.value })
+                }
+              />
+            </FormRow>
+            <FormRow label="URI">
+              <input
+                className="form-control"
+                type="text"
+                value={this.state.claimUri}
+                onChange={e =>
+                  this.setState({ claimUri: e.currentTarget.value })
                 }
               />
             </FormRow>
@@ -158,7 +158,8 @@ class AddClaim extends Component {
                 uri: this.state.claimUri,
                 claimType: this.state.claimType,
                 scheme: this.state.claimScheme,
-                signature: this.state.signature
+                signature: this.state.signature,
+                refresh: this.props.identity === this.state.targetIdentity
               })
             }}
           >

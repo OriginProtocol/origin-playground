@@ -9,16 +9,8 @@ import Init from './_Init'
 
 import { init } from 'actions/Network'
 import AccountChooser from 'components/AccountChooser'
-import NavLink from 'components/NavLink'
 
-import {
-  selectAccount,
-  setCurrency,
-  loadWallet,
-  lockWallet,
-  unlockWallet,
-  unlockedWallet
-} from 'actions/Wallet'
+import { selectAccount, setCurrency, loadWallet } from 'actions/Wallet'
 
 class App extends Component {
   constructor(props) {
@@ -67,7 +59,7 @@ class App extends Component {
   render() {
     return (
       <div>
-        <Init />
+        <Init onClose={() => this.props.history.push('/')} />
         <nav className="navbar navbar-expand-sm navbar-light">
           <div className="container">
             <Link
@@ -77,6 +69,15 @@ class App extends Component {
             >
               ERC 725
             </Link>
+            <span className="navbar-text">
+              Demo implementation by
+              <a href="https://www.originprotocol.com">
+                <img
+                  style={{ height: 15, opacity: 0.5, verticalAlign: -2, marginLeft: 5 }}
+                  src="/images/origin-logo-dark.png"
+                />
+              </a>
+            </span>
             <button
               className="navbar-toggler"
               type="button"
@@ -93,10 +94,6 @@ class App extends Component {
                 this.state.toggled ? ' show' : ''
               }`}
             >
-              <ul className="navbar-nav text-right ml-3">
-                <NavLink to="/" exact>Identities</NavLink>
-                <NavLink to="/console">Wallets</NavLink>
-              </ul>
               <ul className="navbar-nav ml-auto text-right">
                 {this.props.account &&
                   this.props.wallet && (
@@ -107,9 +104,6 @@ class App extends Component {
                         account={this.props.account}
                         selectAccount={a => this.props.selectAccount(a)}
                         setCurrency={c => this.props.setCurrency(c)}
-                        lockWallet={() => this.props.lockWallet()}
-                        unlockWallet={() => this.props.unlockWallet()}
-                        unlockedWallet={() => this.props.unlockedWallet()}
                       />
                     </li>
                   )}
@@ -136,6 +130,8 @@ class App extends Component {
           )}
           <Switch>
             <Route path="/console" component={Console} />
+            <Route path="/identity/:address" component={Identity} />
+            <Route path="/protected-contract/:address" component={Identity} />
             <Route component={Identity} />
           </Switch>
           <div className="footer">
@@ -145,7 +141,7 @@ class App extends Component {
               </a>
             </div>
             <div className="middle">
-              &copy; 2018{' '}
+              &copy;{' 2018 '}
               <a className="ml-1" href="https://www.originprotocol.com">
                 Origin Protocol
               </a>
@@ -177,15 +173,6 @@ const mapDispatchToProps = dispatch => ({
   loadWallet: () => {
     dispatch(loadWallet())
   },
-  lockWallet: () => {
-    dispatch(lockWallet())
-  },
-  unlockWallet: () => {
-    dispatch(unlockWallet())
-  },
-  unlockedWallet: () => {
-    dispatch(unlockedWallet())
-  },
   selectAccount: hash => dispatch(selectAccount(hash)),
   setCurrency: currency => dispatch(setCurrency(currency))
 })
@@ -193,8 +180,11 @@ const mapDispatchToProps = dispatch => ({
 export default connect(mapStateToProps, mapDispatchToProps)(App)
 
 require('react-styl')(`
-  table.table .btn-sm
-    padding: 0.125rem 0.375rem
+  table.table
+    thead tr th
+      border-top: 0
+    .btn-sm
+      padding: 0.125rem 0.375rem
   .navbar
     border-bottom: 1px solid #E5E9EF;
   .navbar-light .navbar-text .dropdown-item.active,

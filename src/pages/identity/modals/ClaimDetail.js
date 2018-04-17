@@ -40,7 +40,13 @@ class ClaimDetail extends Component {
       var hashedRecovered = web3.utils.soliditySha3(recoveredKey)
 
       var issuer = new web3.eth.Contract(Identity.abi, claim.issuer)
-      var hasKey = await issuer.methods.keyHasPurpose(hashedRecovered, 3).call()
+      try {
+        var hasKey = await issuer.methods
+          .keyHasPurpose(hashedRecovered, 3)
+          .call()
+      } catch (e) {
+        /*Ignore*/
+      }
 
       this.setState({
         claim,

@@ -1,35 +1,18 @@
 import React, { Component } from 'react'
 import { connect } from 'react-redux'
+import { Switch, Route } from 'react-router-dom'
 
-import {
-  deployIdentityContract,
-  deployClaimVerifier,
-  addClaim,
-  removeClaim,
-  addKey,
-  removeKey,
-  getEvents,
-  approveExecution,
-  checkClaim,
-  removeIdentity,
-  removeVerifier
-} from 'actions/Identity'
+import { deployIdentityContract, deployClaimVerifier } from 'actions/Identity'
 
 import { selectAccount } from 'actions/Wallet'
-import NavItem from 'components/NavItem'
 
-import Events from './_Events'
-import Summary from './_Summary'
-import WalletChooser from './_WalletChooser'
+import IdentityDetail from './IdentityDetail'
+import ProtectedDetail from './ProtectedDetail'
+import Home from './Home'
+
 import NewVerifier from './modals/_NewVerifier'
 import NewIdentity from './modals/_NewIdentity'
-import CheckClaim from './modals/_CheckClaim'
-import AddKey from './modals/_AddKey'
-import RemoveKey from './modals/_RemoveKey'
-import AddClaim from './modals/_AddClaim'
-import RemoveClaim from './modals/_RemoveClaim'
-import Approve from './modals/_Approve'
-import RemoveIdentity from './modals/_RemoveIdentity'
+import NewClaimIssuer from './modals/_NewClaimIssuer'
 
 function identityLogo(identity) {
   if (identity.official) {
@@ -40,36 +23,34 @@ function identityLogo(identity) {
       />
     )
   }
-  return identity.owner.substr(0, 8)
+  return identity.owner.substr(0, 6)
 }
+
 class Identity extends Component {
   constructor() {
     super()
-    this.state = {
-      mode: 'summary'
+    this.state = {}
+  }
+
+  componentWillReceiveProps(nextProps) {
+    if (
+      this.props.identity.lastDeployedIdentity !==
+      nextProps.identity.lastDeployedIdentity
+    ) {
+      this.props.history.push(
+        `/identity/${nextProps.identity.lastDeployedIdentity}`
+      )
     }
   }
 
   render() {
     var identities = this.props.identities.filter(i => i.type !== 'certifier')
     var certifiers = this.props.identities.filter(i => i.type === 'certifier')
-    var activeIdentity = this.props.identities.find(
-      i => i.address === this.state.activeIdentity
-    )
-    var wrongOwner =
-      activeIdentity && this.props.wallet.activeAddress !== activeIdentity.owner
 
     return (
       <div className="pt-3">
         <div className="row">
           <div className="col-md-6">
-            {this.props.wallet.externalProvider ? null : (
-              <WalletChooser
-                wallet={this.props.wallet}
-                selectAccount={this.props.selectAccount}
-              />
-            )}
-
             <table
               className={`table table-sm${
                 identities.length ? ' table-hover' : ''
@@ -77,7 +58,7 @@ class Identity extends Component {
             >
               <thead>
                 <tr>
-                  <th>
+                  <th className="border-top-0">
                     <i className="fa fa-user mr-2" />Identities
                     {!identities.length ? null : (
                       <a
@@ -95,10 +76,16 @@ class Identity extends Component {
                       </a>
                     )}
                   </th>
-                  <th className="text-center" style={{ width: 100 }}>
+                  <th
+                    className="border-top-0 text-center"
+                    style={{ width: 80 }}
+                  >
                     Addr
                   </th>
-                  <th className="text-center" style={{ width: 100 }}>
+                  <th
+                    className="border-top-0 text-center"
+                    style={{ width: 80 }}
+                  >
                     Owner
                   </th>
                 </tr>
@@ -126,9 +113,9 @@ class Identity extends Component {
                 {identities.map((identity, idx) => (
                   <tr
                     key={idx}
-                    onClick={() =>
-                      this.selectIdentity(identity.address, 'ClaimHolder')
-                    }
+                    onClick={() => {
+                      this.selectIdentity(identity.address, 'identity')
+                    }}
                     style={{ cursor: 'pointer' }}
                     className={this.rowCls(identity)}
                   >
@@ -143,10 +130,10 @@ class Identity extends Component {
                       {identity.name}
                     </td>
                     <td className="text-center">
-                      {!identity.address ? '' : identity.address.substr(0, 8)}
+                      {!identity.address ? '' : identity.address.substr(0, 6)}
                     </td>
                     <td className="text-center">
-                      {!identity.owner ? '' : identity.owner.substr(0, 8)}
+                      {!identity.owner ? '' : identity.owner.substr(0, 6)}
                     </td>
                   </tr>
                 ))}
@@ -161,7 +148,7 @@ class Identity extends Component {
               <thead>
                 <tr>
                   <th>
-                    <i className="fa fa-certificate mr-2" />Certifiers
+                    <i className="fa fa-certificate mr-2" />Claim Issuers
                     {!certifiers.length ? null : (
                       <a
                         href="#"
@@ -170,7 +157,7 @@ class Identity extends Component {
                           e.preventDefault()
                           this.setState({
                             identityType: 'certifier',
-                            deploy: true
+                            newClaimIssuer: true
                           })
                         }}
                       >
@@ -178,19 +165,18 @@ class Identity extends Component {
                       </a>
                     )}
                   </th>
-                  <th />
-                  <th className="text-center" style={{ width: 100 }}>
+                  <th className="text-center" style={{ width: 80 }}>
                     Addr
                   </th>
-                  <th className="text-center" style={{ width: 100 }}>
-                    Issuer
+                  <th className="text-center" style={{ width: 80 }}>
+                    Owner
                   </th>
                 </tr>
               </thead>
               <tbody>
                 {!certifiers.length && (
                   <tr>
-                    <td colSpan={2} className="p-2">
+                    <td colSpan={3} className="p-2">
                       <button
                         href="#"
                         className="btn btn-sm btn-outline-primary"
@@ -198,11 +184,11 @@ class Identity extends Component {
                           e.preventDefault()
                           this.setState({
                             identityType: 'certifier',
-                            deploy: true
+                            newClaimIssuer: true
                           })
                         }}
                       >
-                        <i className="fa fa-plus" /> Add a Certifier
+                        <i className="fa fa-plus" /> Add a Claim Issuer
                       </button>
                     </td>
                   </tr>
@@ -211,7 +197,7 @@ class Identity extends Component {
                   <tr
                     key={idx}
                     onClick={() =>
-                      this.selectIdentity(identity.address, 'ClaimHolder')
+                      this.selectIdentity(identity.address, 'claim-issuer')
                     }
                     style={{ cursor: 'pointer' }}
                     className={this.rowCls(identity)}
@@ -224,28 +210,10 @@ class Identity extends Component {
                             : ''
                         }lock`}
                       />
-                      {!identity.icon ? null : (
-                        <i className={`fa fa-${identity.icon} fa-fw mr-1`} />
-                      )}
                       {identity.name}
                     </td>
-                    <td>
-                      {identity.uri ? (
-                        activeIdentity && activeIdentity.type === 'identity' ? (
-                          <>
-                            <a
-                              target="_blank"
-                              href={identity.uri}
-                              onClick={e => this.onCertify(e, identity)}
-                            >
-                              Verify
-                            </a>
-                          </>
-                        ) : null
-                      ) : null}
-                    </td>
                     <td className="text-center">
-                      {!identity.address ? '' : identity.address.substr(0, 8)}
+                      {!identity.address ? '' : identity.address.substr(0, 6)}
                     </td>
                     <td className="text-center">
                       {!identity.owner ? '' : identityLogo(identity)}
@@ -263,7 +231,7 @@ class Identity extends Component {
               <thead>
                 <tr>
                   <th>
-                    <i className="fa fa-lock mr-2" />Protected Contracts
+                    <i className="fa fa-lock mr-2" />Claim Checkers
                     {!this.props.verifiers.length ? null : (
                       <a
                         href="#"
@@ -277,11 +245,10 @@ class Identity extends Component {
                       </a>
                     )}
                   </th>
-                  <th>Certifier</th>
-                  <th className="text-center" style={{ width: 100 }}>
+                  <th className="text-center" style={{ width: 80 }}>
                     Addr
                   </th>
-                  <th className="text-center" style={{ width: 100 }}>
+                  <th className="text-center" style={{ width: 80 }}>
                     Owner
                   </th>
                 </tr>
@@ -304,14 +271,11 @@ class Identity extends Component {
                   </tr>
                 )}
                 {this.props.verifiers.map((verifier, idx) => {
-                  var trusted = this.props.identities.find(
-                    i => i.address === verifier.trustedIdentity
-                  )
                   return (
                     <tr
                       key={idx}
                       onClick={() =>
-                        this.selectIdentity(verifier.address, 'ClaimVerifier')
+                        this.selectIdentity(verifier.address, 'protected')
                       }
                       style={{ cursor: 'pointer' }}
                       className={this.rowCls(verifier)}
@@ -326,12 +290,11 @@ class Identity extends Component {
                         />
                         {verifier.name}
                       </td>
-                      <td>{trusted ? trusted.name : 'None'}</td>
                       <td className="text-center">
-                        {!verifier.address ? '' : verifier.address.substr(0, 8)}
+                        {!verifier.address ? '' : verifier.address.substr(0, 6)}
                       </td>
                       <td className="text-center">
-                        {!verifier.owner ? '' : verifier.owner.substr(0, 8)}
+                        {!verifier.owner ? '' : verifier.owner.substr(0, 6)}
                       </td>
                     </tr>
                   )
@@ -339,12 +302,33 @@ class Identity extends Component {
               </tbody>
             </table>
           </div>
-          <div className="col-md-6">{this.renderDetails()}</div>
+          <div className="col-md-6">
+            <Switch>
+              <Route path="/identity/:identity" component={IdentityDetail} />
+              <Route
+                path="/protected-contract/:id"
+                component={ProtectedDetail}
+              />
+              <Route component={Home} />
+            </Switch>
+          </div>
         </div>
 
         {this.state.deploy && (
           <NewIdentity
             onClose={() => this.setState({ deploy: false })}
+            identityType={this.state.identityType}
+            identities={this.props.identities}
+            certifiers={certifiers}
+            activeAddress={this.props.wallet.activeAddress}
+            response={this.props.identity.createIdentityResponse}
+            deployIdentityContract={this.props.deployIdentityContract}
+          />
+        )}
+
+        {this.state.newClaimIssuer && (
+          <NewClaimIssuer
+            onClose={() => this.setState({ newClaimIssuer: false })}
             identityType={this.state.identityType}
             identities={this.props.identities}
             certifiers={certifiers}
@@ -362,289 +346,42 @@ class Identity extends Component {
             identities={certifiers}
           />
         )}
-
-        {this.state.addClaim && (
-          <AddClaim
-            onClose={() => this.setState({ addClaim: false })}
-            addClaim={this.props.addClaim}
-            claimData={this.state.claimData}
-            identity={this.state.activeIdentity}
-            identities={this.props.identities}
-            response={this.props.addClaimResponse}
-          />
-        )}
-
-        {this.state.removeClaim && (
-          <RemoveClaim
-            onClose={() => this.setState({ removeClaim: false })}
-            response={this.props.removeClaimResponse}
-            identity={this.state.activeIdentity}
-            removeClaim={() =>
-              this.props.removeClaim({
-                identity: this.state.activeIdentity,
-                claim: this.state.removeClaim
-              })
-            }
-            wrongOwner={wrongOwner}
-          />
-        )}
-
-        {this.state.addKey && (
-          <AddKey
-            onClose={() => this.setState({ addKey: false })}
-            response={this.props.addKeyResponse}
-            identity={this.state.activeIdentity}
-            addKey={this.props.addKey}
-            wrongOwner={wrongOwner}
-          />
-        )}
-
-        {this.state.removeKey && (
-          <RemoveKey
-            onClose={() => this.setState({ removeKey: false })}
-            response={this.props.removeKeyResponse}
-            identity={this.state.activeIdentity}
-            removeKey={() =>
-              this.props.removeKey({
-                identity: this.state.activeIdentity,
-                key: this.state.removeKey
-              })
-            }
-            wrongOwner={wrongOwner}
-          />
-        )}
-
-        {this.state.approve && (
-          <Approve
-            onClose={() => this.setState({ approve: false })}
-            identities={this.props.identities}
-            identity={this.state.activeIdentity}
-            executionId={this.state.executionId}
-            approveExecution={this.props.approveExecution}
-            response={this.props.identity.approveExecutionResponse}
-          />
-        )}
-
-        {this.state.removeIdentity && (
-          <RemoveIdentity
-            onClose={() => this.setState({ removeIdentity: false })}
-            removeIdentity={() => {
-              this.props.removeIdentity(this.state.activeIdentity)
-              this.setState({ removeIdentity: false, activeIdentity: null })
-            }}
-          />
-        )}
-
-        {this.state.checkClaim && (
-          <CheckClaim
-            onClose={() => this.setState({ checkClaim: false })}
-            identity={this.state.activeIdentity}
-            identities={identities}
-            verifiers={this.props.verifiers}
-            checkClaim={this.props.checkClaim}
-            response={this.props.checkClaimResponse}
-          />
-        )}
       </div>
     )
   }
 
-  renderDetails() {
-    if (!this.state.activeIdentity) {
-      return (
-        <div>
-          <div className="mb-3">
-            <i className="fa fa-arrow-left mr-2" />Select a contract for more
-            information
-          </div>
-          <hr />
-          <div className="mb-2">
-            <div className="font-weight-bold">Identity</div>
-            Controlled by Keys. Has Claims, can add Claims to other identities.
-          </div>
-          <div className="mb-2">
-            <div className="font-weight-bold">Protected Contract</div>
-            A contract only allowing interactions from Identites holding Claims
-            from a trusted Certifier.
-          </div>
-          <div className="mb-2">
-            <div className="font-weight-bold">Certifier</div>
-            Also an Identity. Trusted by Protected Contracts to certify
-            Identities with Claims.
-          </div>
-          <div className="mb-2">
-            <div className="font-weight-bold">Claim</div>
-            Some data on one Identity that provably came from another Identity.
-          </div>
-        </div>
-      )
+  renderSignerServices(identity) {
+    if (!identity.signerServices || !identity.signerServices.length) {
+      return null
     }
-
-    if (this.state.activeType === 'ClaimHolder') {
-      var identity = this.props.identities.find(
-        i => i.address === this.state.activeIdentity
-      )
-
-      var isOwner = identity.owner === this.props.wallet.activeAddress
-
-      return (
-        <>
-          <div>
-            <ul className="nav nav-tabs mb-3">
-              <li className="mr-auto">
-                <a
-                  style={{ fontSize: '1.6rem' }}
-                  onClick={e => {
-                    e.preventDefault()
-                  }}
-                >
-                  {identity.name}
-                  <i
-                    className={`fa fa-${
-                      isOwner ? 'unlock' : 'lock text-muted'
-                    } ml-3`}
-                  />
-                </a>
-              </li>
-              <NavItem
-                label="Summary"
-                id="summary"
-                selected={this.state.mode}
-                onClick={mode => this.setState({ mode })}
-              />
-              <NavItem
-                label="Events"
-                id="events"
-                selected={this.state.mode}
-                onClick={mode => this.setState({ mode })}
-              />
-            </ul>
-          </div>
-          {this.state.mode === 'summary' ? (
-            <div>
-              <div className="mono">{`Address: ${identity.address}`}</div>
-              <div className="mono">
-                &nbsp;&nbsp;{`Owner: ${identity.owner}`}
-              </div>
-              <Summary
-                events={this.props.events}
-                response={this.props.eventsResponse}
-                names={this.props.identity.names}
-                identity={identity}
-                isOwner={isOwner}
-                onAddKey={() => this.setState({ addKey: true })}
-                onRemoveKey={key => this.setState({ removeKey: key })}
-                onRemoveClaim={claim => this.setState({ removeClaim: claim })}
-                onAddClaim={() => this.setState({ addClaim: true })}
-                approveExecution={executionId => {
-                  this.setState({ executionId, approve: true })
-                }}
-              />
-              <hr />
-
-              {identity.official ? null : (
-                <button
-                  className={`btn btn-sm btn-outline-danger ml-auto${
-                    isOwner ? '' : ' disabled'
-                  }`}
-                  onClick={() =>
-                    isOwner ? this.setState({ removeIdentity: true }) : null
-                  }
-                >
-                  <i className="fa fa-trash" /> Remove Identity
-                </button>
-              )}
-            </div>
-          ) : (
-            <Events
-              eventsResponse={this.props.eventsResponse}
-              events={this.filterEvents()}
-            />
-          )}
-        </>
-      )
-    }
-
-    var verifier = this.props.verifiers.find(
-      i => i.address === this.state.activeIdentity
-    )
-    isOwner = verifier.owner === this.props.wallet.activeAddress
-
     return (
       <>
-        <div>
-          <ul className="nav nav-tabs mb-3">
-            <li className="mr-auto">
-              <a
-                style={{ fontSize: '1.6rem' }}
-                onClick={e => {
-                  e.preventDefault()
-                }}
-              >
-                {verifier.name}
-              </a>
-            </li>
-            <NavItem
-              label="Events"
-              id="events"
-              selected="events"
-              onClick={mode => this.setState({ mode })}
-            />
-          </ul>
-        </div>
-        <div>
-          <div className="mono">{`Address: ${verifier.address}`}</div>
-          <div className="mono">{`Owner: ${verifier.owner}`}</div>
-        </div>
-        <div className="my-3">
-          <button
-            className="btn btn-sm btn-outline-primary ml-1"
-            onClick={() => this.setState({ checkClaim: true })}
+        {identity.signerServices.map((ss, idx) => (
+          <a
+            target="_blank"
+            className="btn btn-outline-secondary btn-sm mr-1"
+            key={idx}
+            href={ss.uri}
+            onClick={e => this.onCertify(e, identity)}
           >
-            Run Protected Method
-          </button>
-        </div>
-        <Events
-          eventsResponse={this.props.eventsResponse}
-          events={this.props.events}
-        />
-        <hr />
-
-        <button
-          className={`btn btn-sm btn-outline-danger ml-auto${
-            isOwner ? '' : ' disabled'
-          }`}
-          onClick={() => {
-            if (isOwner) {
-              this.props.removeVerifier(verifier.address)
-              this.setState({ activeIdentity: null })
-            }
-          }}
-        >
-          <i className="fa fa-trash" /> Remove Contract
-        </button>
+            <i className={`fa fa-${ss.icon}`} />
+          </a>
+        ))}
       </>
     )
   }
 
-  filterEvents() {
-    if (this.state.mode === 'keys') {
-      return this.props.events.filter(e => e.event.match(/(KeyAdded)/))
+  selectIdentity(address, type) {
+    var activeType = 'ClaimHolder'
+    if (type === 'protected') {
+      this.props.history.push(`/protected-contract/${address}`)
+    } else {
+      this.props.history.push(`/identity/${address}`)
     }
-    if (this.state.mode === 'claims') {
-      return this.props.events.filter(e => e.event.match(/(ClaimAdded)/))
-    }
-    return this.props.events
-  }
-
-  selectIdentity(address, activeType) {
     this.setState({
       activeIdentity: address,
       activeType
     })
-    if (address && activeType) {
-      this.props.getEvents(activeType, address)
-    }
   }
 
   rowCls(identity) {
@@ -652,7 +389,7 @@ class Identity extends Component {
     if (this.props.wallet.activeAddress !== identity.owner) {
       cls += 'text-muted '
     }
-    if (this.state.activeIdentity === identity.address) {
+    if (this.props.activeIdentity === identity.address) {
       if (this.props.wallet.activeAddress === identity.owner) {
         cls += 'table-warning'
       } else {
@@ -662,77 +399,23 @@ class Identity extends Component {
     return cls
   }
 
-  onCertify(e, identity) {
-    e.stopPropagation()
-    e.preventDefault()
-
-    var href = `${e.currentTarget.href}?target=${
-      this.state.activeIdentity
-    }&issuer=${identity.address}`
-
-    var w = window.open(href, '', 'width=650,height=500')
-
-    const finish = e => {
-      if (String(e.data).match(/^signed-data:/)) {
-        this.setState({
-          addClaim: true,
-          claimData: {
-            claimType: e.data.split(':')[3],
-            claimScheme: '1',
-            claimData: 'Verified OK',
-            claimUri: '',
-            issuer: identity.address,
-            targetIdentity: this.state.activeIdentity,
-            signature: e.data.split(':')[1]
-          }
-        })
-      } else if (e.data !== 'success') {
-        return
-      }
-      window.removeEventListener('message', finish, false)
-
-      if (!w.closed) {
-        w.close()
-      }
-
-      this.props.getEvents(this.state.activeType, this.state.activeIdentity)
-    }
-
-    window.addEventListener('message', finish, false)
-  }
 }
 
-const mapStateToProps = state => ({
+const mapStateToProps = (state, ownProps) => ({
   identity: state.identity,
   identities: [
     ...state.identity.identities,
     ...state.identity.officialIdentities
   ],
   verifiers: state.identity.claimVerifiers,
-  events: state.identity.events,
-  eventsResponse: state.identity.eventsResponse,
-  addKeyResponse: state.identity.addKeyResponse,
-  removeKeyResponse: state.identity.removeKeyResponse,
-  addClaimResponse: state.identity.addClaimResponse,
-  removeClaimResponse: state.identity.removeClaimResponse,
-  approveExecutionResponse: state.identity.approveExecutionResponse,
-  checkClaimResponse: state.identity.checkClaimResponse,
-  wallet: state.wallet
+  wallet: state.wallet,
+  activeIdentity: ownProps.match.params.address
 })
 
 const mapDispatchToProps = dispatch => ({
   deployIdentityContract: (...args) =>
     dispatch(deployIdentityContract(...args)),
   deployClaimVerifier: (...args) => dispatch(deployClaimVerifier(...args)),
-  addClaim: opts => dispatch(addClaim(opts)),
-  removeClaim: opts => dispatch(removeClaim(opts)),
-  addKey: opts => dispatch(addKey(opts)),
-  removeKey: opts => dispatch(removeKey(opts)),
-  getEvents: (type, address) => dispatch(getEvents(type, address)),
-  approveExecution: (...args) => dispatch(approveExecution(...args)),
-  checkClaim: (...args) => dispatch(checkClaim(...args)),
-  removeIdentity: (...args) => dispatch(removeIdentity(...args)),
-  removeVerifier: (...args) => dispatch(removeVerifier(...args)),
   selectAccount: hash => dispatch(selectAccount(hash))
 })
 

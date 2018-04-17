@@ -14,7 +14,7 @@ class WalletChooser extends Component {
               }`}
               onClick={() => this.props.selectAccount(a)}
             >
-              {a.substr(0, 8)}
+              {a.substr(0, 6)}
             </button>
           ))}
         </div>

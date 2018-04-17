@@ -3,9 +3,13 @@ import Identity from '../contracts/Identity'
 import ClaimHolder from '../contracts/ClaimHolder'
 import ClaimVerifier from '../contracts/ClaimVerifier'
 
-window.contracts = {
-  ClaimHolder: (addr) => new web3.eth.Contract(ClaimHolder.abi, addr),
-  ClaimVerifier: (addr) => new web3.eth.Contract(ClaimVerifier.abi, addr),
+import { updateBalance } from './Wallet'
+
+if (typeof window !== 'undefined') {
+  window.contracts = {
+    ClaimHolder: addr => new web3.eth.Contract(ClaimHolder.abi, addr),
+    ClaimVerifier: addr => new web3.eth.Contract(ClaimVerifier.abi, addr)
+  }
 }
 
 function lookup(Types) {
@@ -52,7 +56,8 @@ export const ClaimTypes = [
   { id: '5', value: 'Has GitHub' },
   { id: '6', value: 'Has Google' },
   { id: '7', value: 'Verified' },
-  { id: '8', value: 'Email' }
+  { id: '8', value: 'Email' },
+  { id: '9', value: 'Has LinkedIn' }
 ]
 export const claimType = lookup(ClaimTypes)
 
@@ -78,7 +83,14 @@ export const IdentityConstants = keyMirror(
   'IDENTITY'
 )
 
-export function deployIdentityContract(name, identityType, uri, preAdd, icon) {
+export function deployIdentityContract(
+  name,
+  identityType,
+  uri,
+  preAdd,
+  icon,
+  signerServices
+) {
   return async function(dispatch) {
     var RawContract = preAdd ? Identity : ClaimHolder
 
@@ -94,7 +106,8 @@ export function deployIdentityContract(name, identityType, uri, preAdd, icon) {
       uri,
       preAdd,
       icon,
-      owner: web3.eth.defaultAccount
+      owner: web3.eth.defaultAccount,
+      signerServices
     }
 
     dispatch(sendTransaction(tx, IdentityConstants.DEPLOY, data))
@@ -184,7 +197,8 @@ export function addKey({ purpose, keyType, key, identity }) {
     }
 
     var tx = Contract.methods.addKey(key, purpose, keyType).send({
-      gas: 4612388, from: web3.eth.defaultAccount
+      gas: 4612388,
+      from: web3.eth.defaultAccount
     })
 
     dispatch(
@@ -199,7 +213,8 @@ export function removeKey({ identity, key }) {
   return async function(dispatch) {
     const Contract = new web3.eth.Contract(ClaimHolder.abi, identity)
     var tx = Contract.methods.removeKey(key).send({
-      from: web3.eth.defaultAccount, gas: 3000000
+      from: web3.eth.defaultAccount,
+      gas: 3000000
     })
 
     dispatch(
@@ -214,7 +229,8 @@ export function approveExecution(identity, executionId) {
   return async function(dispatch) {
     const Contract = new web3.eth.Contract(ClaimHolder.abi, identity)
     var tx = Contract.methods.approve(executionId, true).send({
-      from: web3.eth.defaultAccount, gas: 3000000
+      from: web3.eth.defaultAccount,
+      gas: 3000000
     })
 
     dispatch(
@@ -232,12 +248,15 @@ export function checkClaim(verifier, identity, claimType) {
     const Contract = new web3.eth.Contract(ClaimVerifier.abi, verifier)
 
     var tx = Contract.methods.checkClaim(identity, claimType).send({
-      from: web3.eth.defaultAccount, gas: 3000000
+      from: web3.eth.defaultAccount,
+      gas: 3000000
     })
 
-    dispatch(sendTransaction(tx, IdentityConstants.CHECK_CLAIM, {}, () => {
-      dispatch(getEvents('ClaimVerifier', verifier))
-    }))
+    dispatch(
+      sendTransaction(tx, IdentityConstants.CHECK_CLAIM, {}, () => {
+        dispatch(getEvents('ClaimVerifier', verifier))
+      })
+    )
   }
 }
 
@@ -278,7 +297,8 @@ export function addClaim({
   uri,
   claimType,
   scheme,
-  signature
+  signature,
+  refresh
 }) {
   return async function(dispatch) {
     var txData = {
@@ -289,7 +309,7 @@ export function addClaim({
       claimType,
       scheme,
       signature
-    };
+    }
 
     var hashedData = web3.utils.soliditySha3(data)
 
@@ -306,18 +326,18 @@ export function addClaim({
       .addClaim(claimType, scheme, claimIssuer, signature, hashedData, uri)
       .encodeABI()
 
-    var tx = UserIdentity.methods
-      .execute(targetIdentity, 0, abi)
-      .send({
-        gas: 4612388,
-        from: web3.eth.defaultAccount
-      })
+    var tx = UserIdentity.methods.execute(targetIdentity, 0, abi).send({
+      gas: 4612388,
+      from: web3.eth.defaultAccount
+    })
 
-    dispatch(sendTransaction(tx, IdentityConstants.ADD_CLAIM, txData, () => {
-      if (web3.eth.defaultAccount === targetIdentity) {
-        dispatch(getEvents('ClaimHolder', targetIdentity))
-      }
-    }))
+    dispatch(
+      sendTransaction(tx, IdentityConstants.ADD_CLAIM, txData, () => {
+        if (refresh) {
+          dispatch(getEvents('ClaimHolder', targetIdentity))
+        }
+      })
+    )
   }
 }
 
@@ -334,9 +354,11 @@ export function removeClaim({ identity, claim }) {
       gas: 3000000
     })
 
-    dispatch(sendTransaction(tx, IdentityConstants.REMOVE_CLAIM, {}, () => {
-      dispatch(getEvents('ClaimHolder', identity))
-    }))
+    dispatch(
+      sendTransaction(tx, IdentityConstants.REMOVE_CLAIM, {}, () => {
+        dispatch(getEvents('ClaimHolder', identity))
+      })
+    )
   }
 }
 
@@ -356,6 +378,7 @@ function sendTransaction(transaction, type, data, callback) {
       })
       .on('receipt', receipt => {
         dispatch({ type: `${type}_RECEIPT`, receipt, ...data })
+        dispatch(updateBalance())
       })
       .on('confirmation', num => {
         dispatch({ type: `${type}_CONFIRMATION`, num })

@@ -5,7 +5,7 @@ export default function(wei, exchangeRates) {
   var balance = {
     wei,
     eth,
-    ethStr: `${eth} ETH`
+    ethStr: `${numberFormat(Number(eth), 4)} ETH`
   }
   Object.keys(exchangeRates).forEach(currency => {
     balance[currency] =

@@ -7,6 +7,7 @@ var facebook = require('./_facebook')
 var twitter = require('./_twitter')
 var github = require('./_github')
 var google = require('./_google')
+var linkedin = require('./_linkedin')
 
 try {
   var Config = require('./config.json')
@@ -16,7 +17,6 @@ try {
 }
 
 Config.web3 = new Web3(Config.provider)
-Config.baseUrl = 'http://localhost:3001'
 
 const app = express()
 app.use(
@@ -36,6 +36,7 @@ facebook(app, Config)
 twitter(app, Config)
 github(app, Config)
 google(app, Config)
+linkedin(app, Config)
 
 const PORT = process.env.PORT || 3001
 app.listen(PORT, () => {

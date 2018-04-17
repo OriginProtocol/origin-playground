@@ -37,17 +37,24 @@ class ValidateClaim extends Component {
     var hashedRecovered = web3.utils.soliditySha3(recoveredKey)
 
     var issuer = new web3.eth.Contract(ClaimHolder.abi, claim.issuer)
-    var hasKey = await issuer.methods.keyHasPurpose(hashedRecovered, 3).call()
+    try {
+      var hasKey = await issuer.methods.keyHasPurpose(hashedRecovered, 3).call()
+    } catch(e) {
+      /* Ignore */
+    }
 
     this.setState({
-      icon: hasKey ? 'fa-check text-success' : 'fa-times text-danger'
+      icon: hasKey ? 'fa-check' : 'fa-times',
+      className: hasKey ? 'text-success' : 'text-danger',
+      text: hasKey ? 'Valid' : 'Invalid'
     })
   }
 
   render() {
     return (
-      <span>
-        <i className={`fa ${this.state.icon}`} />
+      <span className={this.state.className}>
+        {this.state.text}
+        <i className={`ml-2 fa ${this.state.icon}`} />
       </span>
     )
   }

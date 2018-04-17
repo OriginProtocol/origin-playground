@@ -42,23 +42,6 @@ class CheckClaim extends Component {
           <div className="mb-2 font-weight-bold">Check for valid claim:</div>
           <table>
             <tbody>
-              <FormRow label="Verifier">
-                <select
-                  className="form-control"
-                  value={this.state.verifier}
-                  onChange={e => {
-                    this.setState({
-                      verifier: e.currentTarget.value
-                    })
-                  }}
-                >
-                  {(this.props.verifiers || []).map((identity, idx) => (
-                    <option key={idx} value={identity.address}>
-                      {identity.name}
-                    </option>
-                  ))}
-                </select>
-              </FormRow>
               <FormRow label="Identity">
                 <select
                   className="form-control"

@@ -12,6 +12,7 @@ var facebook = require('./_facebook')
 var google = require('./_google')
 var github = require('./_github')
 var twitter = require('./_twitter')
+var linkedin = require('./_linkedin')
 
 var Web3 = require('./public/vendor/web3.min')
 
@@ -37,6 +38,7 @@ facebook(app, Config)
 google(app, Config)
 github(app, Config)
 twitter(app, Config)
+linkedin(app, Config)
 
 const PORT = process.env.PORT || 3001
 app.listen(PORT, () => {

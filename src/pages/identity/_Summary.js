@@ -22,6 +22,8 @@ class IdentitySummary extends Component {
         <Loading show={this.props.response === null} />
         {this.renderKeys()}
         {this.renderClaims()}
+        {this.renderOfferedClaims()}
+        {this.renderServices()}
       </div>
     )
   }
@@ -157,13 +159,14 @@ class IdentitySummary extends Component {
               )}
             </th>
             <th>Issuer</th>
+            <th className="text-center">Status</th>
             <th />
           </tr>
         </thead>
         <tbody>
           {claims.length || executionReqs.length ? null : (
             <tr>
-              <td colSpan={3}>No Claims</td>
+              <td colSpan={4}>No Claims</td>
             </tr>
           )}
           {claims.map((claim, idx) => (
@@ -174,13 +177,19 @@ class IdentitySummary extends Component {
                 this.setState({ claimDetail: claim.returnValues.claimId })
               }}
             >
-              <td>
-                {claimType(claim.returnValues.claimType)}{' '}
-                <ValidateClaim claim={claim.returnValues} subject={this.props.identity.address} />
-              </td>
+              <td>{claimType(claim.returnValues.claimType)} </td>
               <td>
                 {this.props.names[claim.returnValues.issuer] ||
                   String(claim.returnValues.issuer).substr(0, 8)}
+                {claim.returnValues.issuer === this.props.identity.address
+                  ? ' (self-claim)'
+                  : ''}
+              </td>
+              <td className="text-center">
+                <ValidateClaim
+                  claim={claim.returnValues}
+                  subject={this.props.identity.address}
+                />
               </td>
               <td className="text-right">
                 {this.props.isOwner && (
@@ -213,7 +222,7 @@ class IdentitySummary extends Component {
                   {this.props.names[decoded.params._issuer] ||
                     decoded.params._issuer.substr(0, 8)}
                 </td>
-                <td className="text-right pr-3">
+                <td className="text-center">
                   {this.props.isOwner ? (
                     <a
                       className="font-weight-bold"
@@ -231,12 +240,117 @@ class IdentitySummary extends Component {
                     <span>Un-Approved</span>
                   )}
                 </td>
+                <td />
               </tr>
             )
           })}
         </tbody>
       </table>
     )
+  }
+
+  renderServices() {
+    const { signerServices } = this.props.identity
+    if (!signerServices || !signerServices.length) {
+      return null
+    }
+
+    return (
+      <table className="table table-sm table-hover">
+        <thead>
+          <tr>
+            <th>Claim Signer Services</th>
+            <th>Icon</th>
+            <th>Claim Type</th>
+          </tr>
+        </thead>
+        <tbody>
+          {signerServices.map((ss, idx) => (
+            <tr key={idx}>
+              <td className="wb">{ss.uri}</td>
+              <td className="text-center">
+                <i className={`fa fa-${ss.icon}`} />
+              </td>
+              <td className="no-wrap">{claimType(ss.claimType)}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    )
+  }
+
+  renderOfferedClaims() {
+    const { certifiers, identity } = this.props
+    if (!certifiers || !certifiers.length) {
+      return null
+    }
+    if (!identity || identity.type !== 'identity') {
+      return null
+    }
+
+    return (
+      <table className="table table-sm mt-3">
+        <thead>
+          <tr>
+            <th>Claim Issuer</th>
+            <th>Signer Services</th>
+          </tr>
+        </thead>
+        <tbody>
+          {(certifiers || []).map((c, idx) => (
+            <tr key={idx}>
+              <td>{c.name}</td>
+              <td>
+                {(c.signerServices || []).map((s, sidx) => (
+                  <a
+                    key={sidx}
+                    className="btn btn-sm btn-outline-secondary mr-1"
+                    href={s.uri}
+                    onClick={e => this.onCertify(e, c)}
+                  >
+                    <i className={`fa fa-${s.icon}`} />
+                  </a>
+                ))}
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    )
+  }
+
+  onCertify(e, identity) {
+    e.stopPropagation()
+    e.preventDefault()
+
+    var href = `${e.currentTarget.href}?target=${
+      this.props.identity.address
+    }&issuer=${identity.address}`
+
+    var w = window.open(href, '', 'width=650,height=500')
+
+    const finish = e => {
+      if (String(e.data).match(/^signed-data:/)) {
+        this.props.onAddClaim({
+          claimType: e.data.split(':')[3],
+          claimScheme: '1',
+          claimData: 'Verified OK',
+          claimUri: '',
+          issuer: identity.address,
+          targetIdentity: this.props.identity.address,
+          signature: e.data.split(':')[1]
+        })
+      } else if (e.data !== 'success') {
+        return
+      }
+      window.removeEventListener('message', finish, false)
+
+      if (!w.closed) {
+        w.close()
+      }
+    }
+
+    window.addEventListener('message', finish, false)
   }
 }
 
