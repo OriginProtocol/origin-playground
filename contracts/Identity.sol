@@ -1,7 +1,12 @@
-pragma solidity ^0.4.18;
-pragma experimental ABIEncoderV2;
+pragma solidity ^0.4.22;
 
 import './ClaimHolder.sol';
+
+/**
+ * NOTE: This contract exists as a convenience for deploying an identity with
+ * some 'pre-signed' claims. If you don't care about that, just use ClaimHolder
+ * instead.
+ */
 
 contract Identity is ClaimHolder {
 
