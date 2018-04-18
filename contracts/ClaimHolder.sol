@@ -1,4 +1,4 @@
-pragma solidity ^0.4.18;
+pragma solidity ^0.4.22;
 
 import './ERC735.sol';
 import './KeyHolder.sol';
@@ -14,7 +14,7 @@ contract ClaimHolder is KeyHolder, ERC735 {
         uint256 _scheme,
         address _issuer,
         bytes _signature,
-        bytes32 _data,
+        bytes _data,
         string _uri
     )
         public
@@ -24,7 +24,7 @@ contract ClaimHolder is KeyHolder, ERC735 {
         KeyHolder issuer = KeyHolder(issuer);
 
         if (msg.sender != address(this)) {
-          require(keyHasPurpose(keccak256(msg.sender), 3)); // Sender has MANAGEMENT_KEY
+          require(keyHasPurpose(keccak256(msg.sender), 3), "Sender does not have management key");
         }
 
         if (claims[claimId].issuer != _issuer) {
@@ -53,7 +53,7 @@ contract ClaimHolder is KeyHolder, ERC735 {
 
     function removeClaim(bytes32 _claimId) public returns (bool success) {
         if (msg.sender != address(this)) {
-          require(keyHasPurpose(keccak256(msg.sender), 1)); // Sender has MANAGEMENT_KEY
+          require(keyHasPurpose(keccak256(msg.sender), 1), "Sender does not have management key");
         }
 
         /* uint index; */
@@ -82,7 +82,7 @@ contract ClaimHolder is KeyHolder, ERC735 {
             uint256 scheme,
             address issuer,
             bytes signature,
-            bytes32 data,
+            bytes data,
             string uri
         )
     {
@@ -94,85 +94,6 @@ contract ClaimHolder is KeyHolder, ERC735 {
             claims[_claimId].data,
             claims[_claimId].uri
         );
-    }
-
-    function getClaimSig(bytes32 _claimId)
-        public
-        constant
-        returns(
-          bytes32 data,
-          bytes32 r,
-          bytes32 s,
-          uint8 v
-        )
-    {
-        bytes32 ra;
-        bytes32 sa;
-        uint8 va;
-
-        bytes memory sig = claims[_claimId].signature;
-
-        // Check the signature length
-        if (sig.length != 65) {
-          return (0, 0, 0, 0);
-        }
-
-        // Divide the signature in r, s and v variables
-        assembly {
-          ra := mload(add(sig, 32))
-          sa := mload(add(sig, 64))
-          va := byte(0, mload(add(sig, 96)))
-        }
-
-        if (va < 27) {
-          va += 27;
-        }
-
-        bytes32 dataHash = keccak256(address(this), claims[_claimId].claimType, claims[_claimId].data);
-        bytes32 prefixedHash = keccak256("\x19Ethereum Signed Message:\n32", dataHash);
-
-        return (prefixedHash, ra, sa, va);
-    }
-
-    function recoverIssuer(bytes32 _claimId)
-        private
-        constant
-        returns(address issuer)
-    {
-        bytes32 dataHash;
-        bytes32 sig_r;
-        bytes32 sig_s;
-        uint8 sig_v;
-
-        (dataHash, sig_r, sig_s, sig_v ) = getClaimSig(_claimId);
-
-        return ecrecover(dataHash, sig_v, sig_r, sig_s);
-    }
-
-    function isClaimValid(bytes32 _claimId)
-        public
-        view
-        returns(bool result)
-    {
-        address issuer = claims[_claimId].issuer;
-        if (issuer == address(this)) {
-          return true;
-        }
-
-        address recovered = recoverIssuer(_claimId);
-        bytes32 hashedAddr = keccak256(recovered);
-
-        uint size;
-        assembly { size := extcodesize(issuer) }
-
-        if (size == 0) {
-          return false;
-        }
-
-        KeyHolder certifier = KeyHolder(claims[_claimId].issuer);
-
-        bool isValid = certifier.keyHasPurpose(hashedAddr, claims[_claimId].claimType);
-        return isValid;
     }
 
     function getClaimIdsByType(uint256 _claimType)

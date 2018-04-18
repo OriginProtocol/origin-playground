@@ -36,7 +36,7 @@
     "ipfs": "^0.28.2",
     "ipfs-api": "^20.0.1",
     "oauth": "^0.9.15",
-    "prettier": "^1.12.0",
+    "prettier": "^1.12.1",
     "react": "^16.3.2",
     "react-dom": "^16.3.2",
     "react-redux": "^5.0.7",
@@ -45,7 +45,7 @@
     "redux-logger": "^3.0.6",
     "redux-thunk": "^2.2.0",
     "serve-static": "^1.13.2",
-    "solc": "^0.4.21",
+    "solc": "^0.4.22",
     "superagent": "^3.8.2",
     "web3": "^1.0.0-beta.34"
   },

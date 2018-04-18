@@ -78,8 +78,8 @@ module.exports = function facebook(app, { web3, googleApp, baseUrl }) {
       // var data = JSON.stringify({ user_id: req.googleUser.id })
 
       var rawData = 'Verified OK'
-      var hashedData = web3.utils.soliditySha3(rawData)
-      var hashed = web3.utils.soliditySha3(req.session.targetIdentity, ClaimType, hashedData)
+      var hexData = web3.utils.asciiToHex(rawData)
+      var hashed = web3.utils.soliditySha3(req.session.targetIdentity, ClaimType, hexData)
       req.signedData = await web3.eth.accounts.sign(hashed, googleApp.claimSignerKey)
 
       res.send(
@@ -95,7 +95,7 @@ module.exports = function facebook(app, { web3, googleApp, baseUrl }) {
           window.done = function() {
             window.opener.postMessage('signed-data:${
               req.signedData.signature
-            }:${req.signedData.messageHash}:${ClaimType}', '*')
+            }:${rawData}:${ClaimType}', '*')
           }
         </script>`)
       )

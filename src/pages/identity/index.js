@@ -7,7 +7,7 @@ import { deployIdentityContract, deployClaimVerifier } from 'actions/Identity'
 import { selectAccount } from 'actions/Wallet'
 
 import IdentityDetail from './IdentityDetail'
-import ProtectedDetail from './ProtectedDetail'
+import ClaimCheckerDetail from './ClaimCheckerDetail'
 import Home from './Home'
 
 import NewVerifier from './modals/_NewVerifier'
@@ -265,7 +265,7 @@ class Identity extends Component {
                           this.setState({ newVerifier: true })
                         }}
                       >
-                        <i className="fa fa-plus" /> Add a Protected Contract
+                        <i className="fa fa-plus" /> Add a Claim Checker
                       </button>
                     </td>
                   </tr>
@@ -305,10 +305,7 @@ class Identity extends Component {
           <div className="col-md-6">
             <Switch>
               <Route path="/identity/:identity" component={IdentityDetail} />
-              <Route
-                path="/protected-contract/:id"
-                component={ProtectedDetail}
-              />
+              <Route path="/claim-checker/:id" component={ClaimCheckerDetail} />
               <Route component={Home} />
             </Switch>
           </div>
@@ -374,7 +371,7 @@ class Identity extends Component {
   selectIdentity(address, type) {
     var activeType = 'ClaimHolder'
     if (type === 'protected') {
-      this.props.history.push(`/protected-contract/${address}`)
+      this.props.history.push(`/claim-checker/${address}`)
     } else {
       this.props.history.push(`/identity/${address}`)
     }
@@ -398,7 +395,6 @@ class Identity extends Component {
     }
     return cls
   }
-
 }
 
 const mapStateToProps = (state, ownProps) => ({

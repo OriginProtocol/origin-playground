@@ -10,9 +10,10 @@ contract Identity is ClaimHolder {
         uint256[] _scheme,
         address[] _issuer,
         bytes _signature,
-        bytes32[] _data,
+        bytes _data,
         string _uri,
         uint256[] _sigSizes,
+        uint256[] dataSizes,
         uint256[] uriSizes
     )
         public
@@ -20,6 +21,7 @@ contract Identity is ClaimHolder {
         bytes32 claimId;
         uint offset = 0;
         uint uoffset = 0;
+        uint doffset = 0;
 
         for (uint i = 0; i < _claimType.length; i++) {
 
@@ -30,12 +32,13 @@ contract Identity is ClaimHolder {
                 _scheme[i],
                 _issuer[i],
                 getBytes(_signature, offset, _sigSizes[i]),
-                _data[i],
+                getBytes(_data, doffset, dataSizes[i]),
                 getString(_uri, uoffset, uriSizes[i])
             );
 
             offset += _sigSizes[i];
             uoffset += uriSizes[i];
+            doffset += dataSizes[i];
 
             emit ClaimAdded(
                 claimId,

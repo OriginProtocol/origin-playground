@@ -2,8 +2,8 @@ import assert from 'assert'
 import helper from './_helper'
 
 describe('ClaimVerifier.sol', async function() {
-  var web3, accounts, deploy, prvSigner, pubSigner, claimId
-  var UserIdentity, OtherIdentity, ClaimVerifier, IdentityVerifier
+  var web3, accounts, deploy, prvSigner, pubSigner
+  var UserIdentity, ClaimIssuer, ClaimVerifier
 
   before(async function() {
     ({ deploy, accounts, web3 } = await helper(
@@ -14,26 +14,17 @@ describe('ClaimVerifier.sol', async function() {
     pubSigner = web3.eth.accounts.privateKeyToAccount(prvSigner).address
 
     UserIdentity = await deploy('ClaimHolder', { from: accounts[0] })
-    OtherIdentity = await deploy('ClaimHolder', { from: accounts[3] })
-    IdentityVerifier = await deploy('ClaimHolder', { from: accounts[1] })
+    ClaimIssuer = await deploy('ClaimHolder', { from: accounts[1] })
     ClaimVerifier = await deploy('ClaimVerifier', { from: accounts[2], args: [
-      IdentityVerifier._address
+      ClaimIssuer._address
     ] })
   })
 
-  it('should allow trusted identifier to execute addKey', async function() {
+  it('should allow verifier owner to addKey', async function() {
     var key = web3.utils.sha3(pubSigner)
-    var abi = await IdentityVerifier.methods.addKey(key, 3, 1).encodeABI()
+    var result = await ClaimIssuer.methods.addKey(key, 3, 1).send({ from: accounts[1] })
 
-    var getRes1 = await IdentityVerifier.methods.getKey(key).call()
-    assert.equal(getRes1[0], 0)
-
-    await IdentityVerifier.methods
-      .execute(IdentityVerifier.options.address, 0, abi)
-      .send({ from: accounts[1] })
-
-    var getRes = await IdentityVerifier.methods.getKey(key).call()
-    assert.deepEqual(getRes[0], '3')
+    assert(result)
   })
 
   it('should not allow new listing without identity claim', async function() {
@@ -43,106 +34,30 @@ describe('ClaimVerifier.sol', async function() {
     assert(res.events.ClaimInvalid)
   })
 
-  it('should allow Verifier to post a claim to User identity via execute', async function() {
-    var data = web3.utils.sha3('{ "did": "did:facebook:12345" }')
+  it('should allow identity owner to addClaim', async function() {
+    var data = web3.utils.asciiToHex('Verified OK')
     var claimType = 3
     var hashed = web3.utils.soliditySha3(UserIdentity._address, claimType, data)
     var signed = await web3.eth.accounts.sign(hashed, prvSigner)
 
-    var abi = await UserIdentity.methods
-      .addClaim(
-        claimType,
-        2,
-        IdentityVerifier._address,
-        signed.signature,
-        data,
-        'abc.com'
-      )
-      .encodeABI()
+    var claimRes = await UserIdentity.methods
+        .addClaim(
+          claimType,
+          2,
+          ClaimIssuer._address,
+          signed.signature,
+          data,
+          'abc.com'
+        ).send({ from: accounts[0] })
 
-    var res = await UserIdentity.methods
-      .execute(UserIdentity.options.address, 0, abi)
-      .send({ from: accounts[2] })
-
-    var execId = res.events.ExecutionRequested.returnValues.executionId
-
-    var approveRes = await UserIdentity.methods.approve(execId, true).send({
-      from: accounts[0]
-    })
-
-    assert(approveRes.events.ClaimAdded)
-
-    claimId = approveRes.events.ClaimAdded.returnValues.claimId
+    assert(claimRes.events.ClaimAdded)
   })
 
-  it('should allow new listing', async function() {
+  it('should not allow new listing without identity claim', async function() {
     var res = await ClaimVerifier.methods
       .checkClaim(UserIdentity._address, 3)
       .send({ from: accounts[0] })
     assert(res.events.ClaimValid)
   })
 
-  it ('should allow isValidClaim', async function() {
-    var valid = await UserIdentity.methods.isClaimValid(claimId).call()
-    assert(valid)
-  })
-
-  it('should allow user to accept identity claim')
-  it('should allow new listing')
-
-  it('should not validate a claim intended for another identity', async function() {
-    var data = web3.utils.sha3('{ "did": "did:facebook:12345" }')
-    var claimType = 3
-    var hashed = web3.utils.soliditySha3(UserIdentity._address, claimType, data)
-    var signed = await web3.eth.accounts.sign(hashed, prvSigner)
-
-    var abi = await OtherIdentity.methods
-      .addClaim(
-        claimType,
-        2,
-        IdentityVerifier._address,
-        signed.signature,
-        data,
-        'abc.com'
-      )
-      .encodeABI()
-
-    var res = await OtherIdentity.methods
-      .execute(OtherIdentity.options.address, 0, abi)
-      .send({ from: accounts[2] })
-
-    var execId = res.events.ExecutionRequested.returnValues.executionId
-
-    await OtherIdentity.methods.approve(execId, true).send({
-      from: accounts[3]
-    })
-
-    var thisClaimId = web3.utils.soliditySha3(IdentityVerifier._address, claimType)
-
-    var valid = await OtherIdentity.methods.isClaimValid(thisClaimId).call()
-    assert(!valid)
-  })
-
-  it('should not validate a claim with different claim type than the signature', async function() {
-    var data = web3.utils.sha3('{ "did": "did:facebook:12345" }')
-    var claimType = 3
-    var otherClaimType = 4
-    var hashed = web3.utils.soliditySha3(UserIdentity._address, claimType, data)
-    var signed = await web3.eth.accounts.sign(hashed, prvSigner)
-
-    await UserIdentity.methods
-      .addClaim(
-        otherClaimType,
-        2,
-        IdentityVerifier._address,
-        signed.signature,
-        data,
-        'abc.com'
-      )
-
-    var thisClaimId = web3.utils.soliditySha3(IdentityVerifier._address, otherClaimType)
-
-    var valid = await UserIdentity.methods.isClaimValid(thisClaimId).call()
-    assert(!valid)
-  })
 })

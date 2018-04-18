@@ -16,13 +16,12 @@ class Home extends Component {
         </div>
         <div className="mb-2">
           <div className="font-weight-bold">Claim Issuer</div>
-          Also an Identity. Trusted by Protected Contracts to certify
-          Identities with Claims.
+          Also an Identity. Trusted by Claim Checkers to issue valid claims.
         </div>
         <div className="mb-2">
           <div className="font-weight-bold">Claim Checker</div>
           A contract only allowing interactions from Identites holding Claims
-          from a trusted issuer.
+          from a Trusted Issuer.
         </div>
         <div className="mb-2">
           <div className="font-weight-bold">Claim</div>

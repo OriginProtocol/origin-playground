@@ -2,7 +2,12 @@ import React, { Component } from 'react'
 import { connect } from 'react-redux'
 import { Switch, Route, NavLink } from 'react-router-dom'
 
-import { getEvents, checkClaim, removeVerifier } from 'actions/Identity'
+import {
+  getEvents,
+  checkClaim,
+  removeVerifier,
+  claimType
+} from 'actions/Identity'
 
 import { selectAccount } from 'actions/Wallet'
 
@@ -14,6 +19,12 @@ class ProtectedDetail extends Component {
     super(props)
     this.state = { mode: 'summary' }
     this.props.getEvents('ClaimVerifier', props.match.params.id)
+  }
+
+  componentWillReceiveProps(nextProps) {
+    if (this.props.match.params.id !== nextProps.match.params.id) {
+      this.props.getEvents('ClaimVerifier', nextProps.match.params.id)
+    }
   }
 
   render() {
@@ -33,9 +44,7 @@ class ProtectedDetail extends Component {
             <li className="mr-auto">
               <a
                 style={{ fontSize: '1.6rem' }}
-                onClick={e => {
-                  e.preventDefault()
-                }}
+                onClick={e => e.preventDefault()}
               >
                 {verifier.name}
               </a>
@@ -43,7 +52,7 @@ class ProtectedDetail extends Component {
             <li className="nav-item">
               <NavLink
                 className="nav-link"
-                to={`/protected-contract/${address}`}
+                to={`/claim-checker/${address}`}
                 exact
               >
                 Summary
@@ -52,7 +61,15 @@ class ProtectedDetail extends Component {
             <li className="nav-item">
               <NavLink
                 className="nav-link"
-                to={`/protected-contract/${address}/info`}
+                to={`/claim-checker/${address}/events`}
+              >
+                Events
+              </NavLink>
+            </li>
+            <li className="nav-item">
+              <NavLink
+                className="nav-link"
+                to={`/claim-checker/${address}/info`}
               >
                 Info
               </NavLink>
@@ -61,7 +78,7 @@ class ProtectedDetail extends Component {
         </div>
         <Switch>
           <Route
-            path={`/protected-contract/:id/info`}
+            path={`/claim-checker/:id/info`}
             render={() => (
               <>
                 <div className="mono">{`Address: ${verifier.address}`}</div>
@@ -87,7 +104,16 @@ class ProtectedDetail extends Component {
             )}
           />
           <Route
-            path={`/protected-contract/:id`}
+            path={`/claim-checker/:id/events`}
+            render={() => (
+              <Events
+                eventsResponse={this.props.eventsResponse}
+                events={this.props.events}
+              />
+            )}
+          />
+          <Route
+            path={`/claim-checker/:id`}
             exact
             render={() => (
               <>
@@ -96,13 +122,10 @@ class ProtectedDetail extends Component {
                     className="btn btn-sm btn-outline-primary ml-1"
                     onClick={() => this.setState({ checkClaim: true })}
                   >
-                    Check Claim via Contract
+                    {verifier.methodName || 'Check Claim via Contract'}
                   </button>
                 </div>
-                <Events
-                  eventsResponse={this.props.eventsResponse}
-                  events={this.props.events}
-                />
+                {this.renderAttempts(this.props.events, verifier)}
               </>
             )}
           />
@@ -111,14 +134,56 @@ class ProtectedDetail extends Component {
         {this.state.checkClaim && (
           <CheckClaim
             onClose={() => this.setState({ checkClaim: false })}
-            identity={this.props.activeIdentity}
+            verifier={verifier}
             identities={identities}
-            verifiers={this.props.verifiers}
             checkClaim={this.props.checkClaim}
             response={this.props.checkClaimResponse}
           />
         )}
       </>
+    )
+  }
+
+  renderAttempts(events, verifier) {
+    if (!events || !events.length) {
+      return null
+    }
+
+    return (
+      <table className="table table-sm">
+        <thead>
+          <tr>
+            <th className="text-center">Block</th>
+            <th>Identity</th>
+            <th>Claim Type</th>
+            <th>Issuer</th>
+            <th className="text-center">Result</th>
+          </tr>
+        </thead>
+        <tbody>
+          {events.map((evt, idx) => (
+            <tr key={idx}>
+              <td className="text-center">{evt.blockNumber}</td>
+              <td>
+                {this.props.identity.names[evt.returnValues._identity] ||
+                  String(evt.returnValues._identity).substr(0, 8)}
+              </td>
+              <td>{claimType(verifier.claimType)}</td>
+              <td>
+                {this.props.identity.names[verifier.trustedIdentity] ||
+                  String(verifier.trustedIdentity).substr(0, 8)}
+              </td>
+              <td className="text-center">
+                {evt.event === 'ClaimValid' ? (
+                  <span className="text-success">Valid <i className="fa fa-check" /></span>
+                ) : (
+                  <span className="text-danger">Invalid <i className="fa fa-times" /></span>
+                )}
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
     )
   }
 }

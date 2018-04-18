@@ -1,4 +1,4 @@
-pragma solidity ^0.4.18;
+pragma solidity ^0.4.22;
 
 import './ERC725.sol';
 
@@ -57,9 +57,9 @@ contract KeyHolder is ERC725 {
         public
         returns (bool success)
     {
-        require(keys[_key].key != _key); // Key should not already exist
+        require(keys[_key].key != _key, "Key already exists"); // Key should not already exist
         if (msg.sender != address(this)) {
-          require(keyHasPurpose(keccak256(msg.sender), 1)); // Sender has MANAGEMENT_KEY
+          require(keyHasPurpose(keccak256(msg.sender), 1), "Sender does not have management key"); // Sender has MANAGEMENT_KEY
         }
 
         keys[_key].key = _key;
@@ -77,7 +77,7 @@ contract KeyHolder is ERC725 {
         public
         returns (bool success)
     {
-        require(keyHasPurpose(keccak256(msg.sender), 2));
+        require(keyHasPurpose(keccak256(msg.sender), 2), "Sender does not have action key");
 
         emit Approved(_id, _approve);
 
@@ -112,7 +112,7 @@ contract KeyHolder is ERC725 {
         public
         returns (uint256 executionId)
     {
-        require(!executions[executionNonce].executed);
+        require(!executions[executionNonce].executed, "Already executed");
         executions[executionNonce].to = _to;
         executions[executionNonce].value = _value;
         executions[executionNonce].data = _data;
@@ -131,7 +131,7 @@ contract KeyHolder is ERC725 {
         public
         returns (bool success)
     {
-        require(keys[_key].key == _key);
+        require(keys[_key].key == _key, "No such key");
         emit KeyRemoved(keys[_key].key, keys[_key].purpose, keys[_key].keyType);
 
         /* uint index;

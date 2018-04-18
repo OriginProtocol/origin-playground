@@ -4,15 +4,12 @@ import Modal from 'components/Modal'
 import Loading from 'components/Loading'
 import FormRow from 'components/FormRow'
 
-import { ClaimTypes } from 'actions/Identity'
-
 class CheckClaim extends Component {
   constructor(props) {
     super(props)
     this.state = {
-      claimType: '3',
       identity: props.identities[0] ? props.identities[0].address : '',
-      verifier: props.identity,
+      verifier: props.verifier.address,
       submitted: false
     }
   }
@@ -59,23 +56,6 @@ class CheckClaim extends Component {
                   ))}
                 </select>
               </FormRow>
-              <FormRow label="Claim Type">
-                <select
-                  className="form-control"
-                  value={this.state.claimType}
-                  onChange={e => {
-                    this.setState({
-                      claimType: e.currentTarget.value
-                    })
-                  }}
-                >
-                  {ClaimTypes.map(ct => (
-                    <option key={ct.id} value={ct.id}>
-                      {ct.value}
-                    </option>
-                  ))}
-                </select>
-              </FormRow>
             </tbody>
           </table>
           <div className="text-right">
@@ -86,7 +66,7 @@ class CheckClaim extends Component {
                 this.props.checkClaim(
                   this.state.verifier,
                   this.state.identity,
-                  this.state.claimType
+                  this.props.verifier.claimType
                 )
               }}
             >

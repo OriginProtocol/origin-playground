@@ -8,7 +8,12 @@ import { updateBalance } from './Wallet'
 if (typeof window !== 'undefined') {
   window.contracts = {
     ClaimHolder: addr => new web3.eth.Contract(ClaimHolder.abi, addr),
-    ClaimVerifier: addr => new web3.eth.Contract(ClaimVerifier.abi, addr)
+    ClaimVerifier: addr => new web3.eth.Contract(ClaimVerifier.abi, addr),
+    Identity: addr => {
+      var i = new web3.eth.Contract(Identity.abi, addr)
+      i.options.data = '0x' + Identity.data
+      return i
+    }
   }
 }
 
@@ -51,13 +56,14 @@ export const Schemes = [
 export const scheme = lookup(Schemes)
 
 export const ClaimTypes = [
+  { id: '10', value: 'Full Name' },
+  { id: '8', value: 'Email' },
   { id: '3', value: 'Has Facebook' },
   { id: '4', value: 'Has Twitter' },
   { id: '5', value: 'Has GitHub' },
   { id: '6', value: 'Has Google' },
-  { id: '7', value: 'Verified' },
-  { id: '8', value: 'Email' },
-  { id: '9', value: 'Has LinkedIn' }
+  { id: '9', value: 'Has LinkedIn' },
+  { id: '7', value: 'Verified' }
 ]
 export const claimType = lookup(ClaimTypes)
 
@@ -114,68 +120,20 @@ export function deployIdentityContract(
   }
 }
 
-export function deployClaimVerifier(name, trustedIdentity) {
-  return async function(dispatch, getState) {
-    dispatch({ type: IdentityConstants.DEPLOY_VERIFIER })
-
-    var state = getState()
-
+export function deployClaimVerifier(args) {
+  return async function(dispatch) {
     var Contract = new web3.eth.Contract(ClaimVerifier.abi)
-
-    var deploy = {
+    var tx = Contract.deploy({
       data: '0x' + ClaimVerifier.data,
-      arguments: [trustedIdentity]
+      arguments: [args.trustedIdentity]
+    }).send({ gas: 4612388, from: web3.eth.defaultAccount })
+
+    var data = {
+      ...args,
+      owner: web3.eth.defaultAccount
     }
 
-    var data = await Contract.deploy(deploy).encodeABI()
-
-    var signedTx = await state.wallet.active.signTransaction({
-      data,
-      value: 0,
-      gas: 4612388,
-      from: web3.eth.defaultAccount,
-      chainId: state.network.id > 10 ? 1 : state.network.id
-    })
-
-    web3.eth
-      .sendSignedTransaction(signedTx.rawTransaction)
-      .on('error', error => {
-        dispatch({
-          type: IdentityConstants.DEPLOY_VERIFIER_ERROR,
-          message: error.message
-        })
-      })
-      .on('transactionHash', hash => {
-        dispatch({ type: IdentityConstants.DEPLOY_VERIFIER_HASH, hash })
-      })
-      .on('receipt', async receipt => {
-        dispatch({
-          type: IdentityConstants.DEPLOY_VERIFIER_RECEIPT,
-          receipt,
-          name,
-          contract: new web3.eth.Contract(
-            ClaimVerifier.abi,
-            receipt.contractAddress
-          )
-        })
-      })
-      .on('confirmation', (num, receipt) => {
-        if (num === 1) {
-          dispatch({
-            type: IdentityConstants.DEPLOY_VERIFIER_SUCCESS,
-            name,
-            owner: state.wallet.activeAddress,
-            trustedIdentity,
-            receipt
-          })
-        } else {
-          dispatch({
-            type: IdentityConstants.DEPLOY_VERIFIER_CONFIRMATION,
-            name,
-            num
-          })
-        }
-      })
+    dispatch(sendTransaction(tx, IdentityConstants.DEPLOY_VERIFIER, data))
   }
 }
 
@@ -311,11 +269,11 @@ export function addClaim({
       signature
     }
 
-    var hashedData = web3.utils.soliditySha3(data)
+    var hexedData = web3.utils.asciiToHex(data)
 
     if (!signature) {
       signature = await web3.eth.sign(
-        web3.utils.soliditySha3(targetIdentity, claimType, hashedData),
+        web3.utils.soliditySha3(targetIdentity, claimType, hexedData),
         web3.eth.defaultAccount
       )
     }
@@ -323,7 +281,7 @@ export function addClaim({
     var UserIdentity = new web3.eth.Contract(ClaimHolder.abi, targetIdentity)
 
     var abi = await UserIdentity.methods
-      .addClaim(claimType, scheme, claimIssuer, signature, hashedData, uri)
+      .addClaim(claimType, scheme, claimIssuer, signature, hexedData, uri)
       .encodeABI()
 
     var tx = UserIdentity.methods.execute(targetIdentity, 0, abi).send({

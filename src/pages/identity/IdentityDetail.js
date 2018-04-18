@@ -51,6 +51,8 @@ class IdentityDetails extends Component {
 
     var isOwner = identity.owner === this.props.wallet.activeAddress
     var wrongOwner = !isOwner
+    var unlockable =
+      !isOwner && this.props.wallet.accounts.indexOf(identity.owner) >= 0
 
     return (
       <>
@@ -65,9 +67,18 @@ class IdentityDetails extends Component {
               >
                 {identity.name}
                 <i
-                  className={`fa fa-${
-                    isOwner ? 'unlock' : 'lock text-muted'
+                  className={`account-lock fa fa-${
+                    isOwner
+                      ? 'unlock'
+                      : `lock${unlockable ? ' unlockable' : ''}`
                   } ml-3`}
+                  onClick={
+                    !unlockable
+                      ? null
+                      : () => {
+                          this.props.selectAccount(identity.owner)
+                        }
+                  }
                 />
               </a>
             </li>
@@ -152,7 +163,7 @@ class IdentityDetails extends Component {
                   onAddKey={() => this.setState({ addKey: true })}
                   onRemoveKey={key => this.setState({ removeKey: key })}
                   onRemoveClaim={claim => this.setState({ removeClaim: claim })}
-                  onAddClaim={(claimData) =>
+                  onAddClaim={claimData =>
                     this.setState({ addClaim: true, claimData })
                   }
                   approveExecution={executionId => {
@@ -169,7 +180,8 @@ class IdentityDetails extends Component {
             onClose={() => this.setState({ addClaim: false })}
             addClaim={this.props.addClaim}
             claimData={this.state.claimData}
-            identity={this.props.activeIdentity}
+            identity={identity}
+            certifiers={certifiers}
             identities={this.props.identities}
             response={this.props.addClaimResponse}
           />
@@ -239,69 +251,6 @@ class IdentityDetails extends Component {
       </>
     )
   }
-
-  renderSignerServices(identity) {
-    if (!identity.signerServices || !identity.signerServices.length) {
-      return null
-    }
-    return (
-      <>
-        {identity.signerServices.map((ss, idx) => (
-          <a
-            target="_blank"
-            className="btn btn-outline-secondary btn-sm mr-1"
-            key={idx}
-            href={ss.uri}
-            onClick={e => this.onCertify(e, identity)}
-          >
-            <i className={`fa fa-${ss.icon}`} />
-          </a>
-        ))}
-      </>
-    )
-  }
-
-  onCertify(e, identity) {
-    e.stopPropagation()
-    e.preventDefault()
-
-    var href = `${e.currentTarget.href}?target=${
-      this.props.match.params.identity
-    }&issuer=${identity.address}`
-
-    var w = window.open(href, '', 'width=650,height=500')
-
-    const finish = e => {
-      if (String(e.data).match(/^signed-data:/)) {
-        this.setState({
-          addClaim: true,
-          claimData: {
-            claimType: e.data.split(':')[3],
-            claimScheme: '1',
-            claimData: 'Verified OK',
-            claimUri: '',
-            issuer: identity.address,
-            targetIdentity: this.props.match.params.identity,
-            signature: e.data.split(':')[1]
-          }
-        })
-      } else if (e.data !== 'success') {
-        return
-      }
-      window.removeEventListener('message', finish, false)
-
-      if (!w.closed) {
-        w.close()
-      }
-
-      this.props.getEvents(
-        this.props.activeType,
-        this.props.match.params.identity
-      )
-    }
-
-    window.addEventListener('message', finish, false)
-  }
 }
 
 const mapStateToProps = (state, ownProps) => ({
@@ -339,3 +288,12 @@ const mapDispatchToProps = dispatch => ({
 })
 
 export default connect(mapStateToProps, mapDispatchToProps)(IdentityDetails)
+
+require('react-styl')(`
+  .unlockable
+    cursor: pointer
+  .account-lock
+    color: #6c757d
+    &.unlockable:hover
+      color: #28a745
+`)

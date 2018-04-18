@@ -177,7 +177,7 @@ export default function Identity(state = getInitialState(), action = {}) {
         createVerifierResponse: 'in-pool'
       }
 
-    case IdentityConstants.DEPLOY_VERIFIER_SUCCESS: {
+    case IdentityConstants.DEPLOY_VERIFIER_RECEIPT: {
       let newState = {
         ...state,
         createVerifierResponse: 'success',
@@ -187,7 +187,9 @@ export default function Identity(state = getInitialState(), action = {}) {
             name: action.name,
             address: action.receipt.contractAddress,
             owner: action.owner,
-            trustedIdentity: action.trustedIdentity
+            trustedIdentity: action.trustedIdentity,
+            methodName: action.methodName,
+            claimType: action.claimType
           }
         ]
       }

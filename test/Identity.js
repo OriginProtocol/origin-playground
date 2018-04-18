@@ -14,6 +14,18 @@ describe('Identity', async function() {
     acctSha3 = web3.utils.keccak256(accounts[0])
   })
 
+  describe('Pre-Auth Identity', async function() {
+    it('should deploy successfully', async function() {
+      var sig = randomHex(10)
+      var data = randomHex(10)
+      var url = "1234567890"
+      await deploy('Identity', { from: accounts[0], args: [
+        // [1], [3], [accounts[0]], sig, data, url, [sig.length-2], [data.length-2], [url.length]
+        [1], [3], [accounts[0]], sig, data, url, [10], [10], [10]
+      ] })
+    })
+  })
+
   describe('Keys', async function() {
     it('should set a default MANAGEMENT_KEY', async function() {
       var res = await UserIdentity.methods.getKey(acctSha3).call()

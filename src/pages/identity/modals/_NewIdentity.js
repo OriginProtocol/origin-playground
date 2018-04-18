@@ -141,7 +141,7 @@ class NewIdentity extends Component {
     if (this.state.preAdd) {
       var claim
 
-      args = args || [[], [], [], '', [], '', [], []]
+      args = args || [[], [], [], '', '', '', [], [], []]
       Object.keys(this.state).forEach(k => {
         var match = k.match(/^claimData-(.*)$/)
         if (match) {
@@ -150,10 +150,11 @@ class NewIdentity extends Component {
           args[1].push(claim.claimScheme)
           args[2].push(claim.issuer)
           args[3] += args[3].length ? claim.signature.slice(2) : claim.signature
-          args[4].push(claim.messageHash)
+          args[4] += args[4].length ? claim.claimData.slice(2) : claim.claimData
           args[5] += claim.uri
-          args[6].push(claim.messageHash.length - 1)
-          args[7].push(claim.uri.length)
+          args[6].push((claim.signature.length - 2) / 2)
+          args[7].push((claim.claimData.length - 2) / 2),
+          args[8].push(claim.uri.length)
         }
       })
     }
@@ -179,11 +180,10 @@ class NewIdentity extends Component {
           [`claimData-${identity}-${claimType}`]: {
             claimType: e.data.split(':')[3],
             claimScheme: '1',
-            claimData: 'Verified OK',
+            claimData: web3.utils.asciiToHex('Verified OK'),
             uri: '',
             issuer: identity,
-            signature: e.data.split(':')[1],
-            messageHash: web3.utils.soliditySha3('Verified OK')
+            signature: e.data.split(':')[1]
           }
         })
       } else if (e.data !== 'success') {

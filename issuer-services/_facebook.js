@@ -89,8 +89,8 @@ module.exports = function facebook(app, { web3, facebookApp, baseUrl }) {
     async (req, res) => {
       // var data = JSON.stringify({ user_id: req.tokenDebug.user_id })
       var rawData = 'Verified OK'
-      var hashedData = web3.utils.soliditySha3(rawData)
-      var hashed = web3.utils.soliditySha3(req.session.targetIdentity, ClaimType, hashedData)
+      var hexData = web3.utils.asciiToHex(rawData)
+      var hashed = web3.utils.soliditySha3(req.session.targetIdentity, ClaimType, hexData)
       req.signedData = await web3.eth.accounts.sign(hashed, facebookApp.claimSignerKey)
 
       res.send(HTML(`
@@ -105,7 +105,7 @@ module.exports = function facebook(app, { web3, facebookApp, baseUrl }) {
           window.done = function() {
             window.opener.postMessage('signed-data:${
               req.signedData.signature
-            }:${req.signedData.messageHash}:${ClaimType}', '*')
+            }:${rawData}:${ClaimType}', '*')
           }
         </script>`
       ))

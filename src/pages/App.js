@@ -131,7 +131,7 @@ class App extends Component {
           <Switch>
             <Route path="/console" component={Console} />
             <Route path="/identity/:address" component={Identity} />
-            <Route path="/protected-contract/:address" component={Identity} />
+            <Route path="/claim-checker/:address" component={Identity} />
             <Route component={Identity} />
           </Switch>
           <div className="footer">

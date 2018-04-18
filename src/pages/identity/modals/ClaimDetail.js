@@ -101,16 +101,16 @@ class ClaimDetail extends Component {
               info="The scheme with which this claim SHOULD be verified or how it should be processed. Its a uint256 for different schemes. E.g. could 3 mean contract verification, where the data will be call data, and the issuer a contract address to call (ToBeDefined). Those can also mean different key types e.g. 1 = ECDSA, 2 = RSA, etc. (ToBeDefined)"
             >{`${scheme(claim.scheme)} (${claim.scheme})`}</Row>
             <Row
+              label="Data"
+              info="The hash of the claim data sitting at the URI, a bit-mask, call data, or actual data based on the claim scheme."
+            >
+              {web3.utils.hexToAscii(claim.data)}
+            </Row>
+            <Row
               label="URI"
               info="The location of the claim. This can be an HTTP link, swarm hash, IPFS hash, etc."
             >
               {claim.uri}
-            </Row>
-            <Row
-              label="Data"
-              info="The hash of the claim data sitting at the URI, a bit-mask, call data, or actual data based on the claim scheme."
-            >
-              {claim.data}
             </Row>
             <Row
               label="Combined"

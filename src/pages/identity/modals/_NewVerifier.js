@@ -4,12 +4,16 @@ import Modal from 'components/Modal'
 import FormRow from 'components/FormRow'
 import Loading from 'components/Loading'
 
+import { ClaimTypes } from 'actions/Identity'
+
 class NewVerifier extends Component {
   constructor(props) {
     super(props)
     this.state = {
       name: '',
-      trustedIdentity: props.identities[0] ? props.identities[0].address : ''
+      claimType: '10',
+      trustedIdentity: props.identities[0] ? props.identities[0].address : '',
+      methodName: ''
     }
   }
 
@@ -71,6 +75,33 @@ class NewVerifier extends Component {
                 ))}
               </select>
             </FormRow>
+            <FormRow label="Claim Type">
+              <select
+                className="form-control"
+                value={this.state.claimType}
+                onChange={e => {
+                  this.setState({
+                    claimType: e.currentTarget.value
+                  })
+                }}
+              >
+                {ClaimTypes.map(ct => (
+                  <option key={ct.id} value={ct.id}>
+                    {ct.value}
+                  </option>
+                ))}
+              </select>
+            </FormRow>
+            <FormRow label="Method Name">
+              <input
+                className="form-control"
+                type="text"
+                value={this.state.methodName}
+                onChange={e =>
+                  this.setState({ methodName: e.currentTarget.value })
+                }
+              />
+            </FormRow>
           </tbody>
         </table>
         <div className="text-right mt-2">
@@ -83,7 +114,13 @@ class NewVerifier extends Component {
   }
 
   onDeploy() {
-    this.props.deployClaimVerifier(this.state.name, this.state.trustedIdentity)
+    const { name, trustedIdentity, methodName, claimType } = this.state
+    this.props.deployClaimVerifier({
+      name,
+      trustedIdentity,
+      methodName,
+      claimType
+    })
   }
 }
 

@@ -22,8 +22,8 @@ module.exports = function dummyService(app, { web3, simpleApp }) {
     }
 
     var rawData = 'Verified OK'
-    var hashedData = web3.utils.soliditySha3(rawData)
-    var hashed = web3.utils.soliditySha3(target, ClaimType, hashedData)
+    var hexData = web3.utils.asciiToHex(rawData)
+    var hashed = web3.utils.soliditySha3(target, ClaimType, hexData)
     var signedData = await web3.eth.accounts.sign(hashed, simpleApp.claimSignerKey)
 
     res.send(
@@ -31,7 +31,7 @@ module.exports = function dummyService(app, { web3, simpleApp }) {
         `<div class="mb-2">This example authentication service returns some signed data which can be added to a claim</div>
         <div class="mb-2"><b>Issuer:</b> ${issuer}</div>
         <div class="mb-2"><b>Target:</b> ${target}</div>
-        <div class="mb-2"><b>Data:</b> ${hashedData}</div>
+        <div class="mb-2"><b>Data:</b> ${rawData}</div>
         <div class="mb-2"><b>Signature:</b> ${signedData.signature}</div>
         <div class="mb-2"><b>Hash:</b> ${signedData.messageHash}</div>
         <div><button class="btn btn-primary" onclick="window.done()">OK</button></div>
@@ -39,7 +39,7 @@ module.exports = function dummyService(app, { web3, simpleApp }) {
           window.done = function() {
             window.opener.postMessage('signed-data:${
               signedData.signature
-            }:${hashedData}:7', '*')
+            }:${rawData}:7', '*')
           }
         </script>`
       )

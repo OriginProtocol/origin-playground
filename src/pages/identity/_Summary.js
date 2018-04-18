@@ -22,7 +22,6 @@ class IdentitySummary extends Component {
         <Loading show={this.props.response === null} />
         {this.renderKeys()}
         {this.renderClaims()}
-        {this.renderOfferedClaims()}
         {this.renderServices()}
       </div>
     )
@@ -140,6 +139,20 @@ class IdentitySummary extends Component {
       }
     })
 
+    if (!claims.length && !executionReqs.length) {
+      if (!this.props.isOwner) {
+        return null
+      }
+      return (
+        <button
+          className="btn btn-sm btn-outline-primary"
+          onClick={() => this.props.onAddClaim()}
+        >
+          <i className="fa fa-plus" /> Add Claim
+        </button>
+      )
+    }
+
     return (
       <table className="table table-sm table-hover">
         <thead>
@@ -158,6 +171,7 @@ class IdentitySummary extends Component {
                 </a>
               )}
             </th>
+            <th>Data</th>
             <th>Issuer</th>
             <th className="text-center">Status</th>
             <th />
@@ -166,24 +180,26 @@ class IdentitySummary extends Component {
         <tbody>
           {claims.length || executionReqs.length ? null : (
             <tr>
-              <td colSpan={4}>No Claims</td>
+              <td colSpan={4}><i className="text-muted">No Claims</i></td>
             </tr>
           )}
           {claims.map((claim, idx) => (
             <tr
               className="pointer"
-              key={`c-${idx}`}
+              key={`c-${claim.returnValues.claimId}-${idx}`}
               onClick={() => {
                 this.setState({ claimDetail: claim.returnValues.claimId })
               }}
             >
               <td>{claimType(claim.returnValues.claimType)} </td>
               <td>
-                {this.props.names[claim.returnValues.issuer] ||
-                  String(claim.returnValues.issuer).substr(0, 8)}
+                {web3.utils.hexToAscii(claim.returnValues.data)}
+              </td>
+              <td>
                 {claim.returnValues.issuer === this.props.identity.address
-                  ? ' (self-claim)'
-                  : ''}
+                  ? <i>Self-claim</i>
+                  : this.props.names[claim.returnValues.issuer] ||
+                    String(claim.returnValues.issuer).substr(0, 8)}
               </td>
               <td className="text-center">
                 <ValidateClaim
@@ -218,6 +234,9 @@ class IdentitySummary extends Component {
                 }
               >
                 <td>{claimType(decoded.params._claimType)}</td>
+                <td>
+                  {web3.utils.hexToAscii(decoded.params._data)}
+                </td>
                 <td>
                   {this.props.names[decoded.params._issuer] ||
                     decoded.params._issuer.substr(0, 8)}
@@ -277,80 +296,6 @@ class IdentitySummary extends Component {
         </tbody>
       </table>
     )
-  }
-
-  renderOfferedClaims() {
-    const { certifiers, identity } = this.props
-    if (!certifiers || !certifiers.length) {
-      return null
-    }
-    if (!identity || identity.type !== 'identity') {
-      return null
-    }
-
-    return (
-      <table className="table table-sm mt-3">
-        <thead>
-          <tr>
-            <th>Claim Issuer</th>
-            <th>Signer Services</th>
-          </tr>
-        </thead>
-        <tbody>
-          {(certifiers || []).map((c, idx) => (
-            <tr key={idx}>
-              <td>{c.name}</td>
-              <td>
-                {(c.signerServices || []).map((s, sidx) => (
-                  <a
-                    key={sidx}
-                    className="btn btn-sm btn-outline-secondary mr-1"
-                    href={s.uri}
-                    onClick={e => this.onCertify(e, c)}
-                  >
-                    <i className={`fa fa-${s.icon}`} />
-                  </a>
-                ))}
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    )
-  }
-
-  onCertify(e, identity) {
-    e.stopPropagation()
-    e.preventDefault()
-
-    var href = `${e.currentTarget.href}?target=${
-      this.props.identity.address
-    }&issuer=${identity.address}`
-
-    var w = window.open(href, '', 'width=650,height=500')
-
-    const finish = e => {
-      if (String(e.data).match(/^signed-data:/)) {
-        this.props.onAddClaim({
-          claimType: e.data.split(':')[3],
-          claimScheme: '1',
-          claimData: 'Verified OK',
-          claimUri: '',
-          issuer: identity.address,
-          targetIdentity: this.props.identity.address,
-          signature: e.data.split(':')[1]
-        })
-      } else if (e.data !== 'success') {
-        return
-      }
-      window.removeEventListener('message', finish, false)
-
-      if (!w.closed) {
-        w.close()
-      }
-    }
-
-    window.addEventListener('message', finish, false)
   }
 }
 
