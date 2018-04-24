@@ -24,6 +24,10 @@ class ClaimDetail extends Component {
     var identity = new web3.eth.Contract(Identity.abi, address)
     var claim = await identity.methods.getClaim(this.props.claimId).call()
     if (claim) {
+      if (claim.scheme === '4') {
+        this.setState({ claim, hasKey: true })
+        return
+      }
       var expectedData = web3.utils.soliditySha3('Verified OK')
       var hashedSignature = web3.utils.soliditySha3(
         address,

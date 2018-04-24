@@ -180,7 +180,9 @@ class IdentitySummary extends Component {
         <tbody>
           {claims.length || executionReqs.length ? null : (
             <tr>
-              <td colSpan={4}><i className="text-muted">No Claims</i></td>
+              <td colSpan={4}>
+                <i className="text-muted">No Claims</i>
+              </td>
             </tr>
           )}
           {claims.map((claim, idx) => (
@@ -193,13 +195,18 @@ class IdentitySummary extends Component {
             >
               <td>{claimType(claim.returnValues.claimType)} </td>
               <td>
-                {web3.utils.hexToAscii(claim.returnValues.data)}
+                {web3.utils.hexToAscii(claim.returnValues.data).substr(0, 15)}
+                {web3.utils.hexToAscii(claim.returnValues.data).length > 15
+                  ? '...'
+                  : ''}
               </td>
               <td>
-                {claim.returnValues.issuer === this.props.identity.address
-                  ? <i>Self-claim</i>
-                  : this.props.names[claim.returnValues.issuer] ||
-                    String(claim.returnValues.issuer).substr(0, 8)}
+                {claim.returnValues.issuer === this.props.identity.address ? (
+                  <i>Self-claim</i>
+                ) : (
+                  this.props.names[claim.returnValues.issuer] ||
+                  String(claim.returnValues.issuer).substr(0, 8)
+                )}
               </td>
               <td className="text-center">
                 <ValidateClaim
@@ -234,9 +241,7 @@ class IdentitySummary extends Component {
                 }
               >
                 <td>{claimType(decoded.params._claimType)}</td>
-                <td>
-                  {web3.utils.hexToAscii(decoded.params._data)}
-                </td>
+                <td>{web3.utils.hexToAscii(decoded.params._data)}</td>
                 <td>
                   {this.props.names[decoded.params._issuer] ||
                     decoded.params._issuer.substr(0, 8)}

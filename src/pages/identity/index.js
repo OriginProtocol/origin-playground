@@ -2,7 +2,11 @@ import React, { Component } from 'react'
 import { connect } from 'react-redux'
 import { Switch, Route } from 'react-router-dom'
 
-import { deployIdentityContract, deployClaimVerifier } from 'actions/Identity'
+import {
+  deployIdentityContract,
+  deployClaimVerifier,
+  importIdentityContract
+} from 'actions/Identity'
 
 import { selectAccount } from 'actions/Wallet'
 
@@ -320,6 +324,7 @@ class Identity extends Component {
             activeAddress={this.props.wallet.activeAddress}
             response={this.props.identity.createIdentityResponse}
             deployIdentityContract={this.props.deployIdentityContract}
+            import={this.props.importIdentityContract}
           />
         )}
 
@@ -411,6 +416,8 @@ const mapStateToProps = (state, ownProps) => ({
 const mapDispatchToProps = dispatch => ({
   deployIdentityContract: (...args) =>
     dispatch(deployIdentityContract(...args)),
+  importIdentityContract: (...args) =>
+    dispatch(importIdentityContract(...args)),
   deployClaimVerifier: (...args) => dispatch(deployClaimVerifier(...args)),
   selectAccount: hash => dispatch(selectAccount(hash))
 })

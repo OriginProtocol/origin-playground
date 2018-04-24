@@ -13,7 +13,7 @@ const app = express()
 
 app.get('/', (req, res) => {
   var html = fs.readFileSync(__dirname + '/public/dev.html').toString()
-  res.send(html.replace(/\{HOST\}/g, `http://${HOST}:8081/`))
+  res.send(html.replace(/\{HOST\}/g, `http://${HOST}:8082/`))
 })
 app.use(serveStatic('public'))
 
@@ -49,10 +49,10 @@ const startGanache = () =>
   })
 
 async function start() {
-  await startGanache()
+  // await startGanache()
   const webpackDevServer = spawn('./node_modules/.bin/webpack-dev-server', [
     '--info=false',
-    '--port=8081',
+    '--port=8082',
     '--host=0.0.0.0'
   ])
   webpackDevServer.stdout.pipe(process.stdout)

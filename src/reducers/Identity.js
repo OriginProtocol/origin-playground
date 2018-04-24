@@ -156,12 +156,27 @@ export default function Identity(state = getInitialState(), action = {}) {
             address: action.receipt.contractAddress,
             owner: action.owner,
             type: action.identityType,
-            uri: action.uri,
-            icon: action.icon,
             signerServices: action.signerServices
           }
         ],
         lastDeployedIdentity: action.receipt.contractAddress
+      }
+      localStorage.identities = JSON.stringify(newState.identities)
+      return applyContractNames(newState)
+    }
+
+    case IdentityConstants.IMPORT: {
+      let newState = {
+        ...state,
+        identities: [
+          ...state.identities,
+          {
+            name: action.name,
+            address: action.address,
+            owner: action.owner,
+            type: action.identityType
+          }
+        ]
       }
       localStorage.identities = JSON.stringify(newState.identities)
       return applyContractNames(newState)

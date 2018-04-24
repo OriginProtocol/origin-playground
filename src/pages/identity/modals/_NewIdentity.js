@@ -11,8 +11,10 @@ class NewIdentity extends Component {
     this.state = {
       name: '',
       uri: '',
+      address: '',
       preAdd: false,
-      icon: null
+      icon: null,
+      mode: ''
     }
   }
 
@@ -44,16 +46,82 @@ class NewIdentity extends Component {
       i => i.type !== identityType && i.owner === activeAddress
     )
 
+    var modalProps = {
+      style: { maxWidth: 425 },
+      shouldClose: this.state.shouldClose,
+      submitted: this.state.submitted,
+      className: 'p-3',
+      onClose: () => this.props.onClose()
+    }
+
+    if (!this.state.mode) {
+      return (
+        <Modal {...modalProps}>
+          <div className="d-flex flex-column mt-2">
+            <button
+              className="btn btn-outline-primary mb-2"
+              onClick={() => this.setState({ mode: 'create' })}
+            >
+              Add New Identity
+            </button>
+            <button
+              className="btn btn-outline-primary mb-2"
+              onClick={() => this.setState({ mode: 'import' })}
+            >
+              Import Existing Identity
+            </button>
+          </div>
+        </Modal>
+      )
+    }
+
+    if (this.state.mode === 'import') {
+      return (
+        <Modal
+          {...modalProps}
+          onPressEnter={() => this.onImport()}
+        >
+          <div className="font-weight-bold mb-3">
+            Import an Identity contract:
+          </div>
+          <table className="w-100">
+            <tbody>
+              <FormRow label="Name">
+                <input
+                  type="text"
+                  className="form-control"
+                  value={this.state.name}
+                  ref={r => (this.nameInput = r)}
+                  onChange={e => this.setState({ name: e.currentTarget.value })}
+                />
+              </FormRow>
+              <FormRow label="Address">
+                <input
+                  type="text"
+                  className="form-control"
+                  value={this.state.address}
+                  onChange={e =>
+                    this.setState({ address: e.currentTarget.value })
+                  }
+                />
+              </FormRow>
+            </tbody>
+          </table>
+
+          <div className="d-flex mt-2 align-items-center">
+            <button
+              className="btn btn-primary ml-auto"
+              onClick={() => this.onImport()}
+            >
+              Import
+            </button>
+          </div>
+        </Modal>
+      )
+    }
+
     return (
-      <Modal
-        style={{ maxWidth: 425 }}
-        shouldClose={this.state.shouldClose}
-        submitted={this.state.submitted}
-        className="p-3"
-        onClose={() => this.props.onClose()}
-        onOpen={() => this.nameInput.focus()}
-        onPressEnter={() => this.onDeploy()}
-      >
+      <Modal {...modalProps} onPressEnter={() => this.onDeploy()}>
         <Loading show={this.state.loading} />
         <div className={`font-weight-bold${otherTypeSameOwner ? '' : ' mb-3'}`}>
           Deploy a new Identity contract:
@@ -154,7 +222,7 @@ class NewIdentity extends Component {
           args[5] += claim.uri
           args[6].push((claim.signature.length - 2) / 2)
           args[7].push((claim.claimData.length - 2) / 2),
-          args[8].push(claim.uri.length)
+            args[8].push(claim.uri.length)
         }
       })
     }
@@ -197,6 +265,11 @@ class NewIdentity extends Component {
     }
 
     window.addEventListener('message', finish, false)
+  }
+
+  onImport() {
+    this.props.import(this.state.address, this.state.name)
+    this.setState({ shouldClose: true, submitted: true })
   }
 }
 

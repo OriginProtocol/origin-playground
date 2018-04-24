@@ -51,12 +51,14 @@ export const keyType = lookup(KeyTypes)
 export const Schemes = [
   { id: '1', value: 'ECDSA' },
   { id: '2', value: 'RSA' },
-  { id: '3', value: 'Contract Call' }
+  { id: '3', value: 'Contract Call' },
+  { id: '4', value: 'Self-Claim' }
 ]
 export const scheme = lookup(Schemes)
 
 export const ClaimTypes = [
   { id: '10', value: 'Full Name' },
+  { id: '11', value: 'Origin Profile' },
   { id: '8', value: 'Email' },
   { id: '3', value: 'Has Facebook' },
   { id: '4', value: 'Has Twitter' },
@@ -77,6 +79,7 @@ export const IdentityConstants = keyMirror(
     GET_EVENTS: null,
     GET_EVENTS_SUCCESS: null,
     RESET: null,
+    IMPORT: null,
     ...chainConstants('DEPLOY'),
     ...chainConstants('DEPLOY_VERIFIER'),
     ...chainConstants('ADD_KEY'),
@@ -117,6 +120,22 @@ export function deployIdentityContract(
     }
 
     dispatch(sendTransaction(tx, IdentityConstants.DEPLOY, data))
+  }
+}
+
+export function importIdentityContract(address, name) {
+  return async function(dispatch) {
+    var Contract = new web3.eth.Contract(ClaimHolder.abi, address)
+    var events = await Contract.getPastEvents('allEvents', { fromBlock: 0 })
+    var tx = await web3.eth.getTransaction(events[0].transactionHash)
+
+    dispatch({
+      type: IdentityConstants.IMPORT,
+      name,
+      address,
+      identityType: 'identity',
+      owner: tx.from
+    })
   }
 }
 
@@ -272,10 +291,14 @@ export function addClaim({
     var hexedData = web3.utils.asciiToHex(data)
 
     if (!signature) {
-      signature = await web3.eth.sign(
-        web3.utils.soliditySha3(targetIdentity, claimType, hexedData),
-        web3.eth.defaultAccount
-      )
+      if (String(scheme) === '1') {
+        signature = await web3.eth.sign(
+          web3.utils.soliditySha3(targetIdentity, claimType, hexedData),
+          web3.eth.defaultAccount
+        )
+      } else {
+        signature = web3.utils.asciiToHex('')
+      }
     }
 
     var UserIdentity = new web3.eth.Contract(ClaimHolder.abi, targetIdentity)

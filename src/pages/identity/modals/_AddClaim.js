@@ -4,7 +4,7 @@ import Modal from 'components/Modal'
 import Loading from 'components/Loading'
 import FormRow from 'components/FormRow'
 
-import { ClaimTypes } from 'actions/Identity'
+import { ClaimTypes, Schemes } from 'actions/Identity'
 
 class AddClaim extends Component {
   constructor(props) {
@@ -165,9 +165,11 @@ class AddClaim extends Component {
                   })
                 }}
               >
-                <option value="1">ECDSA</option>
-                <option value="2">RSA</option>
-                <option value="3">Contract Call</option>
+                {Schemes.map(s => (
+                  <option key={s.id} value={s.id}>
+                    {s.value}
+                  </option>
+                ))}
               </select>
             </FormRow>
             <FormRow label="Data">

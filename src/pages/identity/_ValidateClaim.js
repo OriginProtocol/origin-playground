@@ -20,7 +20,8 @@ class ValidateClaim extends Component {
   }
 
   async validate() {
-    var claim = this.props.claim
+    var claim = this.props.claim,
+      hasKey
 
     var hashedSignature = web3.utils.soliditySha3(
       this.props.subject,
@@ -29,18 +30,22 @@ class ValidateClaim extends Component {
     )
     const prefixedMsg = web3.eth.accounts.hashMessage(hashedSignature)
 
-    var dataBuf = toBuffer(prefixedMsg)
-    var sig = fromRpcSig(claim.signature)
-    var recovered = ecrecover(dataBuf, sig.v, sig.r, sig.s)
-    var recoveredKeyBuf = pubToAddress(recovered)
-    var recoveredKey = bufferToHex(recoveredKeyBuf)
-    var hashedRecovered = web3.utils.soliditySha3(recoveredKey)
+    if (claim.scheme === '4') {
+      hasKey = true
+    } else {
+      var dataBuf = toBuffer(prefixedMsg)
+      var sig = fromRpcSig(claim.signature)
+      var recovered = ecrecover(dataBuf, sig.v, sig.r, sig.s)
+      var recoveredKeyBuf = pubToAddress(recovered)
+      var recoveredKey = bufferToHex(recoveredKeyBuf)
+      var hashedRecovered = web3.utils.soliditySha3(recoveredKey)
 
-    var issuer = new web3.eth.Contract(ClaimHolder.abi, claim.issuer)
-    try {
-      var hasKey = await issuer.methods.keyHasPurpose(hashedRecovered, 3).call()
-    } catch(e) {
-      /* Ignore */
+      var issuer = new web3.eth.Contract(ClaimHolder.abi, claim.issuer)
+      try {
+        hasKey = await issuer.methods.keyHasPurpose(hashedRecovered, 3).call()
+      } catch (e) {
+        /* Ignore */
+      }
     }
 
     this.setState({
