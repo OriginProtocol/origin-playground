@@ -24,7 +24,7 @@ contract ClaimHolder is KeyHolder, ERC735 {
         KeyHolder issuer = KeyHolder(issuer);
 
         if (msg.sender != address(this)) {
-          require(keyHasPurpose(keccak256(msg.sender), 3), "Sender does not have management key");
+          require(keyHasPurpose(keccak256(msg.sender), 3), "Sender does not have Claim Signer key");
         }
 
         if (claims[claimId].issuer != _issuer) {
