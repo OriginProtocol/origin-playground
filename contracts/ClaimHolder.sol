@@ -19,7 +19,7 @@ contract ClaimHolder is KeyHolder, ERC735 {
         public
         returns (bytes32 claimRequestId)
     {
-        claimId = keccak256(_issuer, _claimType);
+        bytes32 claimId = keccak256(_issuer, _claimType);
 
         if (msg.sender != address(this)) {
           require(keyHasPurpose(keccak256(msg.sender), 3), "Sender does not have claim signer key");
