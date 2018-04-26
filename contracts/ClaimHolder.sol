@@ -5,7 +5,6 @@ import './KeyHolder.sol';
 
 contract ClaimHolder is KeyHolder, ERC735 {
 
-    bytes32 claimId;
     mapping (bytes32 => Claim) claims;
     mapping (uint256 => bytes32[]) claimsByType;
 
