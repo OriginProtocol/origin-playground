@@ -108,7 +108,7 @@ Again, you should see the address of this contract, and the walled ID of the own
 
 ![image](https://user-images.githubusercontent.com/673455/38568345-44acf5f0-3c9d-11e8-88b9-0b46e75b3926.png)
 
-18. Now click the "Listing" under "Protected Contracts", and then click on "Run Protected Method". Change the "Claim Type" to "Had Github" 
+18. Now click the "Listing" under "Protected Contracts", and then click on "Run Protected Method". Change the "Claim Type" to "Has Github" 
 
 19. You should see that this claim is returned as **ClaimValid***. 
 
