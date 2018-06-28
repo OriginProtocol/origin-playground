@@ -1,6 +1,6 @@
-pragma solidity ^0.4.22;
+pragma solidity ^0.4.24;
 
-import './ClaimHolder.sol';
+import '/contracts/identity/ClaimHolder.sol';
 
 /**
  * NOTE: This contract exists as a convenience for deploying an identity with

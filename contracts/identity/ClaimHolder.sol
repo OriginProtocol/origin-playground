@@ -1,7 +1,7 @@
-pragma solidity ^0.4.22;
+pragma solidity ^0.4.24;
 
-import './ERC735.sol';
-import './KeyHolder.sol';
+import '/contracts/identity/ERC735.sol';
+import '/contracts/identity/KeyHolder.sol';
 
 contract ClaimHolder is KeyHolder, ERC735 {
 

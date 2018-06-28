@@ -26,10 +26,12 @@ export async function web3Helper(provider = 'ws://localhost:7545') {
 function findImportsPath(prefix) {
   return function findImports(path) {
     try {
+      var contents = fs.readFileSync(prefix + path).toString()
       return {
-        contents: fs.readFileSync(prefix + path).toString()
+        contents
       }
     } catch (e) {
+      console.log(`File not found: ${prefix}${path}`)
       return { error: 'File not found' }
     }
   }
@@ -39,10 +41,10 @@ export default async function testHelper(contracts, provider) {
   const { web3, server } = await web3Helper(provider)
   const accounts = await web3.eth.getAccounts()
 
-  async function deploy(contractName, { from, args, log }) {
+  async function deploy(contractName, { from, args, log, path }) {
     var sources = {
-      [contractName]: {
-        content: fs.readFileSync(`${contracts}/${contractName}.sol`).toString()
+      [`${contractName}.sol`]: {
+        content: fs.readFileSync(`${path || contracts}/${contractName}.sol`).toString()
       }
     }
     var compileOpts = JSON.stringify({ ...solcOpts, sources })
@@ -63,7 +65,7 @@ export default async function testHelper(contracts, provider) {
       })
     }
 
-    var { abi, evm: { bytecode } } = output.contracts[contractName][
+    var { abi, evm: { bytecode } } = output.contracts[`${contractName}.sol`][
       contractName
     ]
 
@@ -159,7 +161,16 @@ export default async function testHelper(contracts, provider) {
     return contract
   }
 
-  return { web3, accounts, deploy, server }
+  function decodeEvent(rawEvent, Contract) {
+    const { data, topics } = rawEvent
+    const ruling = Contract._jsonInterface.find(i => {
+      return i.signature === topics[0]
+    })
+    console.log(ruling)
+    return web3.eth.abi.decodeLog(ruling.inputs, data, topics)
+  }
+
+  return { web3, accounts, deploy, server, decodeEvent }
 }
 
 // Start the server if it hasn't been already...

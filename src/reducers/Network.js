@@ -34,7 +34,9 @@ const initialState = {
   provider,
 
   ipfsGateway,
-  ipfsRPC
+  ipfsRPC,
+
+  block: {}
 }
 
 export default function Network(state = initialState, action = {}) {
@@ -97,6 +99,12 @@ export default function Network(state = initialState, action = {}) {
         ...state,
         ipfsGateway: action.gateway,
         ipfsRPC: action.api
+      }
+
+    case NetworkConstants.LATEST_BLOCK_SUCCESS:
+      return {
+        ...state,
+        block: action.block
       }
   }
 

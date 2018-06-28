@@ -25,3 +25,22 @@ export function getIpfsHashFromBytes32(bytes32Hex) {
   const hashStr = bs58.encode(hashBytes)
   return hashStr
 }
+
+export async function post(gateway, json) {
+  var formData = new FormData()
+  formData.append('file', new Blob([JSON.stringify(json)]))
+
+  var rawRes = await fetch(`${gateway}/api/v0/add`, {
+    method: 'POST',
+    body: formData
+  })
+  var res = await rawRes.json()
+
+  return getBytes32FromIpfsHash(res.Hash)
+}
+
+export async function get(gateway, hashAsBytes) {
+  var hash = getIpfsHashFromBytes32(hashAsBytes)
+  const response = await fetch(`${gateway}/ipfs/${hash}`)
+  return await response.json()
+}

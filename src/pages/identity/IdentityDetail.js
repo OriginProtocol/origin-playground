@@ -33,7 +33,7 @@ class IdentityDetails extends Component {
     this.props.getEvents('ClaimHolder', props.match.params.identity)
   }
 
-  componentWillReceiveProps(nextProps) {
+  UNSAFE_componentWillReceiveProps(nextProps) {
     if (this.props.activeIdentity !== nextProps.activeIdentity) {
       this.props.getEvents('ClaimHolder', nextProps.activeIdentity)
     }

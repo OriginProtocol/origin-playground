@@ -12,6 +12,12 @@ export default class AccountChooser extends Component {
   render() {
     const { wallet, balance, account } = this.props
     const currency = `${wallet.currency}Str`
+
+    let label = 'No Wallet'
+    if (wallet && account) {
+      label = `Wallet ${account.substr(0, 6)}: ${balance[currency]}`
+    }
+
     return (
       <div>
         <Dropdown
@@ -19,7 +25,7 @@ export default class AccountChooser extends Component {
           linkClass=" nav-link"
           label={
             <>
-              {`Wallet ${account.substr(0, 6)}: ${balance[currency]}`}
+              {label}
               <i className="fa fa-caret-down ml-2" />
             </>
           }

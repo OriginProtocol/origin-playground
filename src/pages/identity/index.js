@@ -36,7 +36,7 @@ class Identity extends Component {
     this.state = {}
   }
 
-  componentWillReceiveProps(nextProps) {
+  UNSAFE_componentWillReceiveProps(nextProps) {
     if (
       this.props.identity.lastDeployedIdentity !==
       nextProps.identity.lastDeployedIdentity

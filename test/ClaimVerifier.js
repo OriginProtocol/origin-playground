@@ -6,23 +6,31 @@ describe('ClaimVerifier.sol', async function() {
   var UserIdentity, ClaimIssuer, ClaimVerifier
 
   before(async function() {
-    ({ deploy, accounts, web3 } = await helper(
-      `${__dirname}/../contracts/`
-    ))
+    ({ deploy, accounts, web3 } = await helper(`${__dirname}/..`))
 
     prvSigner = web3.utils.randomHex(32)
     pubSigner = web3.eth.accounts.privateKeyToAccount(prvSigner).address
 
-    UserIdentity = await deploy('ClaimHolder', { from: accounts[0] })
-    ClaimIssuer = await deploy('ClaimHolder', { from: accounts[1] })
-    ClaimVerifier = await deploy('ClaimVerifier', { from: accounts[2], args: [
-      ClaimIssuer._address
-    ] })
+    UserIdentity = await deploy('ClaimHolder', {
+      from: accounts[0],
+      path: `${__dirname}/../contracts/identity`
+    })
+    ClaimIssuer = await deploy('ClaimHolder', {
+      from: accounts[1],
+      path: `${__dirname}/../contracts/identity`
+    })
+    ClaimVerifier = await deploy('ClaimVerifier', {
+      from: accounts[2],
+      args: [ClaimIssuer._address],
+      path: `${__dirname}/../contracts/identity`
+    })
   })
 
   it('should allow verifier owner to addKey', async function() {
     var key = web3.utils.sha3(pubSigner)
-    var result = await ClaimIssuer.methods.addKey(key, 3, 1).send({ from: accounts[1] })
+    var result = await ClaimIssuer.methods
+      .addKey(key, 3, 1)
+      .send({ from: accounts[1] })
 
     assert(result)
   })
@@ -41,14 +49,15 @@ describe('ClaimVerifier.sol', async function() {
     var signed = await web3.eth.accounts.sign(hashed, prvSigner)
 
     var claimRes = await UserIdentity.methods
-        .addClaim(
-          claimType,
-          2,
-          ClaimIssuer._address,
-          signed.signature,
-          data,
-          'abc.com'
-        ).send({ from: accounts[0] })
+      .addClaim(
+        claimType,
+        2,
+        ClaimIssuer._address,
+        signed.signature,
+        data,
+        'abc.com'
+      )
+      .send({ from: accounts[0] })
 
     assert(claimRes.events.ClaimAdded)
   })
@@ -59,5 +68,4 @@ describe('ClaimVerifier.sol', async function() {
       .send({ from: accounts[0] })
     assert(res.events.ClaimValid)
   })
-
 })

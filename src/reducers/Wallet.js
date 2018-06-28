@@ -26,6 +26,7 @@ const initialState = {
 export default function Wallet(state = initialState, action = {}) {
   switch (action.type) {
     case WalletConstants.SELECT_ACCOUNT_SUCCESS:
+      window.localStorage.activeAddress = action.activeAddress
       return {
         ...state,
         activeAddress: action.activeAddress
@@ -44,16 +45,30 @@ export default function Wallet(state = initialState, action = {}) {
     case WalletConstants.LOAD:
       return { ...state, externalProvider: action.external }
 
-    case WalletConstants.LOAD_SUCCESS:
+    case WalletConstants.LOAD_SUCCESS: {
+      let active = action.wallet[0] ? action.wallet[0] : null,
+        activeAddress = action.wallet[0] ? action.wallet[0].address : null
+      try {
+        const foundWallet = action.wallet[window.localStorage.activeAddress]
+        if (foundWallet) {
+          activeAddress = window.localStorage.activeAddress
+          active = foundWallet
+        }
+      } catch (e) {
+        console.log(e)
+        /* Ignore */
+      }
+      web3.eth.defaultAccount = activeAddress
       return {
         ...state,
         raw: action.wallet,
         accounts: action.accounts,
         balances: action.balances,
-        active: action.wallet[0] ? action.wallet[0] : null,
-        activeAddress: action.wallet[0] ? action.wallet[0].address : null,
+        active,
+        activeAddress,
         loaded: true
       }
+    }
 
     case WalletConstants.ADD_ACCOUNT_SUCCESS:
       return {

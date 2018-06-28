@@ -3,7 +3,7 @@ import Identity from '../contracts/Identity'
 import ClaimHolder from '../contracts/ClaimHolder'
 import ClaimVerifier from '../contracts/ClaimVerifier'
 
-import { updateBalance } from './Wallet'
+import { chainConstants, sendTransaction } from './helpers'
 
 if (typeof window !== 'undefined') {
   window.contracts = {
@@ -23,15 +23,6 @@ function lookup(Types) {
     return type ? type.value : id
   }
 }
-
-const chainConstants = c => ({
-  [`${c}`]: null,
-  [`${c}_HASH`]: null,
-  [`${c}_RECEIPT`]: null,
-  [`${c}_SUCCESS`]: null,
-  [`${c}_CONFIRMATION`]: null,
-  [`${c}_ERROR`]: null
-})
 
 export const KeyPurpose = [
   { id: '1', value: 'Management' },
@@ -340,41 +331,5 @@ export function removeClaim({ identity, claim }) {
         dispatch(getEvents('ClaimHolder', identity))
       })
     )
-  }
-}
-
-function sendTransaction(transaction, type, data, callback) {
-  return async function(dispatch) {
-    dispatch({ type, ...data })
-
-    transaction
-      .on('error', error => {
-        dispatch({
-          type: `${type}_ERROR`,
-          message: error.message
-        })
-      })
-      .on('transactionHash', hash => {
-        dispatch({ type: `${type}_HASH`, hash })
-      })
-      .on('receipt', receipt => {
-        dispatch({ type: `${type}_RECEIPT`, receipt, ...data })
-        dispatch(updateBalance())
-      })
-      .on('confirmation', num => {
-        dispatch({ type: `${type}_CONFIRMATION`, num })
-      })
-      .then(receipt => {
-        dispatch({ type: `${type}_SUCCESS`, receipt, ...data })
-        if (callback) {
-          callback()
-        }
-      })
-      .catch(err => {
-        dispatch({
-          type: `${type}_ERROR`,
-          message: err.message
-        })
-      })
   }
 }

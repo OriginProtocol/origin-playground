@@ -1,40 +1,22 @@
-import keyMirror from 'utils/keyMirror'
 import balance from 'utils/balance'
+import { generateConstants } from 'utils/generateConstants'
 
 import { loadWallet } from './Wallet'
 
-export const NetworkConstants = keyMirror(
-  {
-    CHANGE: null,
-    CHANGE_SUCCESS: null,
-    CHANGE_ERROR: null,
+export const NetworkConstants = generateConstants('NETWORK', {
+  successError: [
+    'CHANGE',
+    'UPDATE_BALANCE',
+    'FETCH_ACCOUNTS',
+    'FETCH_LOCAL_WALLET',
+    'SEND_FROM_NODE',
+    'SEND_FROM_ACCOUNT',
+    'LATEST_BLOCK'
+  ],
+  regular: ['SELECT_ACCOUNT', 'SET_PROVIDER', 'SET_IPFS']
+})
 
-    UPDATE_BALANCE: null,
-    UPDATE_BALANCE_SUCCESS: null,
-    UPDATE_BALANCE_ERROR: null,
-
-    FETCH_ACCOUNTS: null,
-    FETCH_ACCOUNTS_SUCCESS: null,
-
-    FETCH_LOCAL_WALLET: null,
-    FETCH_LOCAL_WALLET_SUCCESS: null,
-
-    SELECT_ACCOUNT: null,
-    SET_PROVIDER: null,
-    SET_IPFS: null,
-
-    SEND_FROM_NODE: null,
-    SEND_FROM_NODE_SUCCESS: null,
-    SEND_FROM_NODE_ERROR: null,
-
-    SEND_FROM_ACCOUNT: null,
-    SEND_FROM_ACCOUNT_SUCCESS: null,
-    SEND_FROM_ACCOUNT_ERROR: null
-  },
-  'NETWORK'
-)
-
-export function init() {
+export function init(callback) {
   return async function(dispatch, getState) {
     var state = getState()
     dispatch({ type: NetworkConstants.CHANGE })
@@ -69,6 +51,12 @@ export function init() {
       id,
       accounts
     })
+
+    dispatch(getLatestBlock())
+
+    if (callback) {
+      callback()
+    }
   }
 }
 
@@ -102,6 +90,20 @@ export function updateBalance(account) {
       type: NetworkConstants.UPDATE_BALANCE_SUCCESS,
       account,
       balance: balance(balanceWei, state.wallet.exchangeRates)
+    })
+  }
+}
+
+export function getLatestBlock() {
+  return async function(dispatch) {
+    dispatch({ type: NetworkConstants.LATEST_BLOCK })
+
+    var blockNumber = await web3.eth.getBlockNumber()
+    var block = await web3.eth.getBlock(blockNumber)
+
+    dispatch({
+      type: NetworkConstants.LATEST_BLOCK_SUCCESS,
+      block
     })
   }
 }
@@ -191,6 +193,25 @@ export function setProvider(provider) {
     web3.eth.setProvider(provider)
     dispatch({ type: NetworkConstants.SET_PROVIDER, provider })
     dispatch(init())
+  }
+}
+
+export function timeTravel(seconds) {
+  return async function(dispatch) {
+    await new Promise(resolve =>
+      web3.currentProvider.send(
+        {
+          method: 'evm_increaseTime',
+          params: [seconds]
+        },
+        () => resolve()
+      )
+    )
+    await new Promise(resolve =>
+      web3.currentProvider.send({ method: 'evm_mine' }, () => resolve())
+    )
+
+    dispatch(getLatestBlock())
   }
 }
 

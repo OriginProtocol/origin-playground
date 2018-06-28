@@ -1,47 +1,20 @@
-import keyMirror from 'utils/keyMirror'
+import { generateConstants } from 'utils/generateConstants'
 import balance from 'utils/balance'
 
-export const WalletConstants = keyMirror(
-  {
-    LOAD: null,
-    LOAD_SUCCESS: null,
-    LOAD_ERROR: null,
-
-    LOAD_EXTERNAL: null,
-    LOAD_EXTERNAL_SUCCESS: null,
-    LOAD_EXTERNAL_ERROR: null,
-
-    ADD_ACCOUNT: null,
-    ADD_ACCOUNT_SUCCESS: null,
-    ADD_ACCOUNT_ERROR: null,
-
-    SELECT_ACCOUNT: null,
-    SELECT_ACCOUNT_SUCCESS: null,
-    SELECT_ACCOUNT_ERROR: null,
-
-    IMPORT_ACCOUNT: null,
-    IMPORT_ACCOUNT_SUCCESS: null,
-    IMPORT_ACCOUNT_ERROR: null,
-
-    SAVE: null,
-    SAVE_SUCCESS: null,
-    SAVE_ERROR: null,
-
-    REMOVE_ACCOUNT: null,
-    REMOVE_ACCOUNT_SUCCESS: null,
-    REMOVE_ACCOUNT_ERROR: null,
-
-    UPDATE_BALANCE: null,
-    UPDATE_BALANCE_SUCCESS: null,
-    UPDATE_BALANCE_ERROR: null,
-
-    SET_CURRENCY: null,
-    LOCK_WALLET: null,
-    UNLOCK_WALLET: null,
-    UNLOCKED_WALLET: null
-  },
-  'WALLET'
-)
+export const WalletConstants = generateConstants('WALLET', {
+  successError: [
+    'LOAD',
+    'LOAD_EXTERNAL',
+    'ADD_ACCOUNT',
+    'SELECT_ACCOUNT',
+    'IMPORT_ACCOUNT',
+    'SAVE',
+    'UNSAFE_SAVE',
+    'REMOVE_ACCOUNT',
+    'UPDATE_BALANCE'
+  ],
+  regular: ['SET_CURRENCY', 'LOCK_WALLET', 'UNLOCK_WALLET', 'UNLOCKED_WALLET']
+})
 
 var watchMetaMaskInterval
 function watchMetaMask(dispatch, currentAccount) {
@@ -145,19 +118,31 @@ export function selectAccount(address) {
   }
 }
 
-export function addAccount() {
+export function addAccount(num = 1, UNSAFE_save = true) {
   return async function(dispatch) {
     dispatch({ type: WalletConstants.ADD_ACCOUNT })
 
     try {
-      var wallet = web3.eth.accounts.wallet.create(1),
+      var wallet,
+        account,
+        accounts = []
+      for (let i = 0; i < num; i++) {
+        wallet = web3.eth.accounts.wallet.create(1)
         account = wallet[wallet.length - 1]
+        accounts.push(account)
 
-      dispatch({
-        type: WalletConstants.ADD_ACCOUNT_SUCCESS,
-        wallet,
-        account
-      })
+        dispatch({
+          type: WalletConstants.ADD_ACCOUNT_SUCCESS,
+          wallet,
+          account
+        })
+      }
+      if (accounts[0]) {
+        dispatch(selectAccount(accounts[0].address))
+        if (UNSAFE_save) {
+          dispatch(UNSAFE_saveWallet())
+        }
+      }
     } catch (error) {
       dispatch({ type: WalletConstants.ADD_ACCOUNT_ERROR, error })
     }
@@ -214,6 +199,22 @@ export function saveWallet() {
       dispatch({ type: WalletConstants.SAVE_SUCCESS })
     } catch (error) {
       dispatch({ type: WalletConstants.SAVE_ERROR, error })
+    }
+  }
+}
+
+export function UNSAFE_saveWallet() {
+  return async function(dispatch, getState) {
+    dispatch({ type: WalletConstants.UNSAFE_SAVE })
+    var state = getState()
+
+    try {
+      window.sessionStorage.privateKeys = JSON.stringify(
+        state.wallet.accounts.map(a => state.wallet.raw[a].privateKey)
+      )
+      dispatch({ type: WalletConstants.UNSAFE_SAVE_SUCCESS })
+    } catch (error) {
+      dispatch({ type: WalletConstants.UNSAFE_SAVE_ERROR, error })
     }
   }
 }

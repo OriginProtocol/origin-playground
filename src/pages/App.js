@@ -1,16 +1,18 @@
 import React, { Component } from 'react'
-import { Switch, Route, Link } from 'react-router-dom'
+import { Switch, Route, Link, NavLink, Redirect } from 'react-router-dom'
 import { connect } from 'react-redux'
 
 import Console from './console'
-import Identity from './identity'
 import Versions from './_Versions'
-import Init from './_Init'
-
-import { init } from 'actions/Network'
-import AccountChooser from 'components/AccountChooser'
+import Selector from './marketplace/Selector'
+import Identity from './identity'
 
 import { selectAccount, setCurrency, loadWallet } from 'actions/Wallet'
+import { init, timeTravel } from 'actions/Network'
+import { getTokenBalances } from 'actions/Token'
+
+import AccountChooser from 'components/AccountChooser'
+import TimeTraveler from 'components/TimeTraveler'
 
 class App extends Component {
   constructor(props) {
@@ -20,6 +22,9 @@ class App extends Component {
 
   componentDidMount() {
     this.props.initNetwork()
+    if (!this.props.wallet.activeAddress && window.sessionStorage.privateKeys) {
+      this.props.loadWallet()
+    }
   }
 
   componentWillUnmount() {
@@ -35,31 +40,9 @@ class App extends Component {
     }
   }
 
-  componentWillReceiveProps(nextProps) {
-    // If no accounts are present, pre-populate for an easier demo experience.
-    if (
-      !this.props.wallet.loaded &&
-      nextProps.wallet.loaded &&
-      !nextProps.wallet.activeAddress
-    ) {
-      window.sessionStorage.privateKeys = JSON.stringify([
-        '0x1aae4f8918c2c1fa3f911415491a49e541a528233da3a54df21e7eea5c675cd9',
-        '0x7a8be97032a5c719d2cea4e4adaed0620e9fa9e49e2ccf689daf9180e3638f93',
-        '0x85a676919234e90007b20bf3ae6b54b455b62b42bf298ac03669d164e4689c49'
-      ])
-      this.props.loadWallet()
-      this.setState({ preloaded: true })
-      this.hideNotice = setTimeout(
-        () => this.setState({ preloaded: false }),
-        3000
-      )
-    }
-  }
-
   render() {
     return (
       <div>
-        <Init onClose={() => this.props.history.push('/')} />
         <nav className="navbar navbar-expand-sm navbar-light">
           <div className="container">
             <Link
@@ -67,17 +50,8 @@ class App extends Component {
               className="navbar-brand mr-3"
               onClick={() => this.setState({ toggled: false })}
             >
-              ERC 725
+              Origin Playground
             </Link>
-            <span className="navbar-text">
-              Demo implementation by
-              <a href="https://www.originprotocol.com">
-                <img
-                  style={{ height: 15, opacity: 0.5, verticalAlign: -2, marginLeft: 5 }}
-                  src="/images/origin-logo-dark.png"
-                />
-              </a>
-            </span>
             <button
               className="navbar-toggler"
               type="button"
@@ -94,19 +68,34 @@ class App extends Component {
                 this.state.toggled ? ' show' : ''
               }`}
             >
-              <ul className="navbar-nav ml-auto text-right">
-                {this.props.account &&
-                  this.props.wallet && (
-                    <li className="nav-item">
-                      <AccountChooser
-                        balance={this.props.balance}
-                        wallet={this.props.wallet}
-                        account={this.props.account}
-                        selectAccount={a => this.props.selectAccount(a)}
-                        setCurrency={c => this.props.setCurrency(c)}
-                      />
-                    </li>
-                  )}
+              <ul className="navbar-nav mr-auto">
+                <li className="nav-item">
+                  <NavLink className="nav-link" to="/marketplace">
+                    Marketplace
+                  </NavLink>
+                </li>
+                <li className="nav-item">
+                  <NavLink className="nav-link" to="/identity">
+                    Identity
+                  </NavLink>
+                </li>
+              </ul>
+              <ul className="navbar-nav ml-3 text-right">
+                <li className="nav-item">
+                  <TimeTraveler
+                    network={this.props.network}
+                    timeTravel={this.props.timeTravel}
+                  />
+                </li>
+                <li className="nav-item">
+                  <AccountChooser
+                    balance={this.props.balance}
+                    wallet={this.props.wallet}
+                    account={this.props.account}
+                    selectAccount={a => this.props.selectAccount(a)}
+                    setCurrency={c => this.props.setCurrency(c)}
+                  />
+                </li>
               </ul>
             </div>
           </div>
@@ -128,12 +117,14 @@ class App extends Component {
               </a>
             </div>
           )}
+
           <Switch>
             <Route path="/console" component={Console} />
-            <Route path="/identity/:address" component={Identity} />
-            <Route path="/claim-checker/:address" component={Identity} />
-            <Route component={Identity} />
+            <Route path="/identity" component={Identity} />
+            <Route path="/marketplace" component={Selector} />
+            <Redirect from="/" to="/marketplace" />
           </Switch>
+
           <div className="footer">
             <div className="powered-by">
               <a href="https://www.originprotocol.com">
@@ -163,21 +154,23 @@ const mapStateToProps = state => ({
   account: state.wallet.activeAddress,
   balance: state.wallet.balances[state.wallet.activeAddress],
   wallet: state.wallet,
+  network: state.network,
   nodeAccounts: state.network.accounts
 })
 
 const mapDispatchToProps = dispatch => ({
-  initNetwork: () => {
-    dispatch(init())
-  },
-  loadWallet: () => {
-    dispatch(loadWallet())
-  },
+  initNetwork: () => dispatch(init()),
+  loadWallet: () => dispatch(loadWallet()),
+  getTokenBalances: () => dispatch(getTokenBalances()),
   selectAccount: hash => dispatch(selectAccount(hash)),
-  setCurrency: currency => dispatch(setCurrency(currency))
+  setCurrency: currency => dispatch(setCurrency(currency)),
+  timeTravel: seconds => dispatch(timeTravel(seconds))
 })
 
-export default connect(mapStateToProps, mapDispatchToProps)(App)
+export default connect(
+  mapStateToProps,
+  mapDispatchToProps
+)(App)
 
 require('react-styl')(`
   table.table

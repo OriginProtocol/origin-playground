@@ -6,11 +6,19 @@ describe('Identity', async function() {
   var UserIdentity
 
   before(async function() {
-    ({ web3, deploy, accounts, web3: { utils: { randomHex } } } = await helper(
-      `${__dirname}/../contracts/`
-    ))
+    ({
+      web3,
+      deploy,
+      accounts,
+      web3: {
+        utils: { randomHex }
+      }
+    } = await helper(`${__dirname}/..`))
 
-    UserIdentity = await deploy('ClaimHolder', { from: accounts[0] })
+    UserIdentity = await deploy('ClaimHolder', {
+      from: accounts[0],
+      path: `${__dirname}/../contracts/identity`
+    })
     acctSha3 = web3.utils.keccak256(accounts[0])
   })
 
@@ -18,11 +26,23 @@ describe('Identity', async function() {
     it('should deploy successfully', async function() {
       var sig = randomHex(10)
       var data = randomHex(10)
-      var url = "1234567890"
-      await deploy('Identity', { from: accounts[0], args: [
-        // [1], [3], [accounts[0]], sig, data, url, [sig.length-2], [data.length-2], [url.length]
-        [1], [3], [accounts[0]], sig, data, url, [10], [10], [10]
-      ] })
+      var url = '1234567890'
+      await deploy('Identity', {
+        from: accounts[0],
+        args: [
+          // [1], [3], [accounts[0]], sig, data, url, [sig.length-2], [data.length-2], [url.length]
+          [1],
+          [3],
+          [accounts[0]],
+          sig,
+          data,
+          url,
+          [10],
+          [10],
+          [10]
+        ],
+        path: `${__dirname}/../contracts/identity`
+      })
     })
   })
 
@@ -75,7 +95,6 @@ describe('Identity', async function() {
   })
 
   describe('Claims', async function() {
-
     it('should allow a claim to be added by management account', async function() {
       var response = await UserIdentity.methods
         .addClaim(1, 2, accounts[0], randomHex(32), randomHex(32), 'abc.com')
@@ -102,7 +121,7 @@ describe('Identity', async function() {
     it('should respond to getClaim', async function() {
       var claimId = web3.utils.soliditySha3(accounts[0], 1)
       var claim = await UserIdentity.methods.getClaim(claimId).call()
-      assert.equal(claim.claimType, "1")
+      assert.equal(claim.claimType, '1')
     })
 
     // it('should respond to isClaimValid', async function() {
@@ -119,7 +138,7 @@ describe('Identity', async function() {
       assert(response.events.ClaimRemoved)
 
       var claim = await UserIdentity.methods.getClaim(claimId).call()
-      assert.equal(claim.claimType, "0")
+      assert.equal(claim.claimType, '0')
     })
   })
 
@@ -171,9 +190,10 @@ describe('Identity', async function() {
       assert(response.events.ExecutionRequested)
       assert(!response.events.Approved)
 
-      var id = response.events.ExecutionRequested.returnValues.executionId;
+      var id = response.events.ExecutionRequested.returnValues.executionId
 
-      var approval = await UserIdentity.methods.approve(id, true)
+      var approval = await UserIdentity.methods
+        .approve(id, true)
         .send({ from: accounts[0] })
 
       assert(approval.events.Approved)

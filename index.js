@@ -2,6 +2,8 @@ import express from 'express'
 import serveStatic from 'serve-static'
 import { spawn } from 'child_process'
 import Ganache from 'ganache-core'
+import HttpIPFS from 'ipfs/src/http'
+import ipfsAPI from 'ipfs-api'
 import opener from 'opener'
 import fs from 'fs'
 import Web3 from 'web3'
@@ -48,8 +50,43 @@ const startGanache = () =>
     })
   })
 
+const startIpfs = (opts = {}) =>
+  new Promise((resolve, reject) => {
+    const httpAPI = new HttpIPFS('./data/ipfs', {
+      Addresses: {
+        API: '/ip4/0.0.0.0/tcp/5002',
+        Gateway: '/ip4/0.0.0.0/tcp/9090'
+      }
+    })
+    console.log('Start IPFS')
+    httpAPI.start(true, async err => {
+      if (err) {
+        return reject(err)
+      }
+      console.log('Started IPFS')
+
+      if (opts.populate) {
+        await populateIpfs()
+      }
+      resolve()
+    })
+  })
+
+const populateIpfs = () =>
+  new Promise((resolve, reject) => {
+    var ipfs = ipfsAPI('localhost', '5002', { protocol: 'http' })
+    console.log('Populate IPFS...')
+    ipfs.util.addFromFs('data/fixtures', { recursive: true }, (err, result) => {
+      if (err) {
+        return reject(err)
+      }
+      resolve(result)
+    })
+  })
+
 async function start() {
-  // await startGanache()
+  await startGanache()
+  await startIpfs()
   const webpackDevServer = spawn('./node_modules/.bin/webpack-dev-server', [
     '--info=false',
     '--port=8082',
