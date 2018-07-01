@@ -1,5 +1,7 @@
 ![Origin Protocol](data/origin-header.png)
 
+Head to https://www.originprotocol.com/developers to learn more about what we're building and how to get involved.
+
 # Origin Identity Playground
 
 This app is a working implementation of the [ERC 725](https://github.com/ethereum/EIPs/issues/725) and [ERC 735](https://github.com/ethereum/EIPs/issues/735) proposals for managing a unique identity on the blockchain.
