@@ -173,7 +173,7 @@ class NewOffer extends Component {
                 obj.commission = this.state.commission
                 obj.affiliate = this.state.affiliate
               }
-              if (this.props.reviseOffer) {
+              if (this.props.reviseOffer !== undefined) {
                 obj.withdraw = this.props.reviseOffer
               }
               this.props.makeOffer(obj)

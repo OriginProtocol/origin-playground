@@ -75,8 +75,8 @@ class Offers extends Component {
   render() {
     const { offers } = this.props.marketplace
     const lID = this.props.match.params.idx
-    const isSeller =
-      this.props.listing.seller === this.props.wallet.activeAddress
+    const listing = this.props.listing
+    const isSeller = listing.seller === this.props.wallet.activeAddress
 
     return (
       <table className={`table table-sm identities-list`}>
@@ -85,7 +85,7 @@ class Offers extends Component {
             <th className="border-top-0 no-wrap">
               <i className="fa fa-money mr-2" />Offers
               <Btn
-                showIf={offers.length && !isSeller}
+                showIf={offers.length && !isSeller && !listing.withdrawn}
                 onClick={() =>
                   this.setState({ makeOffer: true, reviseOffer: null })
                 }
@@ -102,7 +102,7 @@ class Offers extends Component {
           </tr>
         </thead>
         <tbody>
-          {!offers.length && (
+          {!offers.length && !listing.withdrawn && (
             <tr>
               <td colSpan={5} className="p-2">
                 <Btn
@@ -177,7 +177,11 @@ class Offers extends Component {
             text="Accept"
           />
           <Btn
-            showIf={status === '2' && (isBuyer || (isSeller && finalized)) && !listingWithdrawn}
+            showIf={
+              status === '2' &&
+              (isBuyer || (isSeller && finalized)) &&
+              !listingWithdrawn
+            }
             onClick={() => this.props.finalizeOffer(lID, idx)}
             text="Finalize"
           />

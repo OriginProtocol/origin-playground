@@ -271,7 +271,7 @@ export function makeOffer(listingID, json) {
       json.commission,
       value
     ]
-    if (json.withdraw !== undefined) {
+    if (json.withdraw !== null && json.withdraw !== undefined) {
       args.push(json.withdraw)
     }
     var tx = Contract.methods.makeOffer(...args)
@@ -289,7 +289,7 @@ export function makeOffer(listingID, json) {
       })
     }
 
-    var data = {}
+    var data = { listingID, json }
 
     dispatch(
       sendTransaction(tx, MarketplaceConstants.MAKE_OFFER, data, () => {

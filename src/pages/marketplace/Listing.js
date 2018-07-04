@@ -93,32 +93,36 @@ class Listing extends Component {
           <Route
             render={() => (
               <div>
-                <div className="mb-2 d-flex">
-                  <div className="my-1">
-                    <b className="mr-1">Asking price:</b>
-                    {`${listing.price} ${listing.currencyId}`}
-                    <b className="ml-3 mr-1">Category:</b>
-                    {`${listing.listingType}`}
-                  </div>
-                  {isOwner && (
-                    <div className="ml-auto">
-                      <button
-                        className="btn btn-sm btn-outline-secondary mr-1"
-                        onClick={() => this.setState({ updateListing: true })}
-                      >
-                        Update
-                      </button>
-                      <button
-                        className="btn btn-sm btn-outline-danger"
-                        onClick={() =>
-                          this.props.withdrawListing(this.props.activeListing)
-                        }
-                      >
-                        <i className="fa fa-trash" />
-                      </button>
+                {listing.withdrawn ? (
+                  <div className="mb-2 text-danger">Listing Withdrawn</div>
+                ) : (
+                  <div className="mb-2 d-flex">
+                    <div className="my-1">
+                      <b className="mr-1">Asking price:</b>
+                      {`${listing.price} ${listing.currencyId}`}
+                      <b className="ml-3 mr-1">Category:</b>
+                      {`${listing.listingType}`}
                     </div>
-                  )}
-                </div>
+                    {isOwner && (
+                      <div className="ml-auto">
+                        <button
+                          className="btn btn-sm btn-outline-secondary mr-1"
+                          onClick={() => this.setState({ updateListing: true })}
+                        >
+                          Update
+                        </button>
+                        <button
+                          className="btn btn-sm btn-outline-danger"
+                          onClick={() =>
+                            this.props.withdrawListing(this.props.activeListing)
+                          }
+                        >
+                          <i className="fa fa-trash" />
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                )}
                 <Offers listing={listing} />
               </div>
             )}
