@@ -43,12 +43,8 @@ class Listings extends Component {
                   </a>
                 )}
               </th>
-              <th className="border-top-0 text-center">
-                Price
-              </th>
-              <th className="border-top-0 text-center">
-                Deposit
-              </th>
+              <th className="border-top-0 text-center">Price</th>
+              <th className="border-top-0 text-center">Deposit</th>
               <th className="border-top-0 text-center" style={{ width: 80 }}>
                 Seller
               </th>
@@ -82,25 +78,29 @@ class Listings extends Component {
                 style={{ cursor: 'pointer' }}
                 className={this.rowCls(listing, idx)}
               >
-                <td>
-                  <i
-                    className={`row-fa fa fa-${
-                      this.props.wallet.activeAddress === listing.owner
-                        ? 'un'
-                        : ''
-                    }lock`}
-                  />
-                  {listing.title}
-                </td>
-                <td className="text-center">
-                  {`${listing.price} ${listing.currencyId}`}
-                </td>
-                <td className="text-center">
-                  {`${listing.deposit} OGN`}
-                </td>
-                <td className="text-center">
-                  {!listing.seller ? '' : listing.seller.substr(0, 6)}
-                </td>
+                {listing.withdrawn ? (
+                  <td colSpan={4}>Withdrawn</td>
+                ) : (
+                  <>
+                    <td>
+                      <i
+                        className={`row-fa fa fa-${
+                          this.props.wallet.activeAddress === listing.owner
+                            ? 'un'
+                            : ''
+                        }lock`}
+                      />
+                      {listing.title}
+                    </td>
+                    <td className="text-center">
+                      {`${listing.price} ${listing.currencyId}`}
+                    </td>
+                    <td className="text-center">{`${listing.deposit} OGN`}</td>
+                    <td className="text-center">
+                      {!listing.seller ? '' : listing.seller.substr(0, 6)}
+                    </td>
+                  </>
+                )}
               </tr>
             ))}
           </tbody>
@@ -136,9 +136,9 @@ class Listings extends Component {
   }
 }
 
-const mapStateToProps = (state) => ({
+const mapStateToProps = state => ({
   marketplace: state.marketplace,
-  wallet: state.wallet,
+  wallet: state.wallet
 })
 
 const mapDispatchToProps = dispatch => ({

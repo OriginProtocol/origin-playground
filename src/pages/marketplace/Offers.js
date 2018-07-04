@@ -62,7 +62,7 @@ const Btn = props => {
   )
 }
 
-class Identity extends Component {
+class Offers extends Component {
   constructor() {
     super()
     this.state = {}
@@ -86,7 +86,9 @@ class Identity extends Component {
               <i className="fa fa-money mr-2" />Offers
               <Btn
                 showIf={offers.length && !isSeller}
-                onClick={() => this.setState({ makeOffer: true })}
+                onClick={() =>
+                  this.setState({ makeOffer: true, reviseOffer: null })
+                }
                 className="ml-2"
                 text={<i className="fa fa-plus" />}
               />
@@ -105,7 +107,9 @@ class Identity extends Component {
               <td colSpan={5} className="p-2">
                 <Btn
                   showIf={!isSeller}
-                  onClick={() => this.setState({ makeOffer: true })}
+                  onClick={() =>
+                    this.setState({ makeOffer: true, reviseOffer: null })
+                  }
                   color="primary"
                 >
                   <i className="fa fa-plus" /> Add an Offer
@@ -124,6 +128,7 @@ class Identity extends Component {
             makeOffer={offer => this.props.makeOffer(lID, offer)}
             response={this.props.marketplace.makeOfferResponse}
             parties={this.props.parties}
+            reviseOffer={this.state.reviseOffer}
           />
         )}
       </table>
@@ -133,6 +138,7 @@ class Identity extends Component {
   renderOffer(offer, idx) {
     const lID = this.props.match.params.idx
     const wallet = this.props.wallet.activeAddress
+    const listingWithdrawn = this.props.listing.withdrawn
     const isBuyer = wallet === offer.buyer
     const isSeller = this.props.listing.seller === wallet
     const isArbitrator = this.props.marketplace.arbitrator === wallet
@@ -157,7 +163,7 @@ class Identity extends Component {
           <i
             className={`row-fa fa fa-${wallet === offer.buyer ? 'un' : ''}lock`}
           />
-          {`${offer.amount} ${this.props.listing.currencyId}`}
+          {`${offer.amount} ${offer.currencyId}`}
         </td>
         <td className="text-center">{offer.buyer.substr(0, 6)}</td>
         <td className="text-center">{`${offer.commission} OGN`}</td>
@@ -171,18 +177,24 @@ class Identity extends Component {
             text="Accept"
           />
           <Btn
-            showIf={status === '2' && (isBuyer || (isSeller && finalized))}
+            showIf={status === '2' && (isBuyer || (isSeller && finalized)) && !listingWithdrawn}
             onClick={() => this.props.finalizeOffer(lID, idx)}
             text="Finalize"
           />
           <Btn
-            showIf={isBuyer && status === '2'}
+            showIf={isBuyer && status === '2' && !listingWithdrawn}
             onClick={() => this.props.disputeOffer(lID, idx)}
             text="Dispute"
             color="danger ml-1"
           />
           <Btn
             showIf={isBuyer && status === '1'}
+            onClick={() => this.setState({ makeOffer: true, reviseOffer: idx })}
+            text="Revise"
+            color="primary ml-1"
+          />
+          <Btn
+            showIf={isBuyer && (status === '1' || listingWithdrawn)}
             onClick={() => this.props.withdrawOffer(lID, idx)}
             text="Withdraw"
             color="danger ml-1"
@@ -240,5 +252,5 @@ export default withRouter(
   connect(
     mapStateToProps,
     mapDispatchToProps
-  )(Identity)
+  )(Offers)
 )

@@ -1,8 +1,8 @@
 pragma solidity ^0.4.24;
 
-import '/node_modules/openzeppelin-solidity/contracts/token/ERC827/ERC827Token.sol';
+import '/node_modules/openzeppelin-solidity/contracts/token/ERC20/StandardToken.sol';
 
-contract Token is ERC827Token {
+contract Token is StandardToken {
   string public name;
   string public symbol;
   uint8 public decimals;

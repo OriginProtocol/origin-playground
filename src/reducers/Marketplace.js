@@ -5,6 +5,7 @@ const initialState = {
   arbitratorAddress: null,
   arbitrator: null,
   createListingResponse: undefined,
+  updateListingResponse: undefined,
   makeOfferResponse: undefined,
   listings: [],
   offers: [],
@@ -44,6 +45,15 @@ export default function Token(state = initialState, action = {}) {
 
     case MarketplaceConstants.CREATE_LISTING_RECEIPT:
       return { ...state, createListingResponse: 'success' }
+
+    case MarketplaceConstants.UPDATE_LISTING:
+      return { ...state, updateListingResponse: 'submitted' }
+
+    case MarketplaceConstants.UPDATE_LISTING_HASH:
+      return { ...state, updateListingResponse: 'in-pool' }
+
+    case MarketplaceConstants.UPDATE_LISTING_RECEIPT:
+      return { ...state, updateListingResponse: 'success' }
 
     case MarketplaceConstants.MAKE_OFFER:
       return { ...state, makeOfferResponse: 'submitted' }

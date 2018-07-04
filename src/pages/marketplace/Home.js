@@ -6,7 +6,7 @@ import {
   createListing,
   deployArbitratorContract
 } from 'actions/Marketplace'
-import { deployTokenContract, transferToken } from 'actions/Token'
+import { deployTokenContract, transferToken, approveToken } from 'actions/Token'
 import { addAccount, UNSAFE_saveWallet, selectAccount } from 'actions/Wallet'
 import { sendFromNode } from 'actions/Network'
 import { addParty } from 'actions/Parties'
@@ -76,6 +76,7 @@ class Row extends Component {
 
 class Home extends Component {
   render() {
+    const hasNodeAccounts = this.props.nodeAccounts.length ? true : false
     const hasWallets = this.props.wallet.accounts.length ? true : false
     const hasFunds = this.props.wallet.accounts.every(a => {
       var bal = this.props.wallet.balances[a]
@@ -110,19 +111,17 @@ class Home extends Component {
             />
             <Row
               title="Add Ether"
-              prerequisite={hasWallets}
+              prerequisite={hasWallets && hasNodeAccounts}
               isDone={hasWallets && hasFunds}
               action="Add"
               success="Added"
               onAction={() => {
                 this.props.wallet.accounts.forEach(a => {
-                  var bal = this.props.wallet.balances[a]
+                  var bal = this.props.wallet.balances[a],
+                      nodeAccounts = this.props.nodeAccounts,
+                      rnd = Math.floor(Math.random() * nodeAccounts.length)
                   if (bal && bal.eth && Number(bal.eth) < 0.5) {
-                    this.props.sendFromNode(
-                      this.props.nodeAccounts[0].hash,
-                      a,
-                      '1'
-                    )
+                    this.props.sendFromNode(nodeAccounts[rnd].hash, a, '1')
                   }
                 })
               }}
@@ -190,6 +189,8 @@ class Home extends Component {
               onAction={() => {
                 this.props.selectAccount(Admin)
                 this.props.transferToken('OGN', Seller, 100)
+                this.props.selectAccount(Seller)
+                this.props.approveToken('OGN', this.props.marketplace, 5000)
               }}
               success="Funded"
               action="Fund OGN"
@@ -201,6 +202,8 @@ class Home extends Component {
               onAction={() => {
                 this.props.selectAccount(Admin)
                 this.props.transferToken('DAI', Buyer, 100)
+                this.props.selectAccount(Buyer)
+                this.props.approveToken('DAI', this.props.marketplace, 5000)
               }}
               success="Funded"
               action="Fund DAI"
@@ -276,6 +279,7 @@ const mapDispatchToProps = dispatch => ({
   addParty: obj => dispatch(addParty(obj)),
   createListing: obj => dispatch(createListing(obj)),
   transferToken: (...args) => dispatch(transferToken(...args)),
+  approveToken: (...args) => dispatch(approveToken(...args)),
   addAccount: (...args) => dispatch(addAccount(...args)),
   saveWallet: (...args) => dispatch(UNSAFE_saveWallet(...args)),
   sendFromNode: (...args) => dispatch(sendFromNode(...args)),

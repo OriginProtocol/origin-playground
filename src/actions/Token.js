@@ -5,7 +5,7 @@ import { sendTransaction } from './helpers'
 const Contract = new web3.eth.Contract(Token.abi)
 
 export const TokenConstants = generateConstants('TOKEN', {
-  chain: ['DEPLOY', 'TRANSFER']
+  chain: ['DEPLOY', 'TRANSFER', 'APPROVE']
 })
 
 export function deployTokenContract(args) {
@@ -37,5 +37,23 @@ export function transferToken(token, to, value) {
     })
 
     dispatch(sendTransaction(tx, TokenConstants.TRANSFER))
+  }
+}
+
+export function approveToken(token, to, value) {
+  return async function(dispatch, getState) {
+    var state = getState(),
+      address = state.token.contractAddresses[token]
+    if (!address) {
+      return
+    }
+    var Contract = new web3.eth.Contract(Token.abi, address)
+
+    var tx = Contract.methods.approve(to, value).send({
+      gas: 4612388,
+      from: web3.eth.defaultAccount
+    })
+
+    dispatch(sendTransaction(tx, TokenConstants.APPROVE))
   }
 }

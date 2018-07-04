@@ -48,7 +48,9 @@ class NewOffer extends Component {
         onClose={() => this.props.onClose()}
       >
         <Loading show={this.state.loading} />
-        <div className="font-weight-bold mb-2">Add a New Offer:</div>
+        <div className="font-weight-bold mb-2">
+          {`${this.props.reviseOffer ? 'Revise' : 'Add a New'} Offer:`}
+        </div>
         <table className="w-100">
           <tbody>
             <FormRow label="Amount">
@@ -170,6 +172,9 @@ class NewOffer extends Component {
               } else {
                 obj.commission = this.state.commission
                 obj.affiliate = this.state.affiliate
+              }
+              if (this.props.reviseOffer) {
+                obj.withdraw = this.props.reviseOffer
               }
               this.props.makeOffer(obj)
             }}

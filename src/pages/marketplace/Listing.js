@@ -2,8 +2,9 @@ import React, { Component } from 'react'
 import { connect } from 'react-redux'
 import { Switch, Route, NavLink } from 'react-router-dom'
 
-import { getOffers } from 'actions/Marketplace'
+import { getOffers, updateListing, withdrawListing } from 'actions/Marketplace'
 import Events from './_Events'
+import UpdateListing from './_UpdateListing'
 import Offers from './Offers'
 
 class Listing extends Component {
@@ -28,7 +29,7 @@ class Listing extends Component {
       return null
     }
 
-    // var isOwner = listing.seller === this.props.wallet.activeAddress
+    var isOwner = listing.seller === this.props.wallet.activeAddress
 
     return (
       <>
@@ -92,22 +93,48 @@ class Listing extends Component {
           <Route
             render={() => (
               <div>
-                <Offers listing={listing} />
-                  {/* {isOwner && (
-                    <div className="">
-                      <hr/>
-                      <button className="btn btn-sm btn-outline-secondary">
-                        Update Listing
+                <div className="mb-2 d-flex">
+                  <div className="my-1">
+                    <b className="mr-1">Asking price:</b>
+                    {`${listing.price} ${listing.currencyId}`}
+                    <b className="ml-3 mr-1">Category:</b>
+                    {`${listing.listingType}`}
+                  </div>
+                  {isOwner && (
+                    <div className="ml-auto">
+                      <button
+                        className="btn btn-sm btn-outline-secondary mr-1"
+                        onClick={() => this.setState({ updateListing: true })}
+                      >
+                        Update
                       </button>
-                      <button className="btn btn-sm btn-outline-danger ml-1">
-                        Remove Listing
+                      <button
+                        className="btn btn-sm btn-outline-danger"
+                        onClick={() =>
+                          this.props.withdrawListing(this.props.activeListing)
+                        }
+                      >
+                        <i className="fa fa-trash" />
                       </button>
                     </div>
-                  )} */}
+                  )}
+                </div>
+                <Offers listing={listing} />
               </div>
             )}
           />
         </Switch>
+
+        {this.state.updateListing && (
+          <UpdateListing
+            onClose={() => this.setState({ updateListing: false })}
+            listing={listing}
+            updateListing={json =>
+              this.props.updateListing(this.props.activeListing, json)
+            }
+            response={this.props.marketplace.updateListingResponse}
+          />
+        )}
       </>
     )
   }
@@ -116,11 +143,14 @@ class Listing extends Component {
 const mapStateToProps = (state, ownProps) => ({
   wallet: state.wallet,
   activeListing: ownProps.match.params.idx,
-  marketplace: state.marketplace
+  marketplace: state.marketplace,
+  updateListingResponse: state.marketplace.updateListingResponse
 })
 
 const mapDispatchToProps = dispatch => ({
-  getOffers: idx => dispatch(getOffers(idx))
+  getOffers: idx => dispatch(getOffers(idx)),
+  withdrawListing: idx => dispatch(withdrawListing(idx)),
+  updateListing: (idx, json) => dispatch(updateListing(idx, json))
 })
 
 export default connect(
