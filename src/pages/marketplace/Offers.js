@@ -65,7 +65,7 @@ const Btn = props => {
 class Offers extends Component {
   constructor() {
     super()
-    this.state = {}
+    this.state = { reviseOffer: null }
   }
 
   componentDidMount() {
@@ -163,7 +163,7 @@ class Offers extends Component {
           <i
             className={`row-fa fa fa-${wallet === offer.buyer ? 'un' : ''}lock`}
           />
-          {`${offer.amount} ${offer.currencyId}`}
+          {`${offer.value} ${offer.currencyId}`}
         </td>
         <td className="text-center">{offer.buyer.substr(0, 6)}</td>
         <td className="text-center">{`${offer.commission} OGN`}</td>

@@ -190,7 +190,7 @@ export function setProvider(provider) {
     if (state.network.provider === provider) {
       return
     }
-    web3.eth.setProvider(provider)
+    web3.setProvider(provider)
     dispatch({ type: NetworkConstants.SET_PROVIDER, provider })
     dispatch(init())
   }

@@ -36,10 +36,14 @@ const initialState = {
   ipfsGateway,
   ipfsRPC,
 
-  block: {}
+  block: {},
+  gasUsed: []
 }
 
 export default function Network(state = initialState, action = {}) {
+  if (action.receipt && action.receipt.gasUsed && action.type.match(/_SUCCESS$/)) {
+    state = { ...state, gasUsed: [...state.gasUsed, action.receipt.gasUsed] }
+  }
   switch (action.type) {
     case NetworkConstants.GET_CONTRACT_SUCCESS:
       return {

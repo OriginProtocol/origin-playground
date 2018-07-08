@@ -10,6 +10,7 @@ export const TokenConstants = generateConstants('TOKEN', {
 
 export function deployTokenContract(args) {
   return async function(dispatch) {
+    web3.setProvider(web3.currentProvider.host)
     var tx = Contract.deploy({
       data: '0x' + Token.data,
       arguments: args

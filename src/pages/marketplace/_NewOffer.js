@@ -49,7 +49,7 @@ class NewOffer extends Component {
       >
         <Loading show={this.state.loading} />
         <div className="font-weight-bold mb-2">
-          {`${this.props.reviseOffer ? 'Revise' : 'Add a New'} Offer:`}
+          {`${this.props.reviseOffer !== null ? 'Revise' : 'Add a New'} Offer:`}
         </div>
         <table className="w-100">
           <tbody>
@@ -173,13 +173,13 @@ class NewOffer extends Component {
                 obj.commission = this.state.commission
                 obj.affiliate = this.state.affiliate
               }
-              if (this.props.reviseOffer !== undefined) {
+              if (this.props.reviseOffer !== null) {
                 obj.withdraw = this.props.reviseOffer
               }
               this.props.makeOffer(obj)
             }}
           >
-            Create
+            {this.props.reviseOffer !== null ? 'Revise' : 'Create'}
           </button>
         </div>
       </Modal>

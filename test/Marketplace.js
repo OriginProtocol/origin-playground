@@ -109,7 +109,7 @@ describe('Marketplace.sol', async function() {
 
     it('should allow an offer to be accepted', async function() {
       var result = await Marketplace.methods
-        .acceptOffer(0, 0)
+        .acceptOffer(0, 0, IpfsHash)
         .send({ from: Seller })
       assert(result.events.OfferAccepted)
     })
@@ -117,7 +117,7 @@ describe('Marketplace.sol', async function() {
     it('should allow an offer to be finalized by buyer', async function() {
       var balanceBefore = await web3.eth.getBalance(Seller)
 
-      var result = await Marketplace.methods.finalize(0, 0).send({
+      var result = await Marketplace.methods.finalize(0, 0, IpfsHash).send({
         from: Buyer
       })
       assert(result.events.OfferFinalized)
@@ -184,11 +184,7 @@ describe('Marketplace.sol', async function() {
           .send({ from: Seller })
 
         var result = await Marketplace.methods
-          .createListing(
-            '0x12345678901234567890123456789012',
-            50,
-            DaiStableCoin._address
-          )
+          .createListing(IpfsHash, 50)
           .send({ from: Seller })
 
         listingID = result.events.ListingCreated.returnValues.listingID
@@ -210,7 +206,7 @@ describe('Marketplace.sol', async function() {
 
       it('should allow an offer to be accepted', async function() {
         var result = await Marketplace.methods
-          .acceptOffer(listingID, 0)
+          .acceptOffer(listingID, 0, IpfsHash)
           .send({ from: Seller })
         assert(result.events.OfferAccepted)
       })
@@ -219,7 +215,7 @@ describe('Marketplace.sol', async function() {
         var balanceBefore = await DaiStableCoin.methods.balanceOf(Seller).call()
 
         var result = await Marketplace.methods
-          .finalize(listingID, 0)
+          .finalize(listingID, 0, IpfsHash)
           .send({
             from: Buyer
           })
@@ -287,7 +283,7 @@ describe('Marketplace.sol', async function() {
         .send({ from: Seller })
 
       var result = await Marketplace.methods
-        .createListing('0x12345678901234567890123456789012', 50, '0x0')
+        .createListing(IpfsHash, 50)
         .send({ from: Seller })
 
       listingID = result.events.ListingCreated.returnValues.listingID
@@ -304,14 +300,14 @@ describe('Marketplace.sol', async function() {
 
     it('should allow an offer to be accepted', async function() {
       var result = await Marketplace.methods
-        .acceptOffer(listingID, offerID)
+        .acceptOffer(listingID, offerID, IpfsHash)
         .send({ from: Seller })
       assert(result.events.OfferAccepted)
     })
 
     it('should allow an offer to be disputed', async function() {
       var result = await Marketplace.methods
-        .dispute(listingID, offerID)
+        .dispute(listingID, offerID, IpfsHash)
         .send({ from: Buyer })
       assert(result.events.Dispute)
     })
@@ -340,7 +336,7 @@ describe('Marketplace.sol', async function() {
         .send({ from: Seller })
 
       var result = await Marketplace.methods
-        .createListing('0x12345678901234567890123456789012', 10, '0x0')
+        .createListing(IpfsHash, 10)
         .send({ from: Seller })
 
       listingID = result.events.ListingCreated.returnValues.listingID
@@ -357,8 +353,7 @@ describe('Marketplace.sol', async function() {
         .updateListing(
           listingID,
           '0x98765432109876543210987654321098',
-          10,
-          false
+          10
         )
         .send({ from: Seller })
 
@@ -419,7 +414,7 @@ describe('Marketplace.sol', async function() {
     //
     // it('should allow an offer to be accepted', async function() {
     //   var result = await Marketplace.methods
-    //     .acceptOffer(0, 0)
+    //     .acceptOffer(0, 0, IpfsHash)
     //     .send({ from: Seller })
     //   assert(result.events.OfferAccepted)
     // })
@@ -427,7 +422,7 @@ describe('Marketplace.sol', async function() {
     // it('should allow an offer to be finalized by buyer', async function() {
     //   var balanceBefore = await web3.eth.getBalance(Seller)
     //
-    //   var result = await Marketplace.methods.finalize(0, 0).send({
+    //   var result = await Marketplace.methods.finalize(0, 0, IpfsHash).send({
     //     from: Buyer
     //   })
     //   assert(result.events.OfferFinalized)

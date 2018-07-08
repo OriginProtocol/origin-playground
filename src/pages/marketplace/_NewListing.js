@@ -44,20 +44,6 @@ class NewListing extends Component {
         <div className="font-weight-bold mb-2">Add a New Listing:</div>
         <table className="w-100">
           <tbody>
-            <FormRow label="Currency">
-              <select
-                className="form-control"
-                value={this.state.currency}
-                onChange={e => {
-                  this.setState({
-                    currency: e.currentTarget.value
-                  })
-                }}
-              >
-                <option>ETH</option>
-                <option>DAI</option>
-              </select>
-            </FormRow>
             <FormRow label="Deposit">
               <div className="input-group">
                 <input
@@ -78,6 +64,20 @@ class NewListing extends Component {
                 <hr className="mt-2 mb-3" />
               </td>
             </tr>
+            <FormRow label="Currency">
+              <select
+                className="form-control"
+                value={this.state.currency}
+                onChange={e => {
+                  this.setState({
+                    currency: e.currentTarget.value
+                  })
+                }}
+              >
+                <option>ETH</option>
+                <option>DAI</option>
+              </select>
+            </FormRow>
             <FormRow label="Type">
               <select
                 className="form-control"

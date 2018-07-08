@@ -9,8 +9,9 @@ pragma solidity ^0.4.24;
 
 import '/node_modules/openzeppelin-solidity/contracts/token/ERC20/ERC20.sol';
 import '/contracts/arbitration/Arbitrable.sol';
+import '/contracts/IMarketplace.sol';
 
-contract Marketplace is Arbitrable {
+contract Marketplace is Arbitrable, IMarketplace {
 
   /**
    * @notice All events have the same indexed signature offsets for easy filtering
@@ -18,15 +19,16 @@ contract Marketplace is Arbitrable {
   event ListingCreated  (address indexed seller, uint indexed listingID, bytes32 ipfsHash);
   event ListingUpdated  (address indexed seller, uint indexed listingID, bytes32 ipfsHash);
   event ListingWithdrawn(address indexed seller, uint indexed listingID, bytes32 ipfsHash);
+  event ListingData     (address indexed party,  uint indexed listingID, bytes32 ipfsHash);
   event OfferCreated    (address indexed buyer,  uint indexed listingID, uint indexed offerID, bytes32 ipfsHash);
   event OfferWithdrawn  (address indexed buyer,  uint indexed listingID, uint indexed offerID, bytes32 ipfsHash);
-  event OfferAccepted   (address indexed seller, uint indexed listingID, uint indexed offerID);
-  event OfferDisputed   (address indexed buyer,  uint indexed listingID, uint indexed offerID);
-  event OfferFinalized  (address indexed party,  uint indexed listingID, uint indexed offerID);
+  event OfferAccepted   (address indexed seller, uint indexed listingID, uint indexed offerID, bytes32 ipfsHash);
+  event OfferDisputed   (address indexed buyer,  uint indexed listingID, uint indexed offerID, bytes32 ipfsHash);
+  event OfferFinalized  (address indexed party,  uint indexed listingID, uint indexed offerID, bytes32 ipfsHash);
+  event OfferData       (address indexed party,  uint indexed listingID, uint indexed offerID, bytes32 ipfsHash);
 
   struct Listing {
     address seller;   // Seller wallet / identity contract / other contract
-    ERC20 currency;   // 0x0 for ETH or address of ERC20 token
     bytes32 ipfsHash; // JSON blob with listing data
     uint deposit;     // Deposit in Origin Token
   }
@@ -74,8 +76,7 @@ contract Marketplace is Arbitrable {
   // @dev Seller creates listing
   function createListing(
     bytes32 _ipfsHash, // IPFS JSON with details, pricing, availability
-    uint _deposit,     // Deposit in Origin Token
-    address _currency  // ERC20 contract listing is priced in, or Eth if 0x0
+    uint _deposit     // Deposit in Origin Token
   )
     public
   {
@@ -83,8 +84,7 @@ contract Marketplace is Arbitrable {
     listings.push(Listing({
       seller: msg.sender,
       ipfsHash: _ipfsHash,
-      deposit: _deposit,
-      currency: ERC20(_currency)
+      deposit: _deposit
     }));
 
     tokenAddr.transferFrom(msg.sender, this, _deposit); // Transfer Origin Token
@@ -95,23 +95,23 @@ contract Marketplace is Arbitrable {
   function updateListing(
     uint listingID,
     bytes32 _ipfsHash, // Updated IPFS hash
-    uint _value,       // Amount of Origin Token to deposit or withdraw
-    bool _withdraw     // True if amount above should be deducted
+    uint _value        // Target Amount of Origin Token deposit
   ) {
+    uint toTransfer;
     Listing listing = listings[listingID];
     require(listing.seller == msg.sender);
     listing.ipfsHash = _ipfsHash;
 
-    if (_value > 0) {
-      if (_withdraw) {
-        require(listing.deposit >= _value);
-        tokenAddr.transfer(listing.seller, _value);
-        listing.deposit -= _value;
-      } else {
-        tokenAddr.transferFrom(msg.sender, this, _value);
-        listing.deposit += _value;
-      }
+    if (_value > listing.deposit) {
+      toTransfer = _value - listing.deposit;
+      tokenAddr.transferFrom(msg.sender, this, toTransfer);
+      listing.deposit += toTransfer;
+    } else if (_value < listing.deposit) {
+      toTransfer = listing.deposit - _value;
+      tokenAddr.transfer(listing.seller, toTransfer);
+      listing.deposit -= toTransfer;
     }
+
     emit ListingUpdated(listing.seller, listingID, _ipfsHash);
   }
 
@@ -131,12 +131,12 @@ contract Marketplace is Arbitrable {
     uint _finalizes,     // Timestamp an accepted offer will finalize
     address _affiliate,  // Address to send any required commission to
     uint256 _commission, // Amount of commission to send in Origin Token if offer finalizes
-    uint _value          // Offer amount in ERC20 or Eth
+    uint _value,         // Offer amount in ERC20 or Eth
+    ERC20 _currency
   )
     public
     payable
   {
-    Listing listing = listings[listingID];
     offers[listingID].push(Offer({
       status: 1,
       buyer: msg.sender,
@@ -144,15 +144,15 @@ contract Marketplace is Arbitrable {
       finalizes: _finalizes,
       affiliate: _affiliate,
       commission: _commission,
-      currency: listing.currency,
+      currency: _currency,
       value: _value,
       dispute: 0
     }));
 
-    if (address(listing.currency) == 0x0) { // Listing is in ETH
-      require(msg.value >= _value);
+    if (address(_currency) == 0x0) { // Listing is in ETH
+      require(msg.value == _value);
     } else { // Listing is in ERC20
-      require(listing.currency.transferFrom(msg.sender, this, _value));
+      require(_currency.transferFrom(msg.sender, this, _value));
     }
 
     emit OfferCreated(msg.sender, listingID, offers[listingID].length-1, _ipfsHash);
@@ -166,26 +166,29 @@ contract Marketplace is Arbitrable {
     address _affiliate,
     uint256 _commission,
     uint _value,
+    ERC20 _currency,
     uint _withdrawOfferID
   )
     public
     payable
   {
     withdrawOffer(listingID, _withdrawOfferID, _ipfsHash);
-    makeOffer(listingID, _ipfsHash, _finalizes, _affiliate, _commission, _value);
+    makeOffer(listingID, _ipfsHash, _finalizes, _affiliate, _commission, _value, _currency);
   }
 
   // @dev Seller accepts offer
-  function acceptOffer(uint listingID, uint offerID) public {
+  function acceptOffer(uint listingID, uint offerID, bytes32 _ipfsHash) public {
     require(msg.sender == listings[listingID].seller);
     Listing listing = listings[listingID];
     Offer offer = offers[listingID][offerID];
+    require(offer.status == 1); // Offer must be in state 'Created'
     offer.status = 2;
+    offer.ipfsHash = _ipfsHash;
     if (offer.affiliate != 0x0 && offer.commission > 0) {
-      require(listing.deposit > offer.commission);
+      require(listing.deposit >= offer.commission);
       listing.deposit -= offer.commission; // Accepting an offer puts Origin Token into escrow
     }
-    emit OfferAccepted(msg.sender, listingID, offerID);
+    emit OfferAccepted(msg.sender, listingID, offerID, _ipfsHash);
   }
 
   // @dev Buyer withdraws offer. IPFS hash contains reason for withdrawl.
@@ -207,28 +210,36 @@ contract Marketplace is Arbitrable {
   }
 
   // @dev Buyer must finalize transaction to receive commission
-  function finalize(uint listingID, uint offerID) public {
+  function finalize(uint listingID, uint offerID, bytes32 _ipfsHash) public {
+    Listing listing = listings[listingID];
     Offer offer = offers[listingID][offerID];
-    require(msg.sender == offer.buyer);
+    if (now <= offer.finalizes) {
+      require(msg.sender == offer.buyer);
+    } else { // Allow seller to finalize if finalization window has passed
+      require(msg.sender == offer.buyer || msg.sender == listing.seller);
+    }
     require(offer.status == 2); // Offer must be in state 'Accepted'
     offer.status = 4; // Update to 'Finalized'
     paySeller(listingID, offerID); // Pay seller
-    payCommission(listingID, offerID); // Pay affiliate
-    emit OfferFinalized(msg.sender, listingID, offerID);
+    if (msg.sender == offer.buyer) { // Only pay commission if buyer is finalizing
+      payCommission(listingID, offerID);
+    }
+    emit OfferFinalized(msg.sender, listingID, offerID, _ipfsHash);
     // TODO: delete offers[listingID][offerID];
   }
 
   // @dev Buyer can dispute transaction during finalization window
-  function dispute(uint listingID, uint offerID) public {
+  function dispute(uint listingID, uint offerID, bytes32 _ipfsHash) public {
     Offer offer = offers[listingID][offerID];
     require(msg.sender == offer.buyer);
     require(offer.status == 2); // Offer must be in 'Accepted' state
     require(now <= offer.finalizes); // Must be before agreed finalization window
     uint disputeID = arbitrator.createDispute(1, '0x00'); // Create dispute via arbitration contract
     offer.status = 3; // Set status to "Disputed"
+    offer.ipfsHash = _ipfsHash; // IPFS hash contains dispute info
     offer.dispute = disputeID; // Record dispute ID returned from arbitration contract
     disputes[disputeID] = DisputeMap({ listingID: listingID, offerID: offerID });
-    emit OfferDisputed(msg.sender, listingID, offerID);
+    emit OfferDisputed(msg.sender, listingID, offerID, _ipfsHash);
     emit Dispute(arbitrator, disputeID, "Buyer wins;Seller wins"); // For arbitration contract
   }
 
@@ -271,11 +282,11 @@ contract Marketplace is Arbitrable {
     Listing listing = listings[listingID];
     Offer offer = offers[listingID][offerID];
 
-    if (address(listing.currency) == 0x0) {
+    if (address(offer.currency) == 0x0) {
       require(listing.seller.send(offer.value));
     }
     else {
-      require(listing.currency.transfer(listing.seller, offer.value));
+      require(offer.currency.transfer(listing.seller, offer.value));
     }
   }
 
@@ -285,5 +296,15 @@ contract Marketplace is Arbitrable {
     if (offer.affiliate != 0x0 && offer.commission > 0) {
       require(tokenAddr.transfer(offer.affiliate, offer.commission));
     }
+  }
+
+  // @dev Associate ipfs data with a listing
+  function addData(uint listingID, bytes32 ipfsHash) public {
+    emit ListingData(msg.sender, listingID, ipfsHash);
+  }
+
+  // @dev Associate ipfs data with an offer
+  function addData(uint listingID, uint offerID, bytes32 ipfsHash) public {
+    emit OfferData(msg.sender, listingID, offerID, ipfsHash);
   }
 }

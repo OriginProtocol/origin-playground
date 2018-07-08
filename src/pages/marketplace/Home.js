@@ -1,20 +1,36 @@
 import React, { Component } from 'react'
 import { connect } from 'react-redux'
+import numberFormat from 'utils/numberFormat'
+
+// Create Listing -> Update listing
+// Create Listing -> Withdraw listing
+// Create Listing -> Make offer -> Accept offer -> Finalize Offer
+// Create Listing -> Make offer -> Accept offer -> Update offer
+// Create Listing -> Make offer -> Accept offer -> Withdraw listing -> Withdraw offer
+// Create Listing -> Make offer -> Withdraw offer
+// Create Listing -> Make offer -> Accept offer -> Dispute offer -> Buyer wins
+// Create Listing -> Make offer -> Accept offer -> Dispute offer -> Seller wins
+// Create Listing -> Make offer -> Accept offer -> Pass finalization window -> Finalize offer
 
 import {
   deployMarketplaceContract,
   createListing,
-  deployArbitratorContract
+  makeOffer,
+  deployArbitratorContract,
+  getOffers,
+  acceptOffer,
+  finalizeOffer,
 } from 'actions/Marketplace'
 import { deployTokenContract, transferToken, approveToken } from 'actions/Token'
 import { addAccount, UNSAFE_saveWallet, selectAccount } from 'actions/Wallet'
 import { sendFromNode } from 'actions/Network'
 import { addParty } from 'actions/Parties'
+import { price } from 'components/GasTracker'
 
 class Row extends Component {
-  constructor() {
-    super()
-    this.state = { checked: true }
+  constructor(props) {
+    super(props)
+    this.state = { checked: props.checked === undefined ? true : props.checked }
   }
 
   componentDidUpdate(prevProps) {
@@ -31,7 +47,7 @@ class Row extends Component {
   }
 
   render() {
-    const { title, isDone, success, action, prerequisite } = this.props
+    const { title, isDone, success, action, prerequisite, gas } = this.props
     let icon
     if (this.state.doingAction && !this.props.isDone) {
       icon = <i className="fa fa-spinner fa-spin" />
@@ -42,9 +58,7 @@ class Row extends Component {
         <input
           type="checkbox"
           checked={this.state.checked}
-          onChange={e =>
-            this.setState({ checked: e.currentTarget.checked })
-          }
+          onChange={e => this.setState({ checked: e.currentTarget.checked })}
         />
       )
     }
@@ -69,12 +83,17 @@ class Row extends Component {
             </a>
           )}
         </td>
+        <td>{gas ? numberFormat(gas) : ''}</td>
+        <td>{price(gas)}</td>
       </tr>
     )
   }
 }
 
 class Home extends Component {
+  componentDidMount() {
+    this.props.getOffers(0)
+  }
   render() {
     const hasNodeAccounts = this.props.nodeAccounts.length ? true : false
     const hasWallets = this.props.wallet.accounts.length ? true : false
@@ -118,8 +137,8 @@ class Home extends Component {
               onAction={() => {
                 this.props.wallet.accounts.forEach(a => {
                   var bal = this.props.wallet.balances[a],
-                      nodeAccounts = this.props.nodeAccounts,
-                      rnd = Math.floor(Math.random() * nodeAccounts.length)
+                    nodeAccounts = this.props.nodeAccounts,
+                    rnd = Math.floor(Math.random() * nodeAccounts.length)
                   if (bal && bal.eth && Number(bal.eth) < 0.5) {
                     this.props.sendFromNode(nodeAccounts[rnd].hash, a, '1')
                   }
@@ -148,6 +167,7 @@ class Home extends Component {
               title="Arbitrator"
               prerequisite={this.props.stableCoin ? true : false}
               isDone={this.props.arbitrator}
+              gas={this.props.marketplaceRaw.deployArbitratorGas}
               onAction={() => {
                 this.props.selectAccount(Arbitrator)
                 this.props.deployArbitrator('0')
@@ -157,6 +177,7 @@ class Home extends Component {
               title="Marketplace"
               prerequisite={this.props.arbitrator ? true : false}
               isDone={this.props.marketplace}
+              gas={this.props.marketplaceRaw.deployMarketplaceGas}
               onAction={() => {
                 this.props.selectAccount(Admin)
                 this.props.deployMarketplace(
@@ -209,10 +230,11 @@ class Home extends Component {
               action="Fund DAI"
             />
             <Row
-              title="Listing"
+              title="Create Listing"
               isDone={this.props.hasListing}
               success="Added"
               prerequisite={hasDAI}
+              gas={this.props.marketplaceRaw.createListingGas}
               onAction={() => {
                 this.props.selectAccount(Seller)
                 this.props.createListing({
@@ -224,6 +246,51 @@ class Home extends Component {
                 })
               }}
               action="Add"
+            />
+            <Row
+              title="Make Offer"
+              isDone={this.props.hasOffer}
+              checked={false}
+              success="Added"
+              prerequisite={this.props.hasListing}
+              gas={this.props.marketplaceRaw.makeOfferGas}
+              onAction={() => {
+                this.props.selectAccount(Buyer)
+                this.props.makeOffer(0, {
+                  amount: '10',
+                  expires: (+new Date() / 1000) + (60*60),
+                  finalizes: +new Date() / 1000 + (60*60*2),
+                  commission: 0,
+                  currencyId: 'DAI'
+                })
+              }}
+              action="Add"
+            />
+            <Row
+              title="Accept Offer"
+              // isDone={this.props.hasOffer}
+              checked={false}
+              success="Accepted"
+              prerequisite={this.props.hasOffer}
+              gas={this.props.marketplaceRaw.acceptOfferGas}
+              onAction={() => {
+                this.props.selectAccount(Seller)
+                this.props.acceptOffer(0, 0)
+              }}
+              action="Accept"
+            />
+            <Row
+              title="Finalize Offer"
+              action="Finalize"
+              // isDone={this.props.hasOffer}
+              checked={false}
+              success="Finalized"
+              prerequisite={this.props.hasOffer}
+              gas={this.props.marketplaceRaw.finalizeOfferGas}
+              onAction={() => {
+                this.props.selectAccount(Buyer)
+                this.props.finalizeOffer(0, 0)
+              }}
             />
           </tbody>
         </table>
@@ -250,6 +317,7 @@ const mapStateToProps = state => ({
   accounts: state.wallet.accounts,
   parties: state.parties.parties,
   nodeAccounts: state.network.accounts,
+  marketplaceRaw: state.marketplace,
   marketplace: state.marketplace.contractAddress,
   arbitrator: state.marketplace.arbitratorAddress,
   marketplaceParty: state.parties.parties.find(
@@ -268,6 +336,7 @@ const mapStateToProps = state => ({
     p => p.address === state.wallet.accounts[2] && p.name === 'Affiliate'
   ),
   hasListing: state.marketplace.listings.length > 0,
+  hasOffer: state.marketplace.offers.length > 0,
   token: state.token.contractAddresses.OGN,
   stableCoin: state.token.contractAddresses.DAI
 })
@@ -278,12 +347,16 @@ const mapDispatchToProps = dispatch => ({
   deployToken: args => dispatch(deployTokenContract(args)),
   addParty: obj => dispatch(addParty(obj)),
   createListing: obj => dispatch(createListing(obj)),
+  makeOffer: (...args) => dispatch(makeOffer(...args)),
   transferToken: (...args) => dispatch(transferToken(...args)),
   approveToken: (...args) => dispatch(approveToken(...args)),
   addAccount: (...args) => dispatch(addAccount(...args)),
   saveWallet: (...args) => dispatch(UNSAFE_saveWallet(...args)),
   sendFromNode: (...args) => dispatch(sendFromNode(...args)),
-  selectAccount: (...args) => dispatch(selectAccount(...args))
+  selectAccount: (...args) => dispatch(selectAccount(...args)),
+  getOffers: (...args) => dispatch(getOffers(...args)),
+  acceptOffer: (...args) => dispatch(acceptOffer(...args)),
+  finalizeOffer: (...args) => dispatch(finalizeOffer(...args)),
 })
 
 export default connect(

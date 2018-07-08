@@ -3,10 +3,16 @@ import { MarketplaceConstants } from 'actions/Marketplace'
 const initialState = {
   contractAddress: null,
   arbitratorAddress: null,
+  arbitratorGas: undefined,
   arbitrator: null,
   createListingResponse: undefined,
+  createListingGas: undefined,
   updateListingResponse: undefined,
+  updateListingGas: undefined,
   makeOfferResponse: undefined,
+  makeOfferGas: undefined,
+  acceptOfferGas: undefined,
+  finalizeOfferGas: undefined,
   listings: [],
   offers: [],
 
@@ -23,12 +29,15 @@ if (window.localStorage.arbitratorContract) {
 
 export default function Token(state = initialState, action = {}) {
   switch (action.type) {
+    case MarketplaceConstants.DEPLOY_RECEIPT:
+      return { ...state, deployMarketplaceGas: action.receipt.gasUsed }
+
     case MarketplaceConstants.DEPLOY_SUCCESS:
       window.localStorage.marketplaceContract = action.receipt._address
-      return {
-        ...state,
-        contractAddress: action.receipt._address
-      }
+      return { ...state, contractAddress: action.receipt._address }
+
+    case MarketplaceConstants.DEPLOY_ARBITRATOR_RECEIPT:
+      return { ...state, deployArbitratorGas: action.receipt.gasUsed }
 
     case MarketplaceConstants.DEPLOY_ARBITRATOR_SUCCESS:
       window.localStorage.arbitratorContract = action.receipt._address
@@ -44,7 +53,7 @@ export default function Token(state = initialState, action = {}) {
       return { ...state, createListingResponse: 'in-pool' }
 
     case MarketplaceConstants.CREATE_LISTING_RECEIPT:
-      return { ...state, createListingResponse: 'success' }
+      return { ...state, createListingResponse: 'success', createListingGas: action.receipt.gasUsed }
 
     case MarketplaceConstants.UPDATE_LISTING:
       return { ...state, updateListingResponse: 'submitted' }
@@ -53,7 +62,7 @@ export default function Token(state = initialState, action = {}) {
       return { ...state, updateListingResponse: 'in-pool' }
 
     case MarketplaceConstants.UPDATE_LISTING_RECEIPT:
-      return { ...state, updateListingResponse: 'success' }
+      return { ...state, updateListingResponse: 'success', updateListingGas: action.receipt.gasUsed }
 
     case MarketplaceConstants.MAKE_OFFER:
       return { ...state, makeOfferResponse: 'submitted' }
@@ -62,7 +71,13 @@ export default function Token(state = initialState, action = {}) {
       return { ...state, makeOfferResponse: 'in-pool' }
 
     case MarketplaceConstants.MAKE_OFFER_RECEIPT:
-      return { ...state, makeOfferResponse: 'success' }
+      return { ...state, makeOfferResponse: 'success', makeOfferGas: action.receipt.gasUsed }
+
+    case MarketplaceConstants.ACCEPT_OFFER_RECEIPT:
+      return { ...state, makeOfferResponse: 'success', acceptOfferGas: action.receipt.gasUsed }
+
+    case MarketplaceConstants.FINALIZE_OFFER_RECEIPT:
+      return { ...state, makeOfferResponse: 'success', finalizeOfferGas: action.receipt.gasUsed }
 
     case MarketplaceConstants.GET_ALL_LISTINGS_SUCCESS:
       return { ...state, listings: action.listings }

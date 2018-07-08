@@ -13,11 +13,12 @@ import { getTokenBalances } from 'actions/Token'
 
 import AccountChooser from 'components/AccountChooser'
 import TimeTraveler from 'components/TimeTraveler'
+import GasTracker from 'components/GasTracker'
 
 class App extends Component {
   constructor(props) {
     super(props)
-    this.state = {}
+    this.state = { }
   }
 
   componentDidMount() {
@@ -43,6 +44,7 @@ class App extends Component {
   render() {
     return (
       <div>
+        <GasTracker items={this.props.network.gasUsed} />
         <nav className="navbar navbar-expand-sm navbar-light">
           <div className="container">
             <Link

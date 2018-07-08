@@ -17,7 +17,7 @@ export default function({ web3, Marketplace, Buyer, Seller, OriginToken }) {
         .send({ from: Seller })
 
       let createListingAbi = await Marketplace.methods
-        .createListing(IpfsHash, 50, '0x0')
+        .createListing(IpfsHash, 50)
         .encodeABI()
 
       return await Identity.methods
@@ -30,7 +30,7 @@ export default function({ web3, Marketplace, Buyer, Seller, OriginToken }) {
         .send({ from: Seller })
 
       return await Marketplace.methods
-        .createListing(IpfsHash, 50, '0x0')
+        .createListing(IpfsHash, 50)
         .send({ from: Seller })
 
       // return await OriginToken.methods
@@ -50,7 +50,8 @@ export default function({ web3, Marketplace, Buyer, Seller, OriginToken }) {
       block.timestamp + 60 * 120,
       Buyer,
       2,
-      value
+      value,
+      '0x0'
     ]
     if (withdraw !== undefined) {
       args.push(withdraw)
@@ -70,7 +71,8 @@ export default function({ web3, Marketplace, Buyer, Seller, OriginToken }) {
       block.timestamp + 60 * 120,
       Buyer,
       2,
-      10
+      10,
+      Token._address
     ]
     if (withdraw !== undefined) {
       args.push(withdraw)
