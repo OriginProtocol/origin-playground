@@ -1,5 +1,6 @@
 import Marketplace from '../contracts/Marketplace'
 import Arbitrator from '../contracts/CentralizedArbitrator'
+import OriginArbitrator from '../contracts/OriginArbitrator'
 
 import { sendTransaction } from './helpers'
 import { generateConstants } from 'utils/generateConstants'
@@ -18,6 +19,7 @@ export const MarketplaceConstants = generateConstants('MARKETPLACE', {
   chain: [
     'DEPLOY',
     'DEPLOY_ARBITRATOR',
+    'DEPLOY_ORIGIN_ARBITRATOR',
     'CREATE_LISTING',
     'UPDATE_LISTING',
     'WITHDRAW_LISTING',
@@ -55,6 +57,20 @@ export function deployArbitratorContract(...args) {
     var data = {}
 
     dispatch(sendTransaction(tx, MarketplaceConstants.DEPLOY_ARBITRATOR, data))
+  }
+}
+
+export function deployOriginArbitratorContract(...args) {
+  return async function(dispatch) {
+    var Contract = new web3.eth.Contract(OriginArbitrator.abi)
+    var tx = Contract.deploy({
+      data: '0x' + OriginArbitrator.data,
+      arguments: [...args]
+    }).send({ gas: 4612388, from: web3.eth.defaultAccount })
+
+    var data = {}
+
+    dispatch(sendTransaction(tx, MarketplaceConstants.DEPLOY_ORIGIN_ARBITRATOR, data))
   }
 }
 
@@ -270,7 +286,8 @@ export function makeOffer(listingID, json) {
       json.affiliate || web3.eth.defaultAccount,
       json.commission,
       value,
-      currencyAddr
+      currencyAddr,
+      json.arbitrator
     ]
     if (json.withdraw !== null && json.withdraw !== undefined) {
       args.push(json.withdraw)
@@ -400,14 +417,22 @@ export function disputeOffer(listingID, offerID) {
 export function disputeRuling(listingID, offerID, ruling) {
   return async function(dispatch, getState) {
     var state = getState(),
-      address = state.marketplace.arbitratorAddress
+      address = state.marketplace.arbitratorAddress,
+      marketplaceAddress = state.marketplace.contractAddress
     if (!address) {
       return
     }
 
-    const disputeID = state.marketplace.offers[offerID].dispute
-
+    var MarketplaceContract = new web3.eth.Contract(Marketplace.abi, marketplaceAddress)
     var Contract = new web3.eth.Contract(Arbitrator.abi, address)
+
+    var events = await MarketplaceContract.getPastEvents('OfferDisputed', {
+      filter: { listingID, offerID },
+      fromBlock: 0
+    })
+
+    var disputeID = events[0].returnValues.disputeID;
+
     var tx = Contract.methods
       .giveRuling(disputeID, ruling)
       .send({ gas: 4612388, from: web3.eth.defaultAccount })

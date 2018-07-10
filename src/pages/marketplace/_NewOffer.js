@@ -7,12 +7,16 @@ import FormRow from 'components/FormRow'
 class NewOffer extends Component {
   constructor(props) {
     super(props)
+    const originArbitrator = props.parties.find(
+      p => p.name === 'OriginArbitrator'
+    )
     this.state = {
       amount: props.listing.price,
       expires: this.days(1 / 6),
       finalizes: this.days(1 / 2),
       commission: '2',
-      affiliate: ''
+      affiliate: '',
+      arbitrator: originArbitrator ? originArbitrator.address : ''
     }
   }
 
@@ -133,6 +137,21 @@ class NewOffer extends Component {
                 />
               </FormRow>
             )}
+            <FormRow label="Arbitrator">
+              <select
+                className="form-control"
+                value={this.state.arbitrator}
+                onChange={e =>
+                  this.setState({ arbitrator: e.currentTarget.value })
+                }
+              >
+                {this.props.parties.map((party, idx) => (
+                  <option key={idx} value={party.address}>
+                    {party.name}
+                  </option>
+                ))}
+              </select>
+            </FormRow>
             <tr>
               <td colSpan={2}>
                 <hr className="mt-2 mb-3" />
@@ -165,7 +184,8 @@ class NewOffer extends Component {
               var obj = {
                 amount: this.state.amount,
                 expires: this.state.expires,
-                finalizes: this.state.finalizes
+                finalizes: this.state.finalizes,
+                arbitrator: this.state.arbitrator
               }
               if (this.state.affiliate === '') {
                 obj.commission = 0

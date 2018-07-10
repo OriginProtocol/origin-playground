@@ -1,6 +1,6 @@
 export const IpfsHash = '0x12345678901234567890123456789012'
 
-export default function({ web3, Marketplace, Buyer, Seller, OriginToken }) {
+export default function({ web3, Marketplace, Buyer, Seller, OriginToken, MarketArbitrator }) {
   async function createListing({ Identity }) {
     if (Identity) {
 
@@ -51,7 +51,8 @@ export default function({ web3, Marketplace, Buyer, Seller, OriginToken }) {
       Buyer,
       2,
       value,
-      '0x0'
+      '0x0',
+      MarketArbitrator._address
     ]
     if (withdraw !== undefined) {
       args.push(withdraw)
@@ -72,7 +73,8 @@ export default function({ web3, Marketplace, Buyer, Seller, OriginToken }) {
       Buyer,
       2,
       10,
-      Token._address
+      Token._address,
+      MarketArbitrator._address
     ]
     if (withdraw !== undefined) {
       args.push(withdraw)

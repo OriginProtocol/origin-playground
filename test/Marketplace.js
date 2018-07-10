@@ -17,6 +17,7 @@ describe('Marketplace.sol', async function() {
     Seller,
     SellerIdentity,
     Arbitrator,
+    MarketArbitrator,
     ArbitratorAddr,
     helpers
 
@@ -45,10 +46,16 @@ describe('Marketplace.sol', async function() {
       args: [0]
     })
 
+    MarketArbitrator = await deploy('OriginArbitrator', {
+      from: ArbitratorAddr,
+      path: 'contracts/',
+      args: [Arbitrator._address]
+    })
+
     Marketplace = await deploy('Marketplace', {
       from: accounts[0],
       path: 'contracts/',
-      args: [OriginToken._address, Arbitrator._address]
+      args: [OriginToken._address]
     })
 
     SellerIdentity = await deploy('ClaimHolder', {
@@ -66,7 +73,8 @@ describe('Marketplace.sol', async function() {
       web3,
       Buyer,
       Seller,
-      OriginToken
+      OriginToken,
+      MarketArbitrator
     })
   })
 
@@ -277,6 +285,13 @@ describe('Marketplace.sol', async function() {
   describe('Arbitration', function() {
     let listingID, offerID
 
+    it('should allow a dispute to be made', async function() {
+      var result = await MarketArbitrator.methods
+        .createDispute(10, 10)
+        .send({ from: Seller })
+      assert(result.events.Dispute)
+    })
+
     it('should allow a new listing to be added', async function() {
       await OriginToken.methods
         .approve(Marketplace._address, 50)
@@ -309,13 +324,13 @@ describe('Marketplace.sol', async function() {
       var result = await Marketplace.methods
         .dispute(listingID, offerID, IpfsHash)
         .send({ from: Buyer })
-      assert(result.events.Dispute)
+      assert(result.events.OfferDisputed)
     })
 
     it('should allow a transaction to be resolved in favor of seller', async function() {
       var balanceBefore = await web3.eth.getBalance(Buyer)
       var result = await Arbitrator.methods
-        .giveRuling(0, 0)
+        .giveRuling(1, 0)
         .send({ from: ArbitratorAddr })
 
       assert(result)

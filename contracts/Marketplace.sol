@@ -8,10 +8,13 @@ pragma solidity ^0.4.24;
  */
 
 import '/node_modules/openzeppelin-solidity/contracts/token/ERC20/ERC20.sol';
-import '/contracts/arbitration/Arbitrable.sol';
 import '/contracts/IMarketplace.sol';
 
-contract Marketplace is Arbitrable, IMarketplace {
+contract IArbitrator {
+  function createDispute(uint listingID, uint offerID) returns (uint);
+}
+
+contract Marketplace is IMarketplace {
 
   /**
    * @notice All events have the same indexed signature offsets for easy filtering
@@ -23,7 +26,8 @@ contract Marketplace is Arbitrable, IMarketplace {
   event OfferCreated    (address indexed buyer,  uint indexed listingID, uint indexed offerID, bytes32 ipfsHash);
   event OfferWithdrawn  (address indexed buyer,  uint indexed listingID, uint indexed offerID, bytes32 ipfsHash);
   event OfferAccepted   (address indexed seller, uint indexed listingID, uint indexed offerID, bytes32 ipfsHash);
-  event OfferDisputed   (address indexed buyer,  uint indexed listingID, uint indexed offerID, bytes32 ipfsHash);
+  event OfferDisputed   (address indexed buyer,  uint indexed listingID, uint indexed offerID, bytes32 ipfsHash, uint disputeID);
+  event OfferRuling     (address indexed party,  uint indexed listingID, uint indexed offerID, bytes32 ipfsHash, uint ruling);
   event OfferFinalized  (address indexed party,  uint indexed listingID, uint indexed offerID, bytes32 ipfsHash);
   event OfferData       (address indexed party,  uint indexed listingID, uint indexed offerID, bytes32 ipfsHash);
 
@@ -34,33 +38,25 @@ contract Marketplace is Arbitrable, IMarketplace {
   }
 
   struct Offer {
-    uint status;        // 0: Undefined, 1: Created, 2: Accepted, 3: Disputed, 4: Finalized,
-                        // 5: Buyer wins dispute, 6: Seller wins dispute, 7: Buyer wins by default
-    address buyer;      // Buyer wallet / identity contract / other contract
-    bytes32 ipfsHash;   // JSON blob with offer data
-    uint256 finalizes;  // Timestamp offer finalizes
-    uint256 commission; // Amount of commission earned if offer is accepted
-    address affiliate;  // Address to send any commission
-    ERC20 currency;     // Currency of listing. Copied incase seller deleted listing
     uint value;         // Amount in Eth or token buyer is offering
-    uint dispute;       // Dispute ID
+    uint commission;    // Amount of commission earned if offer is accepted
+    bytes32 ipfsHash;   // JSON blob with offer data
+    ERC20 currency;     // Currency of listing. Copied incase seller deleted listing
+    address buyer;      // Buyer wallet / identity contract / other contract
+    address affiliate;  // Address to send any commission
+    address arbitrator; // Address of arbitration contract
+    uint32 finalizes;   // Timestamp offer finalizes
+    uint8 status;       // 0: Undefined, 1: Created, 2: Accepted, 3: Disputed, 4: Finalized,
+                        // 5: Buyer wins dispute, 6: Seller wins dispute, 7: Buyer wins by default
   }
-
-  struct DisputeMap { uint listingID; uint offerID; } // Maps back from disputeID to listing + offer
 
   Listing[] public listings;
   mapping(uint => Offer[]) public offers;      // listingID => Offers
-  mapping(uint => DisputeMap) public disputes; // disputeID => DisputeMap
 
   ERC20 private tokenAddr;      // Origin Token address
-  Arbitrator public arbitrator; // Address of arbitration contract
 
-  constructor(address _tokenAddr, Arbitrator _arbitrator)
-    Arbitrable(_arbitrator, "", "") // Setup Arbitrable
-    public
-  {
+  constructor(address _tokenAddr) public {
     tokenAddr = ERC20(_tokenAddr);        // Origin Token contract
-    arbitrator = Arbitrator(_arbitrator); // Arbitrator contract
   }
 
   // @dev Return the total number of listings
@@ -128,11 +124,12 @@ contract Marketplace is Arbitrable, IMarketplace {
   function makeOffer(
     uint listingID,
     bytes32 _ipfsHash,   // IPFS hash containing offer data
-    uint _finalizes,     // Timestamp an accepted offer will finalize
+    uint32 _finalizes,     // Timestamp an accepted offer will finalize
     address _affiliate,  // Address to send any required commission to
     uint256 _commission, // Amount of commission to send in Origin Token if offer finalizes
     uint _value,         // Offer amount in ERC20 or Eth
-    ERC20 _currency
+    ERC20 _currency,
+    address _arbitrator
   )
     public
     payable
@@ -146,7 +143,7 @@ contract Marketplace is Arbitrable, IMarketplace {
       commission: _commission,
       currency: _currency,
       value: _value,
-      dispute: 0
+      arbitrator: _arbitrator
     }));
 
     if (address(_currency) == 0x0) { // Listing is in ETH
@@ -162,18 +159,19 @@ contract Marketplace is Arbitrable, IMarketplace {
   function makeOffer(
     uint listingID,
     bytes32 _ipfsHash,
-    uint _finalizes,
+    uint32 _finalizes,
     address _affiliate,
     uint256 _commission,
     uint _value,
     ERC20 _currency,
+    address _arbitrator,
     uint _withdrawOfferID
   )
     public
     payable
   {
     withdrawOffer(listingID, _withdrawOfferID, _ipfsHash);
-    makeOffer(listingID, _ipfsHash, _finalizes, _affiliate, _commission, _value, _currency);
+    makeOffer(listingID, _ipfsHash, _finalizes, _affiliate, _commission, _value, _currency, _arbitrator);
   }
 
   // @dev Seller accepts offer
@@ -234,24 +232,19 @@ contract Marketplace is Arbitrable, IMarketplace {
     require(msg.sender == offer.buyer);
     require(offer.status == 2); // Offer must be in 'Accepted' state
     require(now <= offer.finalizes); // Must be before agreed finalization window
-    uint disputeID = arbitrator.createDispute(1, '0x00'); // Create dispute via arbitration contract
     offer.status = 3; // Set status to "Disputed"
     offer.ipfsHash = _ipfsHash; // IPFS hash contains dispute info
-    offer.dispute = disputeID; // Record dispute ID returned from arbitration contract
-    disputes[disputeID] = DisputeMap({ listingID: listingID, offerID: offerID });
-    emit OfferDisputed(msg.sender, listingID, offerID, _ipfsHash);
-    emit Dispute(arbitrator, disputeID, "Buyer wins;Seller wins"); // For arbitration contract
+    uint disputeID = IArbitrator(offer.arbitrator).createDispute(listingID, offerID);
+    emit OfferDisputed(msg.sender, listingID, offerID, _ipfsHash, disputeID);
   }
 
   // @dev Called from arbitration contract
-  function executeRuling(uint _disputeID, uint _ruling) internal {
-    DisputeMap dispute = disputes[_disputeID];
-    uint listingID = dispute.listingID;
-    uint offerID = dispute.offerID;
+  function executeRuling(uint listingID, uint offerID, uint _ruling) public {
     Offer offer = offers[listingID][offerID];
     Listing listing = listings[listingID];
+    require(msg.sender == offer.arbitrator);
     require(offer.status == 3); // Offer must be 'disputed'
-    if (_ruling == 0 || listing.seller == 0x0) {
+    if (_ruling == 0 || listing.seller == 0x0) { // If seller withdrew listing, buyer wins by default
       offer.status = listing.seller == 0x0 ? 7 : 5; // Buyer wins
       refund(listingID, offerID);
       payCommission(listingID, offerID); // Pay commission to affiliate
@@ -262,7 +255,7 @@ contract Marketplace is Arbitrable, IMarketplace {
         listings[listingID].deposit += offer.commission;
       }
     }
-    delete disputes[_disputeID]; // Save some gas by deleting dispute
+    emit OfferRuling(offer.arbitrator, listingID, offerID, 0x0, _ruling);
     // TODO: delete offers[listingID][offerID];
   }
 

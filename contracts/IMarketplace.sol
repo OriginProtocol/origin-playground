@@ -51,11 +51,12 @@ interface IMarketplace {
   function makeOffer(
     uint listingID,
     bytes32 _ipfsHash,   // IPFS hash containing offer data
-    uint _finalizes,     // Timestamp an accepted offer will finalize
+    uint32 _finalizes,   // Timestamp an accepted offer will finalize
     address _affiliate,  // Address to send any required commission to
     uint256 _commission, // Amount of commission to send in Origin Token if offer finalizes
     uint _value,         // Offer amount in ERC20 or Eth
-    ERC20 _currency
+    ERC20 _currency,
+    address _arbitrator
   ) public payable;
 
   // @dev Seller accepts offer

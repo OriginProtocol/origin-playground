@@ -17,6 +17,7 @@ import {
   createListing,
   makeOffer,
   deployArbitratorContract,
+  deployOriginArbitratorContract,
   getOffers,
   acceptOffer,
   finalizeOffer,
@@ -174,16 +175,23 @@ class Home extends Component {
               }}
             />
             <Row
-              title="Marketplace"
+              title="Origin Arbitrator"
               prerequisite={this.props.arbitrator ? true : false}
+              isDone={this.props.originArbitrator}
+              gas={this.props.marketplaceRaw.deployOriginArbitratorGas}
+              onAction={() => {
+                this.props.selectAccount(Arbitrator)
+                this.props.deployOriginArbitrator(this.props.arbitrator)
+              }}
+            />
+            <Row
+              title="Marketplace"
+              prerequisite={this.props.originArbitrator ? true : false}
               isDone={this.props.marketplace}
               gas={this.props.marketplaceRaw.deployMarketplaceGas}
               onAction={() => {
                 this.props.selectAccount(Admin)
-                this.props.deployMarketplace(
-                  this.props.token,
-                  this.props.arbitrator
-                )
+                this.props.deployMarketplace(this.props.token)
               }}
             />
             <Row
@@ -201,6 +209,7 @@ class Home extends Component {
                 this.props.addParty({ name: 'Buyer', address: Buyer })
                 this.props.addParty({ name: 'Affiliate', address: Affiliate })
                 this.props.addParty({ name: 'Arbitrator', address: Arbitrator })
+                this.props.addParty({ name: 'OriginArbitrator', address: this.props.originArbitrator })
               }}
             />
             <Row
@@ -261,7 +270,8 @@ class Home extends Component {
                   expires: (+new Date() / 1000) + (60*60),
                   finalizes: +new Date() / 1000 + (60*60*2),
                   commission: 0,
-                  currencyId: 'DAI'
+                  currencyId: 'DAI',
+                  arbitrator: this.props.originArbitrator
                 })
               }}
               action="Add"
@@ -320,6 +330,7 @@ const mapStateToProps = state => ({
   marketplaceRaw: state.marketplace,
   marketplace: state.marketplace.contractAddress,
   arbitrator: state.marketplace.arbitratorAddress,
+  originArbitrator: state.marketplace.originArbitratorAddress,
   marketplaceParty: state.parties.parties.find(
     p => p.address === state.marketplace.contractAddress
   ),
@@ -344,6 +355,7 @@ const mapStateToProps = state => ({
 const mapDispatchToProps = dispatch => ({
   deployMarketplace: (...args) => dispatch(deployMarketplaceContract(...args)),
   deployArbitrator: (...args) => dispatch(deployArbitratorContract(...args)),
+  deployOriginArbitrator: (...args) => dispatch(deployOriginArbitratorContract(...args)),
   deployToken: args => dispatch(deployTokenContract(args)),
   addParty: obj => dispatch(addParty(obj)),
   createListing: obj => dispatch(createListing(obj)),

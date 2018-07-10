@@ -5,6 +5,9 @@ const initialState = {
   arbitratorAddress: null,
   arbitratorGas: undefined,
   arbitrator: null,
+  originArbitratorAddress: null,
+  originArbitratorGas: undefined,
+  originArbitrator: null,
   createListingResponse: undefined,
   createListingGas: undefined,
   updateListingResponse: undefined,
@@ -26,6 +29,9 @@ if (window.localStorage.marketplaceContract) {
 if (window.localStorage.arbitratorContract) {
   initialState.arbitratorAddress = window.localStorage.arbitratorContract
 }
+if (window.localStorage.originArbitratorContract) {
+  initialState.originArbitratorAddress = window.localStorage.originArbitratorContract
+}
 
 export default function Token(state = initialState, action = {}) {
   switch (action.type) {
@@ -44,6 +50,16 @@ export default function Token(state = initialState, action = {}) {
       return {
         ...state,
         arbitratorAddress: action.receipt._address
+      }
+
+    case MarketplaceConstants.DEPLOY_ORIGIN_ARBITRATOR_RECEIPT:
+      return { ...state, deployOriginArbitratorGas: action.receipt.gasUsed }
+
+    case MarketplaceConstants.DEPLOY_ORIGIN_ARBITRATOR_SUCCESS:
+      window.localStorage.originArbitratorContract = action.receipt._address
+      return {
+        ...state,
+        originArbitratorAddress: action.receipt._address
       }
 
     case MarketplaceConstants.CREATE_LISTING:
