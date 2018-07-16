@@ -19,22 +19,24 @@ contract Marketplace is IMarketplace {
   /**
    * @notice All events have the same indexed signature offsets for easy filtering
    */
-  event ListingCreated  (address indexed seller, uint indexed listingID, bytes32 ipfsHash);
-  event ListingUpdated  (address indexed seller, uint indexed listingID, bytes32 ipfsHash);
-  event ListingWithdrawn(address indexed seller, uint indexed listingID, bytes32 ipfsHash);
-  event ListingData     (address indexed party,  uint indexed listingID, bytes32 ipfsHash);
-  event OfferCreated    (address indexed buyer,  uint indexed listingID, uint indexed offerID, bytes32 ipfsHash);
-  event OfferWithdrawn  (address indexed buyer,  uint indexed listingID, uint indexed offerID, bytes32 ipfsHash);
-  event OfferAccepted   (address indexed seller, uint indexed listingID, uint indexed offerID, bytes32 ipfsHash);
-  event OfferDisputed   (address indexed buyer,  uint indexed listingID, uint indexed offerID, bytes32 ipfsHash, uint disputeID);
-  event OfferRuling     (address indexed party,  uint indexed listingID, uint indexed offerID, bytes32 ipfsHash, uint ruling);
-  event OfferFinalized  (address indexed party,  uint indexed listingID, uint indexed offerID, bytes32 ipfsHash);
-  event OfferData       (address indexed party,  uint indexed listingID, uint indexed offerID, bytes32 ipfsHash);
+  event ListingCreated   (address indexed seller, uint indexed listingID, bytes32 ipfsHash);
+  event ListingUpdated   (address indexed seller, uint indexed listingID, bytes32 ipfsHash);
+  event ListingWithdrawn (address indexed seller, uint indexed listingID, bytes32 ipfsHash);
+  event ListingData      (address indexed party,  uint indexed listingID, bytes32 ipfsHash);
+  event ListingArbitrated(address indexed party,  uint indexed listingID, bytes32 ipfsHash);
+  event OfferCreated     (address indexed buyer,  uint indexed listingID, uint indexed offerID, bytes32 ipfsHash);
+  event OfferWithdrawn   (address indexed buyer,  uint indexed listingID, uint indexed offerID, bytes32 ipfsHash);
+  event OfferAccepted    (address indexed seller, uint indexed listingID, uint indexed offerID, bytes32 ipfsHash);
+  event OfferDisputed    (address indexed buyer,  uint indexed listingID, uint indexed offerID, bytes32 ipfsHash, uint disputeID);
+  event OfferRuling      (address indexed party,  uint indexed listingID, uint indexed offerID, bytes32 ipfsHash, uint ruling);
+  event OfferFinalized   (address indexed party,  uint indexed listingID, uint indexed offerID, bytes32 ipfsHash);
+  event OfferData        (address indexed party,  uint indexed listingID, uint indexed offerID, bytes32 ipfsHash);
 
   struct Listing {
-    address seller;   // Seller wallet / identity contract / other contract
-    bytes32 ipfsHash; // JSON blob with listing data
-    uint deposit;     // Deposit in Origin Token
+    address seller;     // Seller wallet / identity contract / other contract
+    bytes32 ipfsHash;   // JSON blob with listing data
+    uint deposit;       // Deposit in Origin Token
+    address arbitrator; // Address of arbitration contract
   }
 
   struct Offer {
@@ -51,12 +53,12 @@ contract Marketplace is IMarketplace {
   }
 
   Listing[] public listings;
-  mapping(uint => Offer[]) public offers;      // listingID => Offers
+  mapping(uint => Offer[]) public offers; // listingID => Offers
 
-  ERC20 private tokenAddr;      // Origin Token address
+  ERC20 private tokenAddr; // Origin Token address
 
   constructor(address _tokenAddr) public {
-    tokenAddr = ERC20(_tokenAddr);        // Origin Token contract
+    tokenAddr = ERC20(_tokenAddr); // Origin Token contract
   }
 
   // @dev Return the total number of listings
@@ -71,8 +73,9 @@ contract Marketplace is IMarketplace {
 
   // @dev Seller creates listing
   function createListing(
-    bytes32 _ipfsHash, // IPFS JSON with details, pricing, availability
-    uint _deposit     // Deposit in Origin Token
+    bytes32 _ipfsHash,  // IPFS JSON with details, pricing, availability
+    uint _deposit,      // Deposit in Origin Token
+    address _arbitrator // Address of listing arbitrator
   )
     public
   {
@@ -80,7 +83,8 @@ contract Marketplace is IMarketplace {
     listings.push(Listing({
       seller: msg.sender,
       ipfsHash: _ipfsHash,
-      deposit: _deposit
+      deposit: _deposit,
+      arbitrator: _arbitrator
     }));
 
     tokenAddr.transferFrom(msg.sender, this, _deposit); // Transfer Origin Token
@@ -90,22 +94,17 @@ contract Marketplace is IMarketplace {
   // @dev Seller updates listing
   function updateListing(
     uint listingID,
-    bytes32 _ipfsHash, // Updated IPFS hash
-    uint _value        // Target Amount of Origin Token deposit
+    bytes32 _ipfsHash,       // Updated IPFS hash
+    uint _additionalDeposit  // Additional deposit to add
   ) {
     uint toTransfer;
     Listing listing = listings[listingID];
     require(listing.seller == msg.sender);
     listing.ipfsHash = _ipfsHash;
 
-    if (_value > listing.deposit) {
-      toTransfer = _value - listing.deposit;
-      tokenAddr.transferFrom(msg.sender, this, toTransfer);
-      listing.deposit += toTransfer;
-    } else if (_value < listing.deposit) {
-      toTransfer = listing.deposit - _value;
-      tokenAddr.transfer(listing.seller, toTransfer);
-      listing.deposit -= toTransfer;
+    if (_additionalDeposit > 0) {
+      tokenAddr.transferFrom(msg.sender, this, _additionalDeposit);
+      listing.deposit += _additionalDeposit;
     }
 
     emit ListingUpdated(listing.seller, listingID, _ipfsHash);
@@ -124,7 +123,7 @@ contract Marketplace is IMarketplace {
   function makeOffer(
     uint listingID,
     bytes32 _ipfsHash,   // IPFS hash containing offer data
-    uint32 _finalizes,     // Timestamp an accepted offer will finalize
+    uint32 _finalizes,   // Timestamp an accepted offer will finalize
     address _affiliate,  // Address to send any required commission to
     uint256 _commission, // Amount of commission to send in Origin Token if offer finalizes
     uint _value,         // Offer amount in ERC20 or Eth
@@ -299,5 +298,15 @@ contract Marketplace is IMarketplace {
   // @dev Associate ipfs data with an offer
   function addData(uint listingID, uint offerID, bytes32 ipfsHash) public {
     emit OfferData(msg.sender, listingID, offerID, ipfsHash);
+  }
+
+  // @dev Allow listing arbitrator to send deposit
+  function sendDeposit(uint listingID, address target, uint value, bytes32 ipfsHash) public {
+    Listing listing = listings[listingID];
+    require(listing.arbitrator == msg.sender);
+    require(listing.deposit >= value);
+    listing.deposit -= value;
+    require(tokenAddr.transfer(target, value));
+    emit ListingArbitrated(target, listingID, ipfsHash);
   }
 }

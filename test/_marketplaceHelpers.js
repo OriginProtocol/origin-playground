@@ -17,7 +17,7 @@ export default function({ web3, Marketplace, Buyer, Seller, OriginToken, MarketA
         .send({ from: Seller })
 
       let createListingAbi = await Marketplace.methods
-        .createListing(IpfsHash, 50)
+        .createListing(IpfsHash, 50, '0x0')
         .encodeABI()
 
       return await Identity.methods
@@ -30,7 +30,7 @@ export default function({ web3, Marketplace, Buyer, Seller, OriginToken, MarketA
         .send({ from: Seller })
 
       return await Marketplace.methods
-        .createListing(IpfsHash, 50)
+        .createListing(IpfsHash, 50, '0x0')
         .send({ from: Seller })
 
       // return await OriginToken.methods

@@ -20,12 +20,16 @@ class Parties extends Component {
   }
 
   static getDerivedStateFromProps(props, state) {
-    var colors = {}, balances = {}
+    var colors = {},
+      balances = {}
     props.parties.parties.forEach((party, idx) => {
       Currencies.forEach(currency => {
         var key = `${currency}-${idx}`
         var value = Number(party[currency])
-        if (state.balances[key] === undefined || state.balances[key] === value) {
+        if (
+          state.balances[key] === undefined ||
+          state.balances[key] === value
+        ) {
           balances[key] = value
           colors[key] = ''
         } else if (state.balances[key] < value) {
@@ -129,17 +133,29 @@ class Parties extends Component {
                 <td>
                   <i className={`fa fa-fw mr-1${this.icon(party)}`} />
                   {party.name}
+                  {!party.publicKey ? null : (
+                    <i className="fa fa-key ml-2" style={{ opacity: 0.5 }} />
+                  )}
                 </td>
                 <td className="text-center">
                   {party.address ? party.address.substr(0, 6) : ''}
                 </td>
-                <td className={`text-center${this.state.colors[`ETH-${idx}`] || ''}${this.state.doFade ? ' fadebg' : ''}`}>
+                <td
+                  className={`text-center${this.state.colors[`ETH-${idx}`] ||
+                    ''}${this.state.doFade ? ' fadebg' : ''}`}
+                >
                   {party.ETH ? party.ETH.substr(0, 6) : ''}
                 </td>
-                <td className={`text-center${this.state.colors[`OGN-${idx}`] || ''}${this.state.doFade ? ' fadebg' : ''}`}>
+                <td
+                  className={`text-center${this.state.colors[`OGN-${idx}`] ||
+                    ''}${this.state.doFade ? ' fadebg' : ''}`}
+                >
                   {party.OGN || ''}
                 </td>
-                <td className={`text-center${this.state.colors[`DAI-${idx}`] || ''}${this.state.doFade ? ' fadebg' : ''}`}>
+                <td
+                  className={`text-center${this.state.colors[`DAI-${idx}`] ||
+                    ''}${this.state.doFade ? ' fadebg' : ''}`}
+                >
                   {party.DAI || ''}
                 </td>
               </tr>

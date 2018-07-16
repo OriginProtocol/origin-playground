@@ -14,7 +14,11 @@ const initialState = {
   updateListingGas: undefined,
   makeOfferResponse: undefined,
   makeOfferGas: undefined,
+  acceptOfferResponse: undefined,
   acceptOfferGas: undefined,
+  arbitrateListingResponse: undefined,
+  arbitrateListingGas: undefined,
+  finalizeOfferResponse: undefined,
   finalizeOfferGas: undefined,
   listings: [],
   offers: [],
@@ -90,10 +94,13 @@ export default function Token(state = initialState, action = {}) {
       return { ...state, makeOfferResponse: 'success', makeOfferGas: action.receipt.gasUsed }
 
     case MarketplaceConstants.ACCEPT_OFFER_RECEIPT:
-      return { ...state, makeOfferResponse: 'success', acceptOfferGas: action.receipt.gasUsed }
+      return { ...state, acceptOfferResponse: 'success', acceptOfferGas: action.receipt.gasUsed }
 
     case MarketplaceConstants.FINALIZE_OFFER_RECEIPT:
-      return { ...state, makeOfferResponse: 'success', finalizeOfferGas: action.receipt.gasUsed }
+      return { ...state, finalizeOfferResponse: 'success', finalizeOfferGas: action.receipt.gasUsed }
+
+    case MarketplaceConstants.ARBITRATE_LISTING_RECEIPT:
+      return { ...state, arbitrateListingResponse: 'success', arbitrateListingGas: action.receipt.gasUsed }
 
     case MarketplaceConstants.GET_ALL_LISTINGS_SUCCESS:
       return { ...state, listings: action.listings }

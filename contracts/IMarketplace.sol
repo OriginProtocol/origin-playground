@@ -34,14 +34,15 @@ interface IMarketplace {
   // @dev Seller creates listing
   function createListing(
     bytes32 _ipfsHash, // IPFS JSON with details, pricing, availability
-    uint _deposit     // Deposit in Origin Token
+    uint _deposit,    // Deposit in Origin Token
+    address _arbitrator
   ) public;
 
   // @dev Seller updates listing
   function updateListing(
     uint listingID,
-    bytes32 _ipfsHash, // Updated IPFS hash
-    uint _value        // Target Amount of Origin Token deposit
+    bytes32 _ipfsHash,      // Updated IPFS hash
+    uint _additionalDeposit // Additonal deposit to add
   ) public;
 
   // @dev Seller withdraws listing. IPFS hash contains reason for withdrawl.

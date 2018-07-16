@@ -14,9 +14,12 @@ import {
 } from 'actions/Marketplace'
 
 import NewOffer from './_NewOffer'
+import AcceptOffer from './_AcceptOffer'
+import FinalizeOffer from './_FinalizeOffer'
 
 function showStatus(offer, timestamp) {
   if (!timestamp) return ''
+  if (offer.encrypted) return 'Encrypted'
 
   var expired = Number(offer.expires) < timestamp,
     status = Number(offer.status)
@@ -30,7 +33,7 @@ function showStatus(offer, timestamp) {
     if (Number(offer.finalizes) < timestamp) {
       return 'Finalizied ' + desc + ' ago'
     } else {
-      return 'Finalizes in ' + desc
+      return `Finalizes in ${desc}`.replace('in about ', '~')
     }
   } else if (status === 3) {
     return 'Disputed'
@@ -128,7 +131,30 @@ class Offers extends Component {
             makeOffer={offer => this.props.makeOffer(lID, offer)}
             response={this.props.marketplace.makeOfferResponse}
             parties={this.props.parties}
+            activeParty={this.props.activeParty}
             reviseOffer={this.state.reviseOffer}
+          />
+        )}
+        {this.state.acceptOffer && (
+          <AcceptOffer
+            acceptOffer={(obj) => this.props.acceptOffer(
+              this.state.acceptOffer[0],
+              this.state.acceptOffer[1],
+              obj
+            )}
+            onClose={() => this.setState({ acceptOffer: null })}
+            response={this.props.marketplace.acceptOfferResponse}
+          />
+        )}
+        {this.state.finalizeOffer && (
+          <FinalizeOffer
+            acceptOffer={(obj) => this.props.finalizeOffer(
+              this.state.finalizeOffer[0],
+              this.state.finalizeOffer[1],
+              obj
+            )}
+            onClose={() => this.setState({ finalizeOffer: null })}
+            response={this.props.marketplace.finalizeOfferResponse}
           />
         )}
       </table>
@@ -173,7 +199,7 @@ class Offers extends Component {
         <td className="text-center">
           <Btn
             showIf={isSeller && status === '1'}
-            onClick={() => this.props.acceptOffer(lID, idx)}
+            onClick={() => this.setState({ acceptOffer: [lID, idx] })}
             text="Accept"
           />
           <Btn
@@ -182,7 +208,7 @@ class Offers extends Component {
               (isBuyer || (isSeller && finalized)) &&
               !listingWithdrawn
             }
-            onClick={() => this.props.finalizeOffer(lID, idx)}
+            onClick={() => this.setState({ finalizeOffer: [lID, idx] })}
             text="Finalize"
           />
           <Btn
@@ -238,6 +264,7 @@ class Offers extends Component {
 const mapStateToProps = state => ({
   marketplace: state.marketplace,
   parties: state.parties.parties,
+  activeParty: state.parties.active,
   wallet: state.wallet,
   network: state.network
 })

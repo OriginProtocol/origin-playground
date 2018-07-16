@@ -73,7 +73,13 @@ class Listings extends Component {
               <tr
                 key={idx}
                 onClick={() => {
-                  this.props.history.push(`/marketplace/listing/${idx}`)
+                  var url = `/marketplace/listing/${idx}`
+                  if (this.props.location.pathname.match(/events$/)) {
+                    url += '/events'
+                  } else if (this.props.location.pathname.match(/info$/)) {
+                    url += '/info'
+                  }
+                  this.props.history.push(url)
                 }}
                 style={{ cursor: 'pointer' }}
                 className={this.rowCls(listing, idx)}
@@ -91,6 +97,12 @@ class Listings extends Component {
                         }lock`}
                       />
                       {listing.title}
+                      {!listing.publicKey ? null : (
+                        <i
+                          className="fa fa-key ml-2"
+                          style={{ opacity: 0.5 }}
+                        />
+                      )}
                     </td>
                     <td className="text-center">
                       {`${listing.price} ${listing.currencyId}`}
@@ -110,6 +122,8 @@ class Listings extends Component {
           <NewListing
             onClose={() => this.setState({ newListing: false })}
             createListing={this.props.createListing}
+            party={this.props.activeParty}
+            parties={this.props.parties}
             response={this.props.marketplace.createListingResponse}
           />
         )}
@@ -138,7 +152,9 @@ class Listings extends Component {
 
 const mapStateToProps = state => ({
   marketplace: state.marketplace,
-  wallet: state.wallet
+  wallet: state.wallet,
+  activeParty: state.parties.active,
+  parties: state.parties.parties
 })
 
 const mapDispatchToProps = dispatch => ({

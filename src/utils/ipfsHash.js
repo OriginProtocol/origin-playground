@@ -39,8 +39,50 @@ export async function post(gateway, json) {
   return getBytes32FromIpfsHash(res.Hash)
 }
 
-export async function get(gateway, hashAsBytes) {
+export async function postEnc(gateway, json, pubKeys) {
+  var formData = new FormData()
+
+  var publicKeys = pubKeys.reduce((acc, val) =>
+    acc.concat(openpgp.key.readArmored(val).keys),
+  []);
+
+  var encrypted = await openpgp.encrypt({
+    data: JSON.stringify(json), publicKeys
+  })
+
+  formData.append('file', new Blob([encrypted.data]))
+
+  var rawRes = await fetch(`${gateway}/api/v0/add`, {
+    method: 'POST',
+    body: formData
+  })
+  var res = await rawRes.json()
+
+  return getBytes32FromIpfsHash(res.Hash)
+}
+
+async function decode(text, key, pass) {
+
+  const privKeyObj = openpgp.key.readArmored(key).keys[0]
+  await privKeyObj.decrypt(pass)
+
+  const decrypted = await openpgp.decrypt({
+      message: openpgp.message.readArmored(text),
+      privateKeys: [privKeyObj]
+  })
+  return decrypted.data
+}
+
+export async function get(gateway, hashAsBytes, party) {
   var hash = getIpfsHashFromBytes32(hashAsBytes)
   const response = await fetch(`${gateway}/ipfs/${hash}`)
-  return await response.json()
+  let text = await response.text()
+  if (text.indexOf('-----BEGIN PGP MESSAGE-----') === 0) {
+    try {
+      text = await decode(text, party.privateKey, party.pgpPass)
+    } catch(e) {
+      return { encrypted: true, decryptError: e }
+    }
+  }
+  return JSON.parse(text)
 }

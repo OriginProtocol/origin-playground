@@ -192,7 +192,7 @@ describe('Marketplace.sol', async function() {
           .send({ from: Seller })
 
         var result = await Marketplace.methods
-          .createListing(IpfsHash, 50)
+          .createListing(IpfsHash, 50, '0x0')
           .send({ from: Seller })
 
         listingID = result.events.ListingCreated.returnValues.listingID
@@ -298,7 +298,7 @@ describe('Marketplace.sol', async function() {
         .send({ from: Seller })
 
       var result = await Marketplace.methods
-        .createListing(IpfsHash, 50)
+        .createListing(IpfsHash, 50, '0x0')
         .send({ from: Seller })
 
       listingID = result.events.ListingCreated.returnValues.listingID
@@ -351,7 +351,7 @@ describe('Marketplace.sol', async function() {
         .send({ from: Seller })
 
       var result = await Marketplace.methods
-        .createListing(IpfsHash, 10)
+        .createListing(IpfsHash, 10, '0x0')
         .send({ from: Seller })
 
       listingID = result.events.ListingCreated.returnValues.listingID

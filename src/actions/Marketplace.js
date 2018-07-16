@@ -4,7 +4,7 @@ import OriginArbitrator from '../contracts/OriginArbitrator'
 
 import { sendTransaction } from './helpers'
 import { generateConstants } from 'utils/generateConstants'
-import { get, post } from 'utils/ipfsHash'
+import { get, post, postEnc } from 'utils/ipfsHash'
 
 export const MarketplaceConstants = generateConstants('MARKETPLACE', {
   successError: [
@@ -23,6 +23,7 @@ export const MarketplaceConstants = generateConstants('MARKETPLACE', {
     'CREATE_LISTING',
     'UPDATE_LISTING',
     'WITHDRAW_LISTING',
+    'ARBITRATE_LISTING',
     'MAKE_OFFER',
     'FINALIZE_OFFER',
     'DISPUTE_OFFER',
@@ -70,7 +71,9 @@ export function deployOriginArbitratorContract(...args) {
 
     var data = {}
 
-    dispatch(sendTransaction(tx, MarketplaceConstants.DEPLOY_ORIGIN_ARBITRATOR, data))
+    dispatch(
+      sendTransaction(tx, MarketplaceConstants.DEPLOY_ORIGIN_ARBITRATOR, data)
+    )
   }
 }
 
@@ -102,12 +105,16 @@ export function createListing(json) {
       return
     }
 
+    if (state.parties.active.publicKey) {
+      json.publicKey = state.parties.active.publicKey
+    }
+
     var ipfsHash = await post(state.network.ipfsRPC, json)
 
     const Contract = new web3.eth.Contract(Marketplace.abi, address)
 
     var tx = Contract.methods
-      .createListing(ipfsHash, json.deposit)
+      .createListing(ipfsHash, json.deposit, json.arbitrator || '0x0')
       .send({ gas: 4612388, from: web3.eth.defaultAccount })
 
     var data = {}
@@ -128,26 +135,11 @@ export function updateListing(listingId, json) {
       return
     }
 
-    var existingListing = state.marketplace.listings[Number(listingId)]
-
-    var newDeposit = Number(json.deposit),
-        oldDeposit = Number(existingListing.deposit),
-        deposit = 0,
-        withdraw = false
-
-    if (newDeposit > oldDeposit) {
-      deposit = newDeposit - oldDeposit
-    } else if (newDeposit < oldDeposit) {
-      deposit = oldDeposit - newDeposit
-      withdraw = true
-    }
-
-    var ipfsHash = await post(state.network.ipfsRPC, json)
-
     const Contract = new web3.eth.Contract(Marketplace.abi, address)
+    const ipfsHash = await post(state.network.ipfsRPC, json)
 
     var tx = Contract.methods
-      .updateListing(listingId, ipfsHash, deposit, withdraw)
+      .updateListing(listingId, ipfsHash, json.deposit)
       .send({ gas: 4612388, from: web3.eth.defaultAccount })
 
     var data = {}
@@ -177,6 +169,31 @@ export function withdrawListing(listingID) {
 
     dispatch(
       sendTransaction(tx, MarketplaceConstants.WITHDRAW_LISTING, {}, () => {
+        dispatch(getAllListings())
+      })
+    )
+  }
+}
+
+export function arbitrateListing(listingId, json) {
+  return async function(dispatch, getState) {
+    var state = getState(),
+      address = state.marketplace.contractAddress
+    if (!address) {
+      return
+    }
+
+    const Contract = new web3.eth.Contract(Marketplace.abi, address)
+    var ipfsHash = await post(state.network.ipfsRPC, { ...json })
+
+    var tx = Contract.methods
+      .sendDeposit(listingId, json.target, json.value, ipfsHash)
+      .send({ gas: 4612388, from: web3.eth.defaultAccount })
+
+    var data = {}
+
+    dispatch(
+      sendTransaction(tx, MarketplaceConstants.ARBITRATE_LISTING, data, () => {
         dispatch(getAllListings())
       })
     )
@@ -222,9 +239,13 @@ export function getAllListings() {
       if (listing.seller === '0x0000000000000000000000000000000000000000') {
         data = { withdrawn: true }
       } else {
-        data = await get(state.network.ipfsGateway, listing.ipfsHash)
+        data = await get(
+          state.network.ipfsGateway,
+          listing.ipfsHash,
+          state.parties.active
+        )
       }
-      listings.push({ ...data, ...listing })
+      listings.push({ ...data, ...listing, id: idx })
     }
 
     dispatch({
@@ -264,17 +285,24 @@ export function makeOffer(listingID, json) {
     }
 
     var listing = state.marketplace.listings[listingID],
-      currency = listing.currencyId
+      currency = listing.currencyId,
+      ipfsHash
 
     const currencyAddr =
       listing.currencyId === 'ETH'
         ? '0x0'
         : state.token.contractAddresses[listing.currencyId]
 
-    var ipfsHash = await post(state.network.ipfsRPC, {
-      ...json,
-      currencyId: listing.currencyId
-    })
+    json.currencyId = listing.currencyId
+
+    if (json.encrypt && listing.publicKey) {
+      json.publicKey = state.parties.active.publicKey
+      var keys = [listing.publicKey, state.parties.active.publicKey]
+      ipfsHash = await postEnc(state.network.ipfsRPC, json, keys)
+    } else {
+      ipfsHash = await post(state.network.ipfsRPC, json)
+    }
+
     var value =
       currency === 'ETH' ? web3.utils.toWei(json.amount, 'ether') : json.amount
 
@@ -318,7 +346,7 @@ export function makeOffer(listingID, json) {
   }
 }
 
-export function acceptOffer(listingID, offerID) {
+export function acceptOffer(listingID, offerID, obj = {}) {
   return async function(dispatch, getState) {
     var state = getState(),
       address = state.marketplace.contractAddress
@@ -326,7 +354,16 @@ export function acceptOffer(listingID, offerID) {
       return
     }
 
-    var ipfsHash = await post(state.network.ipfsRPC, { accept: true })
+    var ipfsHash,
+      json = { accept: true, ...obj },
+      offer = state.marketplace.offers[offerID]
+
+    if (offer && offer.publicKey) {
+      var keys = [offer.publicKey, state.parties.active.publicKey]
+      ipfsHash = await postEnc(state.network.ipfsRPC, json, keys)
+    } else {
+      ipfsHash = await post(state.network.ipfsRPC, json)
+    }
 
     var Contract = new web3.eth.Contract(Marketplace.abi, address)
     var tx = Contract.methods
@@ -366,7 +403,7 @@ export function withdrawOffer(listingID, offerID) {
   }
 }
 
-export function finalizeOffer(listingID, offerID) {
+export function finalizeOffer(listingID, offerID, obj = {}) {
   return async function(dispatch, getState) {
     var state = getState(),
       address = state.marketplace.contractAddress
@@ -374,7 +411,7 @@ export function finalizeOffer(listingID, offerID) {
       return
     }
 
-    var ipfsHash = await post(state.network.ipfsRPC, { finalize: true })
+    var ipfsHash = await post(state.network.ipfsRPC, { finalize: true, ...obj })
 
     var Contract = new web3.eth.Contract(Marketplace.abi, address)
     var tx = Contract.methods
@@ -423,7 +460,10 @@ export function disputeRuling(listingID, offerID, ruling) {
       return
     }
 
-    var MarketplaceContract = new web3.eth.Contract(Marketplace.abi, marketplaceAddress)
+    var MarketplaceContract = new web3.eth.Contract(
+      Marketplace.abi,
+      marketplaceAddress
+    )
     var Contract = new web3.eth.Contract(Arbitrator.abi, address)
 
     var events = await MarketplaceContract.getPastEvents('OfferDisputed', {
@@ -431,7 +471,7 @@ export function disputeRuling(listingID, offerID, ruling) {
       fromBlock: 0
     })
 
-    var disputeID = events[0].returnValues.disputeID;
+    var disputeID = events[0].returnValues.disputeID
 
     var tx = Contract.methods
       .giveRuling(disputeID, ruling)
@@ -466,9 +506,15 @@ export function getOffers(listingID) {
       var offer = await Contract.methods.offers(listingID, idx).call(),
         data = {}
       if (offer.status !== '0') {
-        data = await get(state.network.ipfsGateway, offer.ipfsHash)
+        data = await get(
+          state.network.ipfsGateway,
+          offer.ipfsHash,
+          state.parties.active
+        )
       }
-      var currencyId = Object.keys(tokens).find(t => tokens[t] === offer.currency)
+      var currencyId = Object.keys(tokens).find(
+        t => tokens[t] === offer.currency
+      )
       offers.push({ currencyId, ...data, ...offer })
     }
 

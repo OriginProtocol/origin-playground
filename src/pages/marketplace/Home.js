@@ -20,13 +20,26 @@ import {
   deployOriginArbitratorContract,
   getOffers,
   acceptOffer,
-  finalizeOffer,
+  finalizeOffer
 } from 'actions/Marketplace'
 import { deployTokenContract, transferToken, approveToken } from 'actions/Token'
 import { addAccount, UNSAFE_saveWallet, selectAccount } from 'actions/Wallet'
 import { sendFromNode } from 'actions/Network'
 import { addParty } from 'actions/Parties'
 import { price } from 'components/GasTracker'
+
+async function genKey(name, passphrase) {
+  var key = await openpgp.generateKey({
+    userIds: [{ name, email: `${name.toLowerCase()}@example.com` }],
+    curve: 'ed25519',
+    passphrase
+  })
+  return {
+    privateKey: key.privateKeyArmored,
+    publicKey: key.publicKeyArmored,
+    pgpPass: passphrase
+  }
+}
 
 class Row extends Component {
   constructor(props) {
@@ -48,6 +61,7 @@ class Row extends Component {
   }
 
   render() {
+    if (this.props.open === false) return null
     const { title, isDone, success, action, prerequisite, gas } = this.props
     let icon
     if (this.state.doingAction && !this.props.isDone) {
@@ -65,6 +79,7 @@ class Row extends Component {
     }
     return (
       <tr>
+        <td />
         <td>{icon}</td>
         <td>{title}</td>
         <td>
@@ -92,6 +107,10 @@ class Row extends Component {
 }
 
 class Home extends Component {
+  constructor() {
+    super()
+    this.state = { setup: true, basicListingOffer: true }
+  }
   componentDidMount() {
     this.props.getOffers(0)
   }
@@ -119,7 +138,12 @@ class Home extends Component {
       <div>
         <table className="table table-sm" style={{ width: 'auto' }}>
           <tbody>
+            {this.renderSection({
+              name: 'Setup',
+              id: 'setup'
+            })}
             <Row
+              open={this.state.setup ? true : false}
               title="Add Wallets"
               prerequisite={this.props.nodeAccounts ? true : false}
               isDone={this.props.wallet.accounts.length >= 5 ? true : false}
@@ -130,6 +154,7 @@ class Home extends Component {
               }}
             />
             <Row
+              open={this.state.setup ? true : false}
               title="Add Ether"
               prerequisite={hasWallets && hasNodeAccounts}
               isDone={hasWallets && hasFunds}
@@ -147,6 +172,7 @@ class Home extends Component {
               }}
             />
             <Row
+              open={this.state.setup ? true : false}
               title="Origin Token"
               prerequisite={hasWallets && hasFunds}
               isDone={this.props.token ? true : false}
@@ -156,6 +182,7 @@ class Home extends Component {
               }}
             />
             <Row
+              open={this.state.setup ? true : false}
               title="Stable coin"
               prerequisite={this.props.token ? true : false}
               isDone={this.props.stableCoin}
@@ -165,6 +192,7 @@ class Home extends Component {
               }}
             />
             <Row
+              open={this.state.setup ? true : false}
               title="Arbitrator"
               prerequisite={this.props.stableCoin ? true : false}
               isDone={this.props.arbitrator}
@@ -175,6 +203,7 @@ class Home extends Component {
               }}
             />
             <Row
+              open={this.state.setup ? true : false}
               title="Origin Arbitrator"
               prerequisite={this.props.arbitrator ? true : false}
               isDone={this.props.originArbitrator}
@@ -185,6 +214,7 @@ class Home extends Component {
               }}
             />
             <Row
+              open={this.state.setup ? true : false}
               title="Marketplace"
               prerequisite={this.props.originArbitrator ? true : false}
               isDone={this.props.marketplace}
@@ -195,24 +225,41 @@ class Home extends Component {
               }}
             />
             <Row
+              open={this.state.setup ? true : false}
               title="Add Parties"
               prerequisite={this.props.marketplace ? true : false}
               isDone={this.props.marketplaceParty}
               action="Add"
               success="Added"
-              onAction={() => {
+              onAction={async () => {
+                var buyerKey = await genKey('Buyer', 'buyer123')
+                var sellerKey = await genKey('Seller', 'seller123')
+
                 this.props.addParty({
                   name: 'Marketplace',
                   address: this.props.marketplace
                 })
-                this.props.addParty({ name: 'Seller', address: Seller })
-                this.props.addParty({ name: 'Buyer', address: Buyer })
+                this.props.addParty({
+                  name: 'Seller',
+                  address: Seller,
+                  pgpPass: 'seller123',
+                  ...sellerKey
+                })
+                this.props.addParty({
+                  name: 'Buyer',
+                  address: Buyer,
+                  ...buyerKey
+                })
                 this.props.addParty({ name: 'Affiliate', address: Affiliate })
                 this.props.addParty({ name: 'Arbitrator', address: Arbitrator })
-                this.props.addParty({ name: 'OriginArbitrator', address: this.props.originArbitrator })
+                this.props.addParty({
+                  name: 'OriginArbitrator',
+                  address: this.props.originArbitrator
+                })
               }}
             />
             <Row
+              open={this.state.setup ? true : false}
               title="Fund OGN"
               prerequisite={this.props.marketplaceParty ? true : false}
               isDone={hasOGN}
@@ -226,19 +273,25 @@ class Home extends Component {
               action="Fund OGN"
             />
             <Row
+              open={this.state.setup ? true : false}
               title="Fund DAI"
               prerequisite={hasOGN}
               isDone={hasDAI}
               onAction={() => {
                 this.props.selectAccount(Admin)
-                this.props.transferToken('DAI', Buyer, 100)
+                this.props.transferToken('DAI', Buyer, 500)
                 this.props.selectAccount(Buyer)
                 this.props.approveToken('DAI', this.props.marketplace, 5000)
               }}
               success="Funded"
               action="Fund DAI"
             />
+            {this.renderSection({
+              name: 'Basic Listing & Offer',
+              id: 'basicListingOffer'
+            })}
             <Row
+              open={this.state.basicListingOffer ? true : false}
               title="Create Listing"
               isDone={this.props.hasListing}
               success="Added"
@@ -251,12 +304,14 @@ class Home extends Component {
                   listingType: 'For Sale',
                   deposit: '10',
                   price: '100',
-                  currencyId: 'DAI'
+                  currencyId: 'DAI',
+                  publicKey: sellerParty.publicKey
                 })
               }}
               action="Add"
             />
             <Row
+              open={this.state.basicListingOffer ? true : false}
               title="Make Offer"
               isDone={this.props.hasOffer}
               checked={false}
@@ -267,8 +322,8 @@ class Home extends Component {
                 this.props.selectAccount(Buyer)
                 this.props.makeOffer(0, {
                   amount: '10',
-                  expires: (+new Date() / 1000) + (60*60),
-                  finalizes: +new Date() / 1000 + (60*60*2),
+                  expires: +new Date() / 1000 + 60 * 60,
+                  finalizes: +new Date() / 1000 + 60 * 60 * 2,
                   commission: 0,
                   currencyId: 'DAI',
                   arbitrator: this.props.originArbitrator
@@ -277,6 +332,7 @@ class Home extends Component {
               action="Add"
             />
             <Row
+              open={this.state.basicListingOffer ? true : false}
               title="Accept Offer"
               // isDone={this.props.hasOffer}
               checked={false}
@@ -290,6 +346,7 @@ class Home extends Component {
               action="Accept"
             />
             <Row
+              open={this.state.basicListingOffer ? true : false}
               title="Finalize Offer"
               action="Finalize"
               // isDone={this.props.hasOffer}
@@ -320,12 +377,41 @@ class Home extends Component {
       </div>
     )
   }
+
+  renderSection({ name, id }) {
+    return (
+      <tr
+        onClick={() =>
+          this.setState({
+            [id]: this.state[id] ? false : true
+          })
+        }
+      >
+        <td style={{ borderTopWidth: 2 }}>
+          <i
+            className={`fa fa-fw fa-caret-${this.state[id] ? 'down' : 'right'}`}
+          />
+        </td>
+        <td style={{ borderTopWidth: 2 }}>
+          <i className="fa fa-check text-success" />
+        </td>
+        <td
+          style={{ borderTopWidth: 2 }}
+          colSpan="4"
+          className="font-weight-bold"
+        >
+          {name}
+        </td>
+      </tr>
+    )
+  }
 }
 
 const mapStateToProps = state => ({
   wallet: state.wallet,
   accounts: state.wallet.accounts,
   parties: state.parties.parties,
+  activeParty: state.parties.active,
   nodeAccounts: state.network.accounts,
   marketplaceRaw: state.marketplace,
   marketplace: state.marketplace.contractAddress,
@@ -355,7 +441,8 @@ const mapStateToProps = state => ({
 const mapDispatchToProps = dispatch => ({
   deployMarketplace: (...args) => dispatch(deployMarketplaceContract(...args)),
   deployArbitrator: (...args) => dispatch(deployArbitratorContract(...args)),
-  deployOriginArbitrator: (...args) => dispatch(deployOriginArbitratorContract(...args)),
+  deployOriginArbitrator: (...args) =>
+    dispatch(deployOriginArbitratorContract(...args)),
   deployToken: args => dispatch(deployTokenContract(args)),
   addParty: obj => dispatch(addParty(obj)),
   createListing: obj => dispatch(createListing(obj)),
@@ -368,7 +455,7 @@ const mapDispatchToProps = dispatch => ({
   selectAccount: (...args) => dispatch(selectAccount(...args)),
   getOffers: (...args) => dispatch(getOffers(...args)),
   acceptOffer: (...args) => dispatch(acceptOffer(...args)),
-  finalizeOffer: (...args) => dispatch(finalizeOffer(...args)),
+  finalizeOffer: (...args) => dispatch(finalizeOffer(...args))
 })
 
 export default connect(

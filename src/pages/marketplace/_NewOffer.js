@@ -3,6 +3,7 @@ import React, { Component } from 'react'
 import Modal from 'components/Modal'
 import Loading from 'components/Loading'
 import FormRow from 'components/FormRow'
+import BtnGroup from 'components/BtnGroup'
 
 class NewOffer extends Component {
   constructor(props) {
@@ -16,7 +17,8 @@ class NewOffer extends Component {
       finalizes: this.days(1 / 2),
       commission: '2',
       affiliate: '',
-      arbitrator: originArbitrator ? originArbitrator.address : ''
+      arbitrator: originArbitrator ? originArbitrator.address : '',
+      encrypt: true
     }
   }
 
@@ -175,6 +177,15 @@ class NewOffer extends Component {
                 <option value={this.days(30)}>1 month</option>
               </select>
             </FormRow>
+            <FormRow label="Encrypt">
+              <BtnGroup
+                buttons={['Yes', 'No']}
+                active={this.state.encrypt ? 'Yes' : 'No'}
+                onClick={encrypt =>
+                  this.setState({ encrypt: encrypt === 'Yes' })
+                }
+              />
+            </FormRow>
           </tbody>
         </table>
         <div className="text-right">
@@ -192,6 +203,10 @@ class NewOffer extends Component {
               } else {
                 obj.commission = this.state.commission
                 obj.affiliate = this.state.affiliate
+              }
+              if (this.state.encrypt) {
+                obj.encrypt = true
+                obj.publicKey = this.props.activeParty.publicKey
               }
               if (this.props.reviseOffer !== null) {
                 obj.withdraw = this.props.reviseOffer

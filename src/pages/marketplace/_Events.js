@@ -2,6 +2,7 @@ import React, { Component } from 'react'
 import { connect } from 'react-redux'
 
 import { getEvents } from 'actions/Marketplace'
+import { getIpfsHashFromBytes32 } from 'utils/ipfsHash'
 
 class Events extends Component {
   componentDidMount() {
@@ -17,13 +18,26 @@ class Events extends Component {
         {this.props.events.map((event, idx) => {
           var data = null
 
+          if (event.returnValues.ipfsHash) {
+            var hash = getIpfsHashFromBytes32(event.returnValues.ipfsHash)
+            data = (
+              <a
+                href={`${this.props.ipfs}/ipfs/${hash}`}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                View in IPFS
+              </a>
+            )
+          }
+
           return (
-            <div key={idx}>
+            <div key={idx} className="mb-3">
               <div>
                 <b>{event.event}</b>
                 <small className="muted ml-3">Block {event.blockNumber}</small>
               </div>
-              <pre>{displayEvent(event.returnValues)}</pre>
+              <pre className="m-0">{displayEvent(event.returnValues)}</pre>
               {data}
             </div>
           )
@@ -50,7 +64,8 @@ export function displayEvent(obj) {
 
 const mapStateToProps = state => ({
   events: state.marketplace.events,
-  eventsResponse: state.marketplace.eventsResponse
+  eventsResponse: state.marketplace.eventsResponse,
+  ipfs: state.network.ipfsGateway
 })
 
 const mapDispatchToProps = (dispatch, ownProps) => ({

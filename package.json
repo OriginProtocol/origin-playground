@@ -116,7 +116,8 @@
     "globals": {
       "Web3": true,
       "web3": true,
-      "OfficialIdentities": true
+      "OfficialIdentities": true,
+      "openpgp": true
     },
     "env": {
       "browser": true,

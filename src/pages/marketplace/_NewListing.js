@@ -7,12 +7,16 @@ import FormRow from 'components/FormRow'
 class NewListing extends Component {
   constructor(props) {
     super(props)
+    const arbitrator = props.parties.find(
+      p => p.name === 'Arbitrator'
+    )
     this.state = {
       title: '',
       price: '',
       listingType: 'For Sale',
       currency: 'DAI',
-      deposit: '10'
+      deposit: '10',
+      arbitrator: arbitrator ? arbitrator.address : '',
     }
   }
 
@@ -58,6 +62,22 @@ class NewListing extends Component {
                   <span className="input-group-text">OGN</span>
                 </div>
               </div>
+            </FormRow>
+            <FormRow label="Arbitrator">
+              <select
+                className="form-control"
+                value={this.state.arbitrator}
+                onChange={e =>
+                  this.setState({ arbitrator: e.currentTarget.value })
+                }
+              >
+                <option value="0x0">None</option>
+                {this.props.parties.map((party, idx) => (
+                  <option key={idx} value={party.address}>
+                    {party.name}
+                  </option>
+                ))}
+              </select>
             </FormRow>
             <tr>
               <td colSpan={2}>
@@ -130,7 +150,11 @@ class NewListing extends Component {
                 listingType: this.state.listingType,
                 deposit: this.state.deposit,
                 price: this.state.price,
-                currencyId: this.state.currency
+                currencyId: this.state.currency,
+                arbitrator: this.state.arbitrator
+              }
+              if (this.props.party && this.props.party.publicKey) {
+                obj.publicKey = this.props.party.publicKey
               }
               this.props.createListing(obj)
             }}

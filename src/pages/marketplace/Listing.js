@@ -2,9 +2,16 @@ import React, { Component } from 'react'
 import { connect } from 'react-redux'
 import { Switch, Route, NavLink } from 'react-router-dom'
 
-import { getOffers, updateListing, withdrawListing } from 'actions/Marketplace'
-import Events from './_Events'
+import {
+  getOffers,
+  updateListing,
+  withdrawListing,
+  arbitrateListing
+} from 'actions/Marketplace'
+
+import Events from './_EventsTable'
 import UpdateListing from './_UpdateListing'
+import ArbitrateListing from './_ArbitrateListing'
 import Offers from './Offers'
 
 class Listing extends Component {
@@ -18,7 +25,10 @@ class Listing extends Component {
   }
 
   UNSAFE_componentWillReceiveProps(nextProps) {
-    if (this.props.activeListing !== nextProps.activeListing) {
+    if (
+      this.props.activeListing !== nextProps.activeListing ||
+      nextProps.wallet.activeAddress !== this.props.wallet.activeAddress
+    ) {
       this.props.getOffers(nextProps.activeListing)
     }
   }
@@ -30,6 +40,7 @@ class Listing extends Component {
     }
 
     var isOwner = listing.seller === this.props.wallet.activeAddress
+    var isArbitrator = listing.arbitrator === this.props.wallet.activeAddress
 
     return (
       <>
@@ -121,6 +132,16 @@ class Listing extends Component {
                         </button>
                       </div>
                     )}
+                    {isArbitrator && (
+                      <div className="ml-auto">
+                        <button
+                          className="btn btn-sm btn-outline-secondary mr-1"
+                          onClick={() => this.setState({ arbitrate: true })}
+                        >
+                          Arbitrate
+                        </button>
+                      </div>
+                    )}
                   </div>
                 )}
                 <Offers listing={listing} />
@@ -139,6 +160,17 @@ class Listing extends Component {
             response={this.props.marketplace.updateListingResponse}
           />
         )}
+        {this.state.arbitrate && (
+          <ArbitrateListing
+            onClose={() => this.setState({ arbitrate: false })}
+            listing={listing}
+            arbitrateListing={json =>
+              this.props.arbitrateListing(this.props.activeListing, json)
+            }
+            parties={this.props.parties}
+            response={this.props.marketplace.arbitrateListingResponse}
+          />
+        )}
       </>
     )
   }
@@ -148,13 +180,16 @@ const mapStateToProps = (state, ownProps) => ({
   wallet: state.wallet,
   activeListing: ownProps.match.params.idx,
   marketplace: state.marketplace,
-  updateListingResponse: state.marketplace.updateListingResponse
+  parties: state.parties.parties,
+  updateListingResponse: state.marketplace.updateListingResponse,
+  arbitrateListingResponse: state.marketplace.arbitrateListingResponse
 })
 
 const mapDispatchToProps = dispatch => ({
   getOffers: idx => dispatch(getOffers(idx)),
   withdrawListing: idx => dispatch(withdrawListing(idx)),
-  updateListing: (idx, json) => dispatch(updateListing(idx, json))
+  updateListing: (idx, json) => dispatch(updateListing(idx, json)),
+  arbitrateListing: (idx, json) => dispatch(arbitrateListing(idx, json))
 })
 
 export default connect(

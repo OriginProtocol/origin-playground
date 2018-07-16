@@ -1,13 +1,20 @@
 import { PartyConstants } from 'actions/Parties'
+import { WalletConstants } from 'actions/Wallet'
 
 let initialState = {
-  parties: []
+  parties: [],
+  active: null
 }
 
 if (window.localStorage.parties) {
   try {
     initialState.parties = JSON.parse(window.localStorage.parties)
-  } catch(e) { /* Ignore */ }
+    initialState.active = initialState.parties.find(
+      p => p.address === window.localStorage.activeAddress
+    )
+  } catch (e) {
+    /* Ignore */
+  }
 }
 
 export default function Token(state = initialState, action = {}) {
@@ -29,6 +36,12 @@ export default function Token(state = initialState, action = {}) {
       window.localStorage.parties = JSON.stringify(parties)
       return { ...state, parties }
     }
+
+    case WalletConstants.SELECT_ACCOUNT_SUCCESS:
+      return {
+        ...state,
+        active: state.parties.find(p => p.address === action.activeAddress)
+      }
   }
 
   return state
