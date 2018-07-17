@@ -13,7 +13,7 @@ class UpdateListing extends Component {
       price: listing.price || '',
       listingType: listing.listingType || 'For Sale',
       currency: listing.currencyId || 'DAI',
-      deposit: listing.deposit || '10'
+      deposit: '0'
     }
   }
 
@@ -45,7 +45,7 @@ class UpdateListing extends Component {
         <div className="font-weight-bold mb-2">Update Listing:</div>
         <table className="w-100">
           <tbody>
-            <FormRow label="Deposit">
+            <FormRow label="+ Deposit">
               <div className="input-group">
                 <input
                   className="form-control"

@@ -135,6 +135,10 @@ export function updateListing(listingId, json) {
       return
     }
 
+    if (state.parties.active.publicKey) {
+      json.publicKey = state.parties.active.publicKey
+    }
+
     const Contract = new web3.eth.Contract(Marketplace.abi, address)
     const ipfsHash = await post(state.network.ipfsRPC, json)
 
@@ -152,7 +156,7 @@ export function updateListing(listingId, json) {
   }
 }
 
-export function withdrawListing(listingID) {
+export function withdrawListing(listingID, json) {
   return async function(dispatch, getState) {
     var state = getState(),
       address = state.marketplace.contractAddress
@@ -160,15 +164,15 @@ export function withdrawListing(listingID) {
       return
     }
 
-    var ipfsHash = await post(state.network.ipfsRPC, { withdrawn: true })
+    var ipfsHash = await post(state.network.ipfsRPC, { withdrawn: true, ...json })
 
     var Contract = new web3.eth.Contract(Marketplace.abi, address)
     var tx = Contract.methods
-      .withdrawListing(listingID, ipfsHash)
+      .withdrawListing(listingID, json.target, ipfsHash)
       .send({ gas: 4612388, from: web3.eth.defaultAccount })
 
     dispatch(
-      sendTransaction(tx, MarketplaceConstants.WITHDRAW_LISTING, {}, () => {
+      sendTransaction(tx, MarketplaceConstants.WITHDRAW_LISTING, json, () => {
         dispatch(getAllListings())
       })
     )
@@ -230,21 +234,41 @@ export function getAllListings() {
     window.mp = Contract
     var totalListings = await Contract.methods.totalListings().call()
 
+    var events = await Contract.getPastEvents('allEvents', {
+      fromBlock: 0
+    })
+
     var ids = Array.from({ length: Number(totalListings) }, (v, i) => i)
 
     var listings = []
     for (let idx of ids) {
       var listing = await Contract.methods.listings(idx).call(),
-        data = {}
-      if (listing.seller === '0x0000000000000000000000000000000000000000') {
-        data = { withdrawn: true }
-      } else {
+        data = {},
+        ipfsHash,
+        withdrawn = false,
+        listingEvents = events.filter(e => e.returnValues.listingID === String(idx))
+
+      listingEvents.forEach(e => {
+        if (e.event === 'ListingCreated') {
+          ipfsHash = e.returnValues.ipfsHash
+        } else if (e.event === 'ListingUpdated') {
+          ipfsHash = e.returnValues.ipfsHash
+        } else if (e.event === 'ListingWithdrawn') {
+          withdrawn = true
+        }
+      })
+
+      if (ipfsHash) {
         data = await get(
           state.network.ipfsGateway,
-          listing.ipfsHash,
+          ipfsHash,
           state.parties.active
         )
       }
+      if (!ipfsHash || withdrawn){
+        data.withdrawn = true
+      }
+
       listings.push({ ...data, ...listing, id: idx })
     }
 
@@ -268,10 +292,18 @@ export function getListing(idx) {
     var Contract = new web3.eth.Contract(Marketplace.abi, address)
     var listing = await Contract.methods.listings(idx).call()
 
+    var listingTopic = web3.utils.padLeft(web3.utils.numberToHex(idx), 64)
+
+    var events = await Contract.getPastEvents('allEvents', {
+      topics: [null, null, listingTopic, null],
+      fromBlock: 0
+    })
+
     dispatch({
       type: MarketplaceConstants.GET_LISTING_SUCCESS,
       idx,
-      listing
+      listing,
+      events
     })
   }
 }
@@ -293,7 +325,12 @@ export function makeOffer(listingID, json) {
         ? '0x0'
         : state.token.contractAddresses[listing.currencyId]
 
+    var value =
+      currency === 'ETH' ? web3.utils.toWei(json.amount, 'ether') : json.amount
+
     json.currencyId = listing.currencyId
+    json.value = value
+    json.buyer = web3.eth.defaultAccount
 
     if (json.encrypt && listing.publicKey) {
       json.publicKey = state.parties.active.publicKey
@@ -302,9 +339,6 @@ export function makeOffer(listingID, json) {
     } else {
       ipfsHash = await post(state.network.ipfsRPC, json)
     }
-
-    var value =
-      currency === 'ETH' ? web3.utils.toWei(json.amount, 'ether') : json.amount
 
     var Contract = new web3.eth.Contract(Marketplace.abi, marketplaceAddress)
     var args = [
@@ -500,22 +534,47 @@ export function getOffers(listingID) {
     var totalOffers = await Contract.methods.totalOffers(listingID).call()
 
     var ids = Array.from({ length: Number(totalOffers) }, (v, i) => i)
+    var listingTopic = web3.utils.padLeft(web3.utils.numberToHex(listingID), 64)
+    var listingEvents = await Contract.getPastEvents('allEvents', {
+      topics: [null, null, listingTopic, null],
+      fromBlock: 0
+    })
 
     var offers = []
     for (let idx of ids) {
       var offer = await Contract.methods.offers(listingID, idx).call(),
-        data = {}
-      if (offer.status !== '0') {
+        data = {},
+        ipfsHash,
+        lastEvent = ''
+
+      var offerEvents = listingEvents.filter(e => e.returnValues.offerID === String(idx))
+
+      offerEvents.forEach(e => {
+        if (e.event === 'OfferCreated') {
+          ipfsHash = e.returnValues.ipfsHash
+        } else if (e.event === 'OfferUpdated') {
+          ipfsHash = e.returnValues.ipfsHash
+        }
+        lastEvent = e.event
+      })
+
+      if (ipfsHash) {
         data = await get(
           state.network.ipfsGateway,
-          offer.ipfsHash,
+          ipfsHash,
           state.parties.active
         )
       }
       var currencyId = Object.keys(tokens).find(
         t => tokens[t] === offer.currency
       )
-      offers.push({ currencyId, ...data, ...offer })
+      var offerObj = { currencyId, ...offer, ...data }
+      if (lastEvent === 'OfferFinalized') {
+        offerObj.status = 4
+      } else if (lastEvent === 'OfferWithdrawn') {
+        offerObj.status = 0
+      }
+      offers.push(offerObj)
     }
 
     dispatch({

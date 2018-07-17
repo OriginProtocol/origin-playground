@@ -2,7 +2,125 @@ import React, { Component } from 'react'
 import { connect } from 'react-redux'
 
 import { getEvents } from 'actions/Marketplace'
-import { getIpfsHashFromBytes32 } from 'utils/ipfsHash'
+import { decode, getText, getIpfsHashFromBytes32 } from 'utils/ipfsHash'
+
+import BtnGroup from 'components/BtnGroup'
+
+class EventRow extends Component {
+  constructor() {
+    super()
+    this.state = {}
+  }
+
+  render() {
+    var data = null
+    const { event, offerID, party } = this.props
+
+    if (event.returnValues.ipfsHash) {
+      var hash = getIpfsHashFromBytes32(event.returnValues.ipfsHash)
+      data = (
+        <a
+          href={`${this.props.ipfs}/ipfs/${hash}`}
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          {hash.substr(0, 6)}
+        </a>
+      )
+    }
+
+    const json = event.returnValues || {}
+    let partyAddr = json.party || ''
+
+    return (
+      <>
+        <tr
+          onClick={async () => {
+            this.setState({ open: this.state.open ? false : true })
+            var ipfsContent = await getText(
+              this.props.ipfs,
+              event.returnValues.ipfsHash
+            )
+            var decrypted = null
+            try {
+              if (
+                ipfsContent.indexOf('-----BEGIN PGP MESSAGE-----') === 0 &&
+                party
+              ) {
+                decrypted = await decode(
+                  ipfsContent,
+                  party.privateKey,
+                  party.pgpPass
+                )
+                decrypted = JSON.stringify(JSON.parse(decrypted), null, 4)
+              } else {
+                ipfsContent = JSON.stringify(JSON.parse(ipfsContent), null, 4)
+              }
+            } catch (e) {
+              console.log(ipfsContent, party, e) /* Ignore */
+            }
+
+            this.setState({ ipfsContent, decrypted })
+          }}
+        >
+          <td className="text-center">{event.blockNumber}</td>
+          <td>{event.event}</td>
+          {offerID ? null : <td className="text-center">{json.offerID}</td>}
+          <td className="text-center">{partyAddr.substr(0, 6)}</td>
+          <td className="text-center">{data}</td>
+        </tr>
+        {this.renderDetail()}
+      </>
+    )
+  }
+
+  renderDetail() {
+    if (!this.state.open) {
+      return null
+    }
+    let content = this.state.ipfsContent
+    const decrypted = (
+      <pre style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-all' }}>
+        {this.state.decrypted}
+      </pre>
+    )
+    const contentPre = (
+      <pre style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-all' }}>
+        {content || 'Loading...'}
+      </pre>
+    )
+
+    return (
+      <tr>
+        <td
+          className="border-top-0 pt-0"
+          style={{ paddingLeft: '1.875rem' }}
+          colSpan={5}
+        >
+          {this.state.decrypted ? (
+            <div style={{ position: 'relative' }}>
+              <BtnGroup
+                style={{ position: 'absolute', right: 0 }}
+                className="btn-group-sm"
+                buttons={['Encrypted', 'Decrypted']}
+                active={this.state.showDecrypted ? 'Decrypted' : 'Encrypted'}
+                onClick={val =>
+                  this.setState({
+                    showDecrypted: val === 'Decrypted' ? true : false
+                  })
+                }
+              />
+
+              {this.state.showDecrypted ? decrypted : contentPre}
+            </div>
+          ) : (
+            contentPre
+          )}
+        </td>
+      </tr>
+    )
+  }
+}
 
 class Events extends Component {
   componentDidMount() {
@@ -19,13 +137,20 @@ class Events extends Component {
     if (this.props.eventsResponse === null) {
       return <div>Loading...</div>
     }
+    let events = this.props.events
+    const offerID =
+      this.props.offer === undefined ? null : String(this.props.offer)
+    if (offerID) {
+      events = events.filter(e => e.returnValues.offerID === offerID)
+    }
+
     return (
       <table className="table table-sm">
         <thead>
           <tr>
             <th className="text-center">Block</th>
             <th>Event</th>
-            <th className="text-center">Offer</th>
+            {offerID ? null : <th className="text-center">Offer</th>}
             <th className="text-center">Party</th>
             <th className="text-center">IPFS</th>
           </tr>
@@ -36,35 +161,15 @@ class Events extends Component {
               <td colSpan={5}>No Events</td>
             </tr>
           )}
-          {this.props.events.map((event, idx) => {
-            var data = null
-
-            if (event.returnValues.ipfsHash) {
-              var hash = getIpfsHashFromBytes32(event.returnValues.ipfsHash)
-              data = (
-                <a
-                  href={`${this.props.ipfs}/ipfs/${hash}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  {hash.substr(0, 6)}
-                </a>
-              )
-            }
-
-            const json = event.returnValues || {}
-            let party = json.seller || json.buyer || json.party || ''
-
-            return (
-              <tr key={idx}>
-                <td className="text-center">{event.blockNumber}</td>
-                <td>{event.event}</td>
-                <td className="text-center">{json.offerID}</td>
-                <td className="text-center">{party.substr(0, 6)}</td>
-                <td className="text-center">{data}</td>
-              </tr>
-            )
-          })}
+          {events.map((event, idx) => (
+            <EventRow
+              offerID={offerID}
+              event={event}
+              key={idx}
+              ipfs={this.props.ipfs}
+              party={this.props.party}
+            />
+          ))}
         </tbody>
       </table>
     )
@@ -89,7 +194,8 @@ export function displayEvent(obj) {
 const mapStateToProps = state => ({
   events: state.marketplace.events,
   eventsResponse: state.marketplace.eventsResponse,
-  ipfs: state.network.ipfsGateway
+  ipfs: state.network.ipfsGateway,
+  party: state.parties.active
 })
 
 const mapDispatchToProps = (dispatch, ownProps) => ({

@@ -14,16 +14,16 @@ interface IMarketplace {
   /**
    * @notice All events have the same indexed signature offsets for easy filtering
    */
-  event ListingCreated  (address indexed seller, uint indexed listingID, bytes32 ipfsHash);
-  event ListingUpdated  (address indexed seller, uint indexed listingID, bytes32 ipfsHash);
-  event ListingWithdrawn(address indexed seller, uint indexed listingID, bytes32 ipfsHash);
-  event ListingData     (address indexed party,  uint indexed listingID, bytes32 ipfsHash);
-  event OfferCreated    (address indexed buyer,  uint indexed listingID, uint indexed offerID, bytes32 ipfsHash);
-  event OfferWithdrawn  (address indexed buyer,  uint indexed listingID, uint indexed offerID, bytes32 ipfsHash);
-  event OfferAccepted   (address indexed seller, uint indexed listingID, uint indexed offerID, bytes32 ipfsHash);
-  event OfferDisputed   (address indexed buyer,  uint indexed listingID, uint indexed offerID, bytes32 ipfsHash);
-  event OfferFinalized  (address indexed party,  uint indexed listingID, uint indexed offerID, bytes32 ipfsHash);
-  event OfferData       (address indexed party,  uint indexed listingID, uint indexed offerID, bytes32 ipfsHash);
+  event ListingCreated  (address indexed party, uint indexed listingID, bytes32 ipfsHash);
+  event ListingUpdated  (address indexed party, uint indexed listingID, bytes32 ipfsHash);
+  event ListingWithdrawn(address indexed party, uint indexed listingID, bytes32 ipfsHash);
+  event ListingData     (address indexed party, uint indexed listingID, bytes32 ipfsHash);
+  event OfferCreated    (address indexed party, uint indexed listingID, uint indexed offerID, bytes32 ipfsHash);
+  event OfferWithdrawn  (address indexed party, uint indexed listingID, uint indexed offerID, bytes32 ipfsHash);
+  event OfferAccepted   (address indexed party, uint indexed listingID, uint indexed offerID, bytes32 ipfsHash);
+  event OfferDisputed   (address indexed party, uint indexed listingID, uint indexed offerID, bytes32 ipfsHash);
+  event OfferFinalized  (address indexed party, uint indexed listingID, uint indexed offerID, bytes32 ipfsHash);
+  event OfferData       (address indexed party, uint indexed listingID, uint indexed offerID, bytes32 ipfsHash);
 
   // @dev Return the total number of listings
   function totalListings() public constant returns (uint);
@@ -46,7 +46,7 @@ interface IMarketplace {
   ) public;
 
   // @dev Seller withdraws listing. IPFS hash contains reason for withdrawl.
-  function withdrawListing(uint listingID, bytes32 _ipfsHash) public;
+  function withdrawListing(uint listingID, address _target, bytes32 _ipfsHash) public;
 
   // @dev Buyer makes offer.
   function makeOffer(

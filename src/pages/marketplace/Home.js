@@ -26,7 +26,8 @@ import { deployTokenContract, transferToken, approveToken } from 'actions/Token'
 import { addAccount, UNSAFE_saveWallet, selectAccount } from 'actions/Wallet'
 import { sendFromNode } from 'actions/Network'
 import { addParty } from 'actions/Parties'
-import { price } from 'components/GasTracker'
+import GasPrice from 'utils/gasPriceInDollars'
+const price = GasPrice({})
 
 async function genKey(name, passphrase) {
   var key = await openpgp.generateKey({
@@ -305,7 +306,8 @@ class Home extends Component {
                   deposit: '10',
                   price: '100',
                   currencyId: 'DAI',
-                  publicKey: sellerParty.publicKey
+                  publicKey: sellerParty.publicKey,
+                  arbitrator: Seller
                 })
               }}
               action="Add"

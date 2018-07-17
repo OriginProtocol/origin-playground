@@ -84,35 +84,29 @@ class Listings extends Component {
                 style={{ cursor: 'pointer' }}
                 className={this.rowCls(listing, idx)}
               >
-                {listing.withdrawn ? (
-                  <td colSpan={4}>Withdrawn</td>
-                ) : (
-                  <>
-                    <td>
-                      <i
-                        className={`row-fa fa fa-${
-                          this.props.wallet.activeAddress === listing.owner
-                            ? 'un'
-                            : ''
-                        }lock`}
-                      />
-                      {listing.title}
-                      {!listing.publicKey ? null : (
-                        <i
-                          className="fa fa-key ml-2"
-                          style={{ opacity: 0.5 }}
-                        />
-                      )}
-                    </td>
-                    <td className="text-center">
-                      {`${listing.price} ${listing.currencyId}`}
-                    </td>
-                    <td className="text-center">{`${listing.deposit} OGN`}</td>
-                    <td className="text-center">
-                      {!listing.seller ? '' : listing.seller.substr(0, 6)}
-                    </td>
-                  </>
-                )}
+                <td>
+                  <i
+                    className={`row-fa fa fa-${
+                      this.props.wallet.activeAddress === listing.owner
+                        ? 'un'
+                        : ''
+                    }lock`}
+                  />
+                  {listing.title}
+                  {!listing.publicKey ? null : (
+                    <i
+                      className="fa fa-key ml-2"
+                      style={{ opacity: 0.5 }}
+                    />
+                  )}
+                </td>
+                <td className="text-center">
+                  {`${listing.price} ${listing.currencyId}`}
+                </td>
+                <td className="text-center">{`${listing.deposit} OGN`}</td>
+                <td className="text-center">
+                  {!listing.seller ? '' : listing.seller.substr(0, 6)}
+                </td>
               </tr>
             ))}
           </tbody>

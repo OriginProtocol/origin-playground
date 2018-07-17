@@ -4,6 +4,14 @@ import Modal from 'components/Modal'
 import Loading from 'components/Loading'
 import FormRow from 'components/FormRow'
 
+const listings = [
+  { title: 'Bike', price: '50', listingType: 'For Sale' },
+  { title: 'Laptop', price: '100', listingType: 'For Sale' },
+  { title: 'Mountain Home', price: '85', listingType: 'Home Share' },
+  { title: 'Concert', price: '60', listingType: 'Ticket' },
+  { title: 'Job Offer', price: '60', listingType: 'Job Offer' },
+]
+
 class NewListing extends Component {
   constructor(props) {
     super(props)
@@ -11,9 +19,7 @@ class NewListing extends Component {
       p => p.name === 'Arbitrator'
     )
     this.state = {
-      title: '',
-      price: '',
-      listingType: 'For Sale',
+      ...listings[Math.floor(Math.random() * listings.length)],
       currency: 'DAI',
       deposit: '10',
       arbitrator: arbitrator ? arbitrator.address : '',
@@ -110,8 +116,8 @@ class NewListing extends Component {
               >
                 <option>For Sale</option>
                 <option>Home Share</option>
-                <option>Reservation</option>
                 <option>Ticket</option>
+                <option>Job Offer</option>
               </select>
             </FormRow>
             <FormRow label="Title">

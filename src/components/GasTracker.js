@@ -1,13 +1,8 @@
 import React, { Component } from 'react'
 import numberFormat from 'utils/numberFormat'
 
-export function price(gas) {
-  var gasPriceGwei = 18,
-    pricePerEth = 468,
-    pricePerGwei = pricePerEth / 1000000000,
-    priceInUsd = gas * gasPriceGwei * pricePerGwei
-  return priceInUsd ? '$' + (Math.round(priceInUsd * 100) / 100).toFixed(2) : ''
-}
+import GasPrice from 'utils/gasPriceInDollars'
+const price = GasPrice({})
 
 class GasTracker extends Component {
   constructor() {

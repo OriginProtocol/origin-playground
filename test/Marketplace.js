@@ -1,11 +1,28 @@
 import assert from 'assert'
 import helper from './_helper'
 import marketplaceHelpers, { IpfsHash } from './_marketplaceHelpers'
+import Table from 'cli-table'
+import GasPriceInDollars from '../src/utils/gasPriceInDollars'
 
 // Account 0: Token owner. Marketplace owner
 // Account 1: Seller
 // Account 2: Buyer
 // Account 3: Dispute resolver
+const gasPriceInDollars = GasPriceInDollars({ gasPriceGwei: 8, pricePerEth: 500 })
+let gasUsed = []
+const trackGas = id => receipt => gasUsed.push([id, receipt.cumulativeGasUsed])
+const gasOrder = `
+Create Listing
+Make Offer
+Make Offer ERC20
+Accept Offer
+Finalize Offer
+Update Listing
+Dispute Offer
+Give Ruling Buyer
+Withdraw Offer
+Withdraw Listing
+`.split("\n")
 
 describe('Marketplace.sol', async function() {
   var accounts, deploy, web3
@@ -74,8 +91,60 @@ describe('Marketplace.sol', async function() {
       Buyer,
       Seller,
       OriginToken,
-      MarketArbitrator
+      MarketArbitrator,
+      trackGas
     })
+  })
+
+  after(function() {
+    console.log()
+
+    const gasTable = new Table({
+      chars: { mid: '', 'left-mid': '', 'mid-mid': '', 'right-mid': '' },
+      colAligns: ['left', 'right', 'right'],
+      head: ['Transaction', 'Min', 'Max', 'Min $', 'Max $']
+    })
+    let used = []
+    gasUsed.forEach(g => {
+      var existing = used.findIndex(u => u[0] === g[0])
+      if (existing < 0) {
+        used.push([g[0], g[1], g[1]])
+      } else {
+        if (g[1] < used[existing][1]) used[existing][1] = g[1]
+        if (g[2] > used[existing][2]) used[existing][2] = g[2]
+      }
+    })
+    used = used.sort((a, b) => {
+      if (gasOrder.indexOf(a[0]) > gasOrder.indexOf(b[0])) return 1
+      if (gasOrder.indexOf(a[0]) < gasOrder.indexOf(b[0])) return -1
+      return 0
+    })
+
+    var createListing = used.find(u => u[0] === 'Create Listing'),
+      makeOffer = used.find(u => u[0] === 'Make Offer'),
+      makeOfferERC = used.find(u => u[0] === 'Make Offer ERC20'),
+      acceptOffer = used.find(u => u[0] === 'Accept Offer'),
+      finalizeOffer = used.find(u => u[0] === 'Finalize Offer')
+
+    used.push([
+      'Basic Buyer Flow',
+      makeOffer[1] + finalizeOffer[1],
+      makeOfferERC[2] + finalizeOffer[2]
+    ])
+    used.push([
+      'Basic Seller Flow',
+      createListing[1] + acceptOffer[1],
+      createListing[2] + acceptOffer[2]
+    ])
+    used.push([
+      'Buyer+Seller Flow',
+      createListing[1] + makeOffer[1] + acceptOffer[1] + finalizeOffer[1],
+      createListing[2] + makeOfferERC[2] + acceptOffer[2] + finalizeOffer[2]
+    ])
+    used.forEach(u => {
+      gasTable.push([...u, gasPriceInDollars(u[1]), gasPriceInDollars(u[2])])
+    })
+    console.log(gasTable.toString())
   })
 
   it('should allow some tokens to be transferred to seller', async function() {
@@ -86,6 +155,7 @@ describe('Marketplace.sol', async function() {
 
   it('should allow DAI to be transferred to buyer', async function() {
     var result = await DaiStableCoin.methods.transfer(Buyer, 400).send()
+
     assert(result.events.Transfer)
   })
 
@@ -107,7 +177,7 @@ describe('Marketplace.sol', async function() {
     })
 
     it('should allow an offer to be made', async function() {
-      var result = await helpers.makeOffer({})
+      var result = await helpers.makeOffer({ trackGas })
 
       assert(result.events.OfferCreated)
 
@@ -119,15 +189,19 @@ describe('Marketplace.sol', async function() {
       var result = await Marketplace.methods
         .acceptOffer(0, 0, IpfsHash)
         .send({ from: Seller })
+        .once('receipt', trackGas('Accept Offer'))
       assert(result.events.OfferAccepted)
     })
 
     it('should allow an offer to be finalized by buyer', async function() {
       var balanceBefore = await web3.eth.getBalance(Seller)
 
-      var result = await Marketplace.methods.finalize(0, 0, IpfsHash).send({
-        from: Buyer
-      })
+      var result = await Marketplace.methods
+        .finalize(0, 0, IpfsHash)
+        .send({
+          from: Buyer
+        })
+        .once('receipt', trackGas('Finalize Offer'))
       assert(result.events.OfferFinalized)
 
       var balanceAfter = await web3.eth.getBalance(Seller)
@@ -150,6 +224,7 @@ describe('Marketplace.sol', async function() {
         var result = await Marketplace.methods
           .withdrawOffer(0, 1, IpfsHash)
           .send({ from: Buyer })
+          .once('receipt', trackGas('Withdraw Offer'))
 
         assert(result.events.OfferWithdrawn)
 
@@ -174,9 +249,10 @@ describe('Marketplace.sol', async function() {
       it('should allow a listing to be withdrawn', async function() {
         var listing = await helpers.createListing({ Token: OriginToken })
         var listingID = listing.events.ListingCreated.returnValues.listingID
-        var result = await Marketplace.methods.withdrawListing(listingID, IpfsHash).send({
-          from: Seller
-        })
+        var result = await Marketplace.methods
+          .withdrawListing(listingID, Seller, IpfsHash)
+          .send({ from: Seller })
+          .once('receipt', trackGas('Withdraw Listing'))
         assert(result.events.ListingWithdrawn)
       })
     })
@@ -192,8 +268,9 @@ describe('Marketplace.sol', async function() {
           .send({ from: Seller })
 
         var result = await Marketplace.methods
-          .createListing(IpfsHash, 50, '0x0')
+          .createListing(IpfsHash, 50, Seller)
           .send({ from: Seller })
+          .once('receipt', trackGas('Create Listing'))
 
         listingID = result.events.ListingCreated.returnValues.listingID
 
@@ -216,6 +293,7 @@ describe('Marketplace.sol', async function() {
         var result = await Marketplace.methods
           .acceptOffer(listingID, 0, IpfsHash)
           .send({ from: Seller })
+          .once('receipt', trackGas('Accept Offer'))
         assert(result.events.OfferAccepted)
       })
 
@@ -224,9 +302,8 @@ describe('Marketplace.sol', async function() {
 
         var result = await Marketplace.methods
           .finalize(listingID, 0, IpfsHash)
-          .send({
-            from: Buyer
-          })
+          .send({ from: Buyer })
+          .once('receipt', trackGas('Finalize Offer'))
         assert(result.events.OfferFinalized)
 
         var balanceAfter = await DaiStableCoin.methods.balanceOf(Seller).call()
@@ -252,9 +329,8 @@ describe('Marketplace.sol', async function() {
 
         var result = await Marketplace.methods
           .withdrawOffer(listingID, 1, IpfsHash)
-          .send({
-            from: Buyer
-          })
+          .send({ from: Buyer })
+          .once('receipt', trackGas('Withdraw Offer'))
         assert(result.events.OfferWithdrawn)
 
         var balanceAfter = await DaiStableCoin.methods.balanceOf(Buyer).call()
@@ -298,8 +374,9 @@ describe('Marketplace.sol', async function() {
         .send({ from: Seller })
 
       var result = await Marketplace.methods
-        .createListing(IpfsHash, 50, '0x0')
+        .createListing(IpfsHash, 50, Seller)
         .send({ from: Seller })
+        .once('receipt', trackGas('Create Listing'))
 
       listingID = result.events.ListingCreated.returnValues.listingID
 
@@ -317,6 +394,7 @@ describe('Marketplace.sol', async function() {
       var result = await Marketplace.methods
         .acceptOffer(listingID, offerID, IpfsHash)
         .send({ from: Seller })
+        .once('receipt', trackGas('Accept Offer'))
       assert(result.events.OfferAccepted)
     })
 
@@ -324,6 +402,7 @@ describe('Marketplace.sol', async function() {
       var result = await Marketplace.methods
         .dispute(listingID, offerID, IpfsHash)
         .send({ from: Buyer })
+        .once('receipt', trackGas('Dispute Offer'))
       assert(result.events.OfferDisputed)
     })
 
@@ -332,6 +411,7 @@ describe('Marketplace.sol', async function() {
       var result = await Arbitrator.methods
         .giveRuling(1, 0)
         .send({ from: ArbitratorAddr })
+        .once('receipt', trackGas('Give Ruling Buyer'))
 
       assert(result)
 
@@ -351,8 +431,9 @@ describe('Marketplace.sol', async function() {
         .send({ from: Seller })
 
       var result = await Marketplace.methods
-        .createListing(IpfsHash, 10, '0x0')
+        .createListing(IpfsHash, 10, Seller)
         .send({ from: Seller })
+        .once('receipt', trackGas('Create Listing'))
 
       listingID = result.events.ListingCreated.returnValues.listingID
 
@@ -365,12 +446,9 @@ describe('Marketplace.sol', async function() {
         .send({ from: Seller })
 
       var result = await Marketplace.methods
-        .updateListing(
-          listingID,
-          '0x98765432109876543210987654321098',
-          10
-        )
+        .updateListing(listingID, '0x98765432109876543210987654321098', 10)
         .send({ from: Seller })
+        .once('receipt', trackGas('Update Listing'))
 
       assert(result)
     })

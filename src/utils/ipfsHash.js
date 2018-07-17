@@ -61,7 +61,7 @@ export async function postEnc(gateway, json, pubKeys) {
   return getBytes32FromIpfsHash(res.Hash)
 }
 
-async function decode(text, key, pass) {
+export async function decode(text, key, pass) {
 
   const privKeyObj = openpgp.key.readArmored(key).keys[0]
   await privKeyObj.decrypt(pass)
@@ -73,11 +73,15 @@ async function decode(text, key, pass) {
   return decrypted.data
 }
 
-export async function get(gateway, hashAsBytes, party) {
+export async function getText(gateway, hashAsBytes) {
   var hash = getIpfsHashFromBytes32(hashAsBytes)
   const response = await fetch(`${gateway}/ipfs/${hash}`)
-  let text = await response.text()
-  if (text.indexOf('-----BEGIN PGP MESSAGE-----') === 0) {
+  return await response.text()
+}
+
+export async function get(gateway, hashAsBytes, party) {
+  let text = await getText(gateway, hashAsBytes)
+  if (text.indexOf('-----BEGIN PGP MESSAGE-----') === 0 && party) {
     try {
       text = await decode(text, party.privateKey, party.pgpPass)
     } catch(e) {

@@ -12,6 +12,7 @@ import {
 import Events from './_EventsTable'
 import UpdateListing from './_UpdateListing'
 import ArbitrateListing from './_ArbitrateListing'
+import WithdrawListing from './_WithdrawListing'
 import Offers from './Offers'
 
 class Listing extends Component {
@@ -104,46 +105,49 @@ class Listing extends Component {
           <Route
             render={() => (
               <div>
-                {listing.withdrawn ? (
-                  <div className="mb-2 text-danger">Listing Withdrawn</div>
-                ) : (
-                  <div className="mb-2 d-flex">
-                    <div className="my-1">
-                      <b className="mr-1">Asking price:</b>
-                      {`${listing.price} ${listing.currencyId}`}
-                      <b className="ml-3 mr-1">Category:</b>
-                      {`${listing.listingType}`}
-                    </div>
-                    {isOwner && (
-                      <div className="ml-auto">
+                <div className="mb-2 d-flex">
+                  <div className="my-1">
+                    {listing.withdrawn && (
+                      <span className="text-danger mr-3 font-weight-bold">
+                        Withdrawn
+                      </span>
+                    )}
+                    <b className="mr-1">Asking price:</b>
+                    {`${listing.price} ${listing.currencyId}`}
+                    <b className="ml-3 mr-1">Category:</b>
+                    {`${listing.listingType}`}
+                  </div>
+                  {isArbitrator || isOwner ? (
+                    <div className="ml-auto">
+                      {!isOwner ? null : (
                         <button
                           className="btn btn-sm btn-outline-secondary mr-1"
                           onClick={() => this.setState({ updateListing: true })}
                         >
                           Update
                         </button>
-                        <button
-                          className="btn btn-sm btn-outline-danger"
-                          onClick={() =>
-                            this.props.withdrawListing(this.props.activeListing)
-                          }
-                        >
-                          <i className="fa fa-trash" />
-                        </button>
-                      </div>
-                    )}
-                    {isArbitrator && (
-                      <div className="ml-auto">
-                        <button
-                          className="btn btn-sm btn-outline-secondary mr-1"
-                          onClick={() => this.setState({ arbitrate: true })}
-                        >
-                          Arbitrate
-                        </button>
-                      </div>
-                    )}
-                  </div>
-                )}
+                      )}
+                      {!isArbitrator ? null : (
+                        <>
+                          <button
+                            className="btn btn-sm btn-outline-secondary mr-1"
+                            onClick={() => this.setState({ arbitrate: true })}
+                          >
+                            Arbitrate
+                          </button>
+                          <button
+                            className="btn btn-sm btn-outline-danger mr-1"
+                            onClick={() =>
+                              this.setState({ withdrawListing: true })
+                            }
+                          >
+                            <i className="fa fa-trash" />
+                          </button>
+                        </>
+                      )}
+                    </div>
+                  ) : null}
+                </div>
                 <Offers listing={listing} />
               </div>
             )}
@@ -171,6 +175,17 @@ class Listing extends Component {
             response={this.props.marketplace.arbitrateListingResponse}
           />
         )}
+        {this.state.withdrawListing && (
+          <WithdrawListing
+            onClose={() => this.setState({ withdrawListing: false })}
+            listing={listing}
+            withdrawListing={json =>
+              this.props.withdrawListing(this.props.activeListing, json)
+            }
+            parties={this.props.parties}
+            response={this.props.marketplace.withdrawListingResponse}
+          />
+        )}
       </>
     )
   }
@@ -187,7 +202,7 @@ const mapStateToProps = (state, ownProps) => ({
 
 const mapDispatchToProps = dispatch => ({
   getOffers: idx => dispatch(getOffers(idx)),
-  withdrawListing: idx => dispatch(withdrawListing(idx)),
+  withdrawListing: (...args) => dispatch(withdrawListing(...args)),
   updateListing: (idx, json) => dispatch(updateListing(idx, json)),
   arbitrateListing: (idx, json) => dispatch(arbitrateListing(idx, json))
 })

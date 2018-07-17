@@ -19,22 +19,21 @@ contract Marketplace is IMarketplace {
   /**
    * @notice All events have the same indexed signature offsets for easy filtering
    */
-  event ListingCreated   (address indexed seller, uint indexed listingID, bytes32 ipfsHash);
-  event ListingUpdated   (address indexed seller, uint indexed listingID, bytes32 ipfsHash);
-  event ListingWithdrawn (address indexed seller, uint indexed listingID, bytes32 ipfsHash);
-  event ListingData      (address indexed party,  uint indexed listingID, bytes32 ipfsHash);
-  event ListingArbitrated(address indexed party,  uint indexed listingID, bytes32 ipfsHash);
-  event OfferCreated     (address indexed buyer,  uint indexed listingID, uint indexed offerID, bytes32 ipfsHash);
-  event OfferWithdrawn   (address indexed buyer,  uint indexed listingID, uint indexed offerID, bytes32 ipfsHash);
-  event OfferAccepted    (address indexed seller, uint indexed listingID, uint indexed offerID, bytes32 ipfsHash);
-  event OfferDisputed    (address indexed buyer,  uint indexed listingID, uint indexed offerID, bytes32 ipfsHash, uint disputeID);
-  event OfferRuling      (address indexed party,  uint indexed listingID, uint indexed offerID, bytes32 ipfsHash, uint ruling);
-  event OfferFinalized   (address indexed party,  uint indexed listingID, uint indexed offerID, bytes32 ipfsHash);
-  event OfferData        (address indexed party,  uint indexed listingID, uint indexed offerID, bytes32 ipfsHash);
+  event ListingCreated   (address indexed party, uint indexed listingID, bytes32 ipfsHash);
+  event ListingUpdated   (address indexed party, uint indexed listingID, bytes32 ipfsHash);
+  event ListingWithdrawn (address indexed party, uint indexed listingID, bytes32 ipfsHash);
+  event ListingData      (address indexed party, uint indexed listingID, bytes32 ipfsHash);
+  event ListingArbitrated(address indexed party, uint indexed listingID, bytes32 ipfsHash);
+  event OfferCreated     (address indexed party, uint indexed listingID, uint indexed offerID, bytes32 ipfsHash);
+  event OfferWithdrawn   (address indexed party, uint indexed listingID, uint indexed offerID, bytes32 ipfsHash);
+  event OfferAccepted    (address indexed party, uint indexed listingID, uint indexed offerID, bytes32 ipfsHash);
+  event OfferDisputed    (address indexed party, uint indexed listingID, uint indexed offerID, bytes32 ipfsHash, uint disputeID);
+  event OfferRuling      (address indexed party, uint indexed listingID, uint indexed offerID, bytes32 ipfsHash, uint ruling);
+  event OfferFinalized   (address indexed party, uint indexed listingID, uint indexed offerID, bytes32 ipfsHash);
+  event OfferData        (address indexed party, uint indexed listingID, uint indexed offerID, bytes32 ipfsHash);
 
   struct Listing {
     address seller;     // Seller wallet / identity contract / other contract
-    bytes32 ipfsHash;   // JSON blob with listing data
     uint deposit;       // Deposit in Origin Token
     address arbitrator; // Address of arbitration contract
   }
@@ -42,14 +41,12 @@ contract Marketplace is IMarketplace {
   struct Offer {
     uint value;         // Amount in Eth or token buyer is offering
     uint commission;    // Amount of commission earned if offer is accepted
-    bytes32 ipfsHash;   // JSON blob with offer data
     ERC20 currency;     // Currency of listing. Copied incase seller deleted listing
     address buyer;      // Buyer wallet / identity contract / other contract
     address affiliate;  // Address to send any commission
     address arbitrator; // Address of arbitration contract
     uint32 finalizes;   // Timestamp offer finalizes
-    uint8 status;       // 0: Undefined, 1: Created, 2: Accepted, 3: Disputed, 4: Finalized,
-                        // 5: Buyer wins dispute, 6: Seller wins dispute, 7: Buyer wins by default
+    uint8 status;       // 0: Undefined, 1: Created, 2: Accepted, 3: Disputed
   }
 
   Listing[] public listings;
@@ -80,9 +77,10 @@ contract Marketplace is IMarketplace {
     public
   {
     require(_deposit > 0); // Listings must deposit some amount of Origin Token
+    require(_arbitrator != 0x0); // Must specify an arbitrator
+
     listings.push(Listing({
       seller: msg.sender,
-      ipfsHash: _ipfsHash,
       deposit: _deposit,
       arbitrator: _arbitrator
     }));
@@ -97,10 +95,8 @@ contract Marketplace is IMarketplace {
     bytes32 _ipfsHash,       // Updated IPFS hash
     uint _additionalDeposit  // Additional deposit to add
   ) {
-    uint toTransfer;
     Listing listing = listings[listingID];
     require(listing.seller == msg.sender);
-    listing.ipfsHash = _ipfsHash;
 
     if (_additionalDeposit > 0) {
       tokenAddr.transferFrom(msg.sender, this, _additionalDeposit);
@@ -110,13 +106,14 @@ contract Marketplace is IMarketplace {
     emit ListingUpdated(listing.seller, listingID, _ipfsHash);
   }
 
-  // @dev Seller withdraws listing. IPFS hash contains reason for withdrawl.
-  function withdrawListing(uint listingID, bytes32 _ipfsHash) public {
+  // @dev Listing arbitrator withdraws listing. IPFS hash contains reason for withdrawl.
+  function withdrawListing(uint listingID, address _target, bytes32 _ipfsHash) public {
     Listing listing = listings[listingID];
-    require(msg.sender == listing.seller);
-    tokenAddr.transfer(listing.seller, listing.deposit); // Send deposit back to seller
+    require(msg.sender == listing.arbitrator);
+    require(_target != 0x0);
+    tokenAddr.transfer(_target, listing.deposit); // Send deposit to target
     delete listings[listingID]; // Remove data to get some gas back
-    emit ListingWithdrawn(msg.sender, listingID, _ipfsHash);
+    emit ListingWithdrawn(_target, listingID, _ipfsHash);
   }
 
   // @dev Buyer makes offer.
@@ -136,7 +133,6 @@ contract Marketplace is IMarketplace {
     offers[listingID].push(Offer({
       status: 1,
       buyer: msg.sender,
-      ipfsHash: _ipfsHash,
       finalizes: _finalizes,
       affiliate: _affiliate,
       commission: _commission,
@@ -180,7 +176,6 @@ contract Marketplace is IMarketplace {
     Offer offer = offers[listingID][offerID];
     require(offer.status == 1); // Offer must be in state 'Created'
     offer.status = 2;
-    offer.ipfsHash = _ipfsHash;
     if (offer.affiliate != 0x0 && offer.commission > 0) {
       require(listing.deposit >= offer.commission);
       listing.deposit -= offer.commission; // Accepting an offer puts Origin Token into escrow
@@ -216,13 +211,12 @@ contract Marketplace is IMarketplace {
       require(msg.sender == offer.buyer || msg.sender == listing.seller);
     }
     require(offer.status == 2); // Offer must be in state 'Accepted'
-    offer.status = 4; // Update to 'Finalized'
     paySeller(listingID, offerID); // Pay seller
     if (msg.sender == offer.buyer) { // Only pay commission if buyer is finalizing
       payCommission(listingID, offerID);
     }
     emit OfferFinalized(msg.sender, listingID, offerID, _ipfsHash);
-    // TODO: delete offers[listingID][offerID];
+    delete offers[listingID][offerID];
   }
 
   // @dev Buyer can dispute transaction during finalization window
@@ -232,7 +226,6 @@ contract Marketplace is IMarketplace {
     require(offer.status == 2); // Offer must be in 'Accepted' state
     require(now <= offer.finalizes); // Must be before agreed finalization window
     offer.status = 3; // Set status to "Disputed"
-    offer.ipfsHash = _ipfsHash; // IPFS hash contains dispute info
     uint disputeID = IArbitrator(offer.arbitrator).createDispute(listingID, offerID);
     emit OfferDisputed(msg.sender, listingID, offerID, _ipfsHash, disputeID);
   }
@@ -244,18 +237,16 @@ contract Marketplace is IMarketplace {
     require(msg.sender == offer.arbitrator);
     require(offer.status == 3); // Offer must be 'disputed'
     if (_ruling == 0 || listing.seller == 0x0) { // If seller withdrew listing, buyer wins by default
-      offer.status = listing.seller == 0x0 ? 7 : 5; // Buyer wins
       refund(listingID, offerID);
       payCommission(listingID, offerID); // Pay commission to affiliate
     } else {
-      offer.status = 6; // Seller wins
       paySeller(listingID, offerID);
       if (offer.commission > 0 && offer.affiliate != 0x0) { // Refund commission to seller
         listings[listingID].deposit += offer.commission;
       }
     }
     emit OfferRuling(offer.arbitrator, listingID, offerID, 0x0, _ruling);
-    // TODO: delete offers[listingID][offerID];
+    delete offers[listingID][offerID];
   }
 
   // @dev Refunds buyer in ETH or ERC20

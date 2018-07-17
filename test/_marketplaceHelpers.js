@@ -1,9 +1,16 @@
 export const IpfsHash = '0x12345678901234567890123456789012'
 
-export default function({ web3, Marketplace, Buyer, Seller, OriginToken, MarketArbitrator }) {
+export default function({
+  web3,
+  Marketplace,
+  Buyer,
+  Seller,
+  OriginToken,
+  MarketArbitrator,
+  trackGas
+}) {
   async function createListing({ Identity }) {
     if (Identity) {
-
       await OriginToken.methods
         .transfer(Identity._address, 100)
         .send({ from: Seller })
@@ -17,21 +24,21 @@ export default function({ web3, Marketplace, Buyer, Seller, OriginToken, MarketA
         .send({ from: Seller })
 
       let createListingAbi = await Marketplace.methods
-        .createListing(IpfsHash, 50, '0x0')
+        .createListing(IpfsHash, 50, Seller)
         .encodeABI()
 
       return await Identity.methods
         .execute(Marketplace._address, 0, createListingAbi)
         .send({ from: Seller })
-
     } else {
       await OriginToken.methods
         .approve(Marketplace._address, 50)
         .send({ from: Seller })
 
       return await Marketplace.methods
-        .createListing(IpfsHash, 50, '0x0')
+        .createListing(IpfsHash, 50, Seller)
         .send({ from: Seller })
+        .once('receipt', trackGas('Create Listing'))
 
       // return await OriginToken.methods
       //   .approveAndCall(Marketplace._address, 50, listingAbi)
@@ -58,7 +65,9 @@ export default function({ web3, Marketplace, Buyer, Seller, OriginToken, MarketA
       args.push(withdraw)
     }
     var result = await Marketplace.methods
-      .makeOffer(...args).send({ from: Buyer, value })
+      .makeOffer(...args)
+      .send({ from: Buyer, value })
+      .once('receipt', trackGas('Make Offer'))
     return result
   }
 
@@ -80,11 +89,9 @@ export default function({ web3, Marketplace, Buyer, Seller, OriginToken, MarketA
       args.push(withdraw)
     }
 
-    await Token.methods
-      .approve(Marketplace._address, 100)
-      .send({ from: Buyer })
+    await Token.methods.approve(Marketplace._address, 100).send({ from: Buyer })
 
-    return await Marketplace.methods.makeOffer(...args).send({ from: Buyer })
+    return await Marketplace.methods.makeOffer(...args).send({ from: Buyer }).once('receipt', trackGas('Make Offer ERC20'))
   }
 
   return { makeOffer, makeERC20Offer, createListing }
