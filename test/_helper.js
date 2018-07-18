@@ -41,7 +41,7 @@ export default async function testHelper(contracts, provider) {
   const { web3, server } = await web3Helper(provider)
   const accounts = await web3.eth.getAccounts()
 
-  async function deploy(contractName, { from, args, log, path }) {
+  async function deploy(contractName, { from, args, log, path, trackGas }) {
     var sources = {
       [`${contractName}.sol`]: {
         content: fs.readFileSync(`${path || contracts}/${contractName}.sol`).toString()
@@ -134,6 +134,9 @@ export default async function testHelper(contracts, provider) {
           }
         })
         .once('receipt', receipt => {
+          if (trackGas) {
+            trackGas(`Deployed ${contractName}`)(receipt)
+          }
           if (log) {
             console.log(
               `Deployed ${contractName} to ${receipt.contractAddress} (${

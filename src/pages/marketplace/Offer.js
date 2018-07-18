@@ -64,7 +64,6 @@ class Offer extends Component {
     const isArbitrator = this.props.marketplace.arbitrator === wallet
     const finalized = this.props.network.block.timestamp > offer.finalizes
     const status = String(offer.status)
-    const trProps = {} // className: this.rowCls(offer, idx) }
     let value = offer.value
     if (offer.currencyId === 'ETH') {
       value = web3.utils.fromWei(value, 'ether')
@@ -73,16 +72,16 @@ class Offer extends Component {
     return (
       <>
         <tr
-          {...trProps}
+          style={{ cursor: 'pointer' }}
           onClick={() =>
             this.setState({ open: this.state.open ? false : true })
           }
         >
-          <td className="pl-2">
+          <td className="pl-2" style={{ borderLeft: `1px solid ${this.state.open ? '#dee2e6' : '#fff' }` }}>
             <i
-              className={`row-fa fa fa-${
-                wallet === offer.buyer ? 'un' : ''
-              }lock`}
+              className={`ml-0 mr-1 px-0 fa fa-fw fa-${
+                this.state.open ? 'caret-down' : 'caret-right'
+              }`}
             />
             {`${value} ${offer.currencyId || ''}`}
           </td>
@@ -112,9 +111,7 @@ class Offer extends Component {
             />
             <Btn
               showIf={isBuyer && status === '1'}
-              onClick={() =>
-                this.setState({ makeOffer: true, reviseOffer: idx })
-              }
+              onClick={() => this.props.onRevise(idx)}
               text="Revise"
               color="primary ml-1"
             />
@@ -182,8 +179,8 @@ class Offer extends Component {
     return (
       <tr>
         <td
-          className="border-top-0 pt-0"
-          style={{ paddingLeft: '1.875rem' }}
+          className="border-top-0 pt-0 pl-3"
+          style={{ borderLeft: '1px solid #dee2e6' }}
           colSpan={5}
         >
           <EventsTable
@@ -197,14 +194,6 @@ class Offer extends Component {
 
   expired(offer) {
     return Number(offer.expires) < this.props.network.block.timestamp
-  }
-
-  rowCls(listing) {
-    var cls = ''
-    if (this.props.wallet.activeAddress !== listing.seller) {
-      cls += 'text-muted '
-    }
-    return cls
   }
 }
 

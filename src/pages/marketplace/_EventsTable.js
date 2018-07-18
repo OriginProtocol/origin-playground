@@ -35,6 +35,7 @@ class EventRow extends Component {
     return (
       <>
         <tr
+          style={{ cursor: 'pointer' }}
           onClick={async () => {
             this.setState({ open: this.state.open ? false : true })
             var ipfsContent = await getText(
@@ -63,6 +64,13 @@ class EventRow extends Component {
             this.setState({ ipfsContent, decrypted })
           }}
         >
+          <td style={{ borderLeft: `1px solid ${this.state.open ? '#dee2e6' : '#fff' }` }}>
+            <i
+              className={`ml-0 mr-1 px-0 fa fa-fw fa-${
+                this.state.open ? 'caret-down' : 'caret-right'
+              }`}
+            />
+          </td>
           <td className="text-center">{event.blockNumber}</td>
           <td>{event.event}</td>
           {offerID ? null : <td className="text-center">{json.offerID}</td>}
@@ -92,9 +100,9 @@ class EventRow extends Component {
 
     return (
       <tr>
+        <td className="border-top-0 pt-0" style={{ borderLeft: '1px solid #dee2e6' }} />
         <td
           className="border-top-0 pt-0"
-          style={{ paddingLeft: '1.875rem' }}
           colSpan={5}
         >
           {this.state.decrypted ? (
@@ -145,9 +153,10 @@ class Events extends Component {
     }
 
     return (
-      <table className="table table-sm">
+      <table className="table table-sm mb-0">
         <thead>
           <tr>
+            <th style={{ width: 20 }} />
             <th className="text-center">Block</th>
             <th>Event</th>
             {offerID ? null : <th className="text-center">Offer</th>}

@@ -9,6 +9,7 @@ const Btn = props => {
       className={props.className === undefined ? className : props.className}
       onClick={e => {
         e.preventDefault()
+        e.stopPropagation()
         props.onClick()
       }}
     >

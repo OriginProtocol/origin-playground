@@ -72,6 +72,9 @@ class Offers extends Component {
               offerID={idx}
               offer={offer}
               listingID={lID}
+              onRevise={idx =>
+                this.setState({ makeOffer: true, reviseOffer: idx })
+              }
             />
           ))}
         </tbody>
@@ -86,6 +89,7 @@ class Offers extends Component {
             parties={this.props.parties}
             activeParty={this.props.activeParty}
             reviseOffer={this.state.reviseOffer}
+            error={this.props.marketplace.makeOfferError}
           />
         )}
       </table>

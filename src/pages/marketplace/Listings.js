@@ -127,9 +127,6 @@ class Listings extends Component {
 
   rowCls(listing, idx) {
     var cls = ''
-    if (this.props.wallet.activeAddress !== listing.seller) {
-      cls += 'text-muted '
-    }
     const match = matchPath(this.props.location.pathname, {
       path: '/marketplace/listing/:idx'
     })

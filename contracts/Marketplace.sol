@@ -144,6 +144,7 @@ contract Marketplace is IMarketplace {
     if (address(_currency) == 0x0) { // Listing is in ETH
       require(msg.value == _value);
     } else { // Listing is in ERC20
+      require(msg.value == 0); // Make sure no ETH is sent (would be unrecoverable)
       require(_currency.transferFrom(msg.sender, this, _value));
     }
 
@@ -171,15 +172,13 @@ contract Marketplace is IMarketplace {
 
   // @dev Seller accepts offer
   function acceptOffer(uint listingID, uint offerID, bytes32 _ipfsHash) public {
-    require(msg.sender == listings[listingID].seller);
     Listing listing = listings[listingID];
     Offer offer = offers[listingID][offerID];
+    require(msg.sender == listing.seller);
     require(offer.status == 1); // Offer must be in state 'Created'
-    offer.status = 2;
-    if (offer.affiliate != 0x0 && offer.commission > 0) {
-      require(listing.deposit >= offer.commission);
-      listing.deposit -= offer.commission; // Accepting an offer puts Origin Token into escrow
-    }
+    require(listing.deposit >= offer.commission);
+    listing.deposit -= offer.commission; // Accepting an offer puts Origin Token into escrow
+    offer.status = 2; // Set offer to 'Accepted'
     emit OfferAccepted(msg.sender, listingID, offerID, _ipfsHash);
   }
 
@@ -205,9 +204,9 @@ contract Marketplace is IMarketplace {
   function finalize(uint listingID, uint offerID, bytes32 _ipfsHash) public {
     Listing listing = listings[listingID];
     Offer offer = offers[listingID][offerID];
-    if (now <= offer.finalizes) {
+    if (now <= offer.finalizes) { // Only buyer can finalize before finalization window
       require(msg.sender == offer.buyer);
-    } else { // Allow seller to finalize if finalization window has passed
+    } else { // Allow both seller and buyer to finalize if finalization window has passed
       require(msg.sender == offer.buyer || msg.sender == listing.seller);
     }
     require(offer.status == 2); // Offer must be in state 'Accepted'
@@ -241,9 +240,7 @@ contract Marketplace is IMarketplace {
       payCommission(listingID, offerID); // Pay commission to affiliate
     } else {
       paySeller(listingID, offerID);
-      if (offer.commission > 0 && offer.affiliate != 0x0) { // Refund commission to seller
-        listings[listingID].deposit += offer.commission;
-      }
+      listings[listingID].deposit += offer.commission; // Refund commission to seller
     }
     emit OfferRuling(offer.arbitrator, listingID, offerID, 0x0, _ruling);
     delete offers[listingID][offerID];
@@ -254,8 +251,7 @@ contract Marketplace is IMarketplace {
     Offer offer = offers[listingID][offerID];
     if (address(offer.currency) == 0x0) {
       require(offer.buyer.send(offer.value));
-    }
-    else {
+    } else {
       require(offer.currency.transfer(offer.buyer, offer.value));
     }
   }
@@ -267,8 +263,7 @@ contract Marketplace is IMarketplace {
 
     if (address(offer.currency) == 0x0) {
       require(listing.seller.send(offer.value));
-    }
-    else {
+    } else {
       require(offer.currency.transfer(listing.seller, offer.value));
     }
   }
@@ -276,7 +271,7 @@ contract Marketplace is IMarketplace {
   // @dev Pay commission to affiliate
   function payCommission(uint listingID, uint offerID) private {
     Offer offer = offers[listingID][offerID];
-    if (offer.affiliate != 0x0 && offer.commission > 0) {
+    if (offer.affiliate != 0x0) {
       require(tokenAddr.transfer(offer.affiliate, offer.commission));
     }
   }

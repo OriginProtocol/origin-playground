@@ -33,7 +33,7 @@ class NewOffer extends Component {
       this.setState({ loading: true })
     }
     if (this.props.response !== 'error' && nextProps.response === 'error') {
-      this.setState({ error: true })
+      this.setState({ error: nextProps.error, loading: false })
     }
   }
 
@@ -57,6 +57,9 @@ class NewOffer extends Component {
         <div className="font-weight-bold mb-2">
           {`${this.props.reviseOffer !== null ? 'Revise' : 'Add a New'} Offer:`}
         </div>
+        {!this.state.error ? null : (
+          <div className="alert alert-danger">{this.state.error}</div>
+        )}
         <table className="w-100">
           <tbody>
             <FormRow label="Amount">
