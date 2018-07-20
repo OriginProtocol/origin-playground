@@ -137,8 +137,8 @@ class Parties extends Component {
                     <i className="fa fa-key ml-2" style={{ opacity: 0.5 }} />
                   )}
                 </td>
-                <td className="text-center">
-                  {party.address ? party.address.substr(0, 6) : ''}
+                <td className="text-center mono">
+                  {party.address ? party.address.substr(2, 4) : ''}
                 </td>
                 <td
                   className={`text-center${this.state.colors[`ETH-${idx}`] ||

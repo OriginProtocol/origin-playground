@@ -85,10 +85,10 @@ class Offer extends Component {
             />
             {`${value} ${offer.currencyId || ''}`}
           </td>
-          <td className="text-center">{offer.buyer.substr(0, 6)}</td>
+          <td className="text-center mono">{offer.buyer.substr(2, 4)}</td>
           <td className="text-center">{`${offer.commission} OGN`}</td>
           <td className="text-center">{showStatus(offer, timestamp)}</td>
-          <td className="text-center">
+          <td className="text-right">
             <Btn
               showIf={isSeller && status === '1'}
               onClick={() => this.setState({ acceptOffer: [lID, idx] })}

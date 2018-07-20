@@ -361,6 +361,7 @@ class Identity extends Component {
         {identity.signerServices.map((ss, idx) => (
           <a
             target="_blank"
+            rel="noopener noreferrer"
             className="btn btn-outline-secondary btn-sm mr-1"
             key={idx}
             href={ss.uri}
@@ -427,6 +428,8 @@ export default connect(mapStateToProps, mapDispatchToProps)(Identity)
 require('react-styl')(`
   .mono
     font-family: SFMono-Regular,Menlo,Monaco,Consolas,"Liberation Mono","Courier New",monospace;
+    font-size: 0.95rem
+    line-height: 1.7rem
     overflow: hidden;
     white-space: nowrap;
     text-overflow: ellipsis;

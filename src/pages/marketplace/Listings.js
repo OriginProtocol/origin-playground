@@ -102,8 +102,8 @@ class Listings extends Component {
                   {`${listing.ipfs.price} ${listing.ipfs.currencyId}`}
                 </td>
                 <td className="text-center">{`${listing.deposit} OGN`}</td>
-                <td className="text-center">
-                  {!listing.seller ? '' : listing.seller.substr(0, 6)}
+                <td className="text-center mono">
+                  {!listing.seller ? '' : listing.seller.substr(2, 4)}
                 </td>
               </tr>
             ))}

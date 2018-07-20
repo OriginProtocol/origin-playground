@@ -156,7 +156,7 @@ class EventRow extends Component {
             {event.event}
           </td>
           {offerID ? null : <td className="text-center">{json.offerID}</td>}
-          <td className="text-center">{partyAddr.substr(0, 6)}</td>
+          <td className="text-center mono">{partyAddr.substr(2, 4)}</td>
           <td className="text-center">{event.blockNumber}</td>
           <td className="text-center">{data}</td>
         </tr>
