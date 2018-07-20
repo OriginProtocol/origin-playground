@@ -138,12 +138,20 @@ class Offer extends Component {
             >
               <i className="fa fa-gavel mr-1" />Seller
             </Btn>
+            <Btn
+              showIf={true}
+              onClick={() => {}}
+              color="primary ml-1"
+            >
+              <i className="fa fa-commenting" />
+            </Btn>
           </td>
         </tr>
         {this.renderDetail()}
 
         {this.state.acceptOffer && (
           <AcceptOffer
+            listing={this.props.listing}
             acceptOffer={obj =>
               this.props.acceptOffer(
                 this.state.acceptOffer[0],

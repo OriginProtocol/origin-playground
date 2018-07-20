@@ -3,13 +3,13 @@ import React, { Component } from 'react'
 import Modal from 'components/Modal'
 import Loading from 'components/Loading'
 import FormRow from 'components/FormRow'
+import * as Blobs from '../../../data/example-ipfs-blobs.js'
 
 const listings = [
-  { title: 'Bike', price: '50', listingType: 'For Sale' },
-  { title: 'Laptop', price: '100', listingType: 'For Sale' },
-  { title: 'Mountain Home', price: '85', listingType: 'Home Share' },
-  { title: 'Concert', price: '60', listingType: 'Ticket' },
-  { title: 'Job Offer', price: '60', listingType: 'Job Offer' },
+  { title: 'Bike For Sale', price: '50', listingType: 'For Sale', ipfs: Blobs.ForSaleListing },
+  { title: 'Driver For Hire', price: '10', listingType: 'Car Share', ipfs: Blobs.RideShareListing },
+  { title: 'Home For Rent', price: '85', listingType: 'Home Share', ipfs: Blobs.HomeshareListing },
+  { title: 'Ticket For Sale', price: '60', listingType: 'Ticket', ipfs: Blobs.TicketedEventListing },
 ]
 
 class NewListing extends Component {
@@ -37,7 +37,7 @@ class NewListing extends Component {
       this.setState({ loading: true })
     }
     if (this.props.response !== 'error' && nextProps.response === 'error') {
-      this.setState({ error: true })
+      this.setState({ error: nextProps.error, loading: false })
     }
   }
 
@@ -52,6 +52,9 @@ class NewListing extends Component {
       >
         <Loading show={this.state.loading} />
         <div className="font-weight-bold mb-2">Add a New Listing:</div>
+        {!this.state.error ? null : (
+          <div className="alert alert-danger">{this.state.error}</div>
+        )}
         <table className="w-100">
           <tbody>
             <FormRow label="Deposit">
@@ -116,6 +119,7 @@ class NewListing extends Component {
               >
                 <option>For Sale</option>
                 <option>Home Share</option>
+                <option>Car Share</option>
                 <option>Ticket</option>
                 <option>Job Offer</option>
               </select>
@@ -151,16 +155,20 @@ class NewListing extends Component {
           <button
             className="btn btn-primary"
             onClick={() => {
-              var obj = {
+              var ipfs = {
+                ...this.state.ipfs,
                 title: this.state.title,
                 listingType: this.state.listingType,
-                deposit: this.state.deposit,
                 price: this.state.price,
                 currencyId: this.state.currency,
-                arbitrator: this.state.arbitrator
               }
               if (this.props.party && this.props.party.publicKey) {
-                obj.publicKey = this.props.party.publicKey
+                ipfs.publicKey = this.props.party.publicKey
+              }
+              var obj = {
+                deposit: this.state.deposit,
+                arbitrator: this.state.arbitrator,
+                ipfs
               }
               this.props.createListing(obj)
             }}

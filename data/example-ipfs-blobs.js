@@ -1,4 +1,4 @@
-const HomeshareListing = { // Unencrypted
+export const HomeshareListing = { // Unencrypted
   title: 'Beautiful mountain home',
   description: 'A lovely home close to downtown Boulder',
   approxLocation: '40.017,-105.306',
@@ -33,7 +33,7 @@ const HomeshareListing = { // Unencrypted
   publicKey: 'ssh-rsa KH93Ud5FPUfQ+lht1UhFtM4ysVOxM...'
 }
 
-const HomeshareOffer = { // Encrypted with seller's public key
+export const HomeshareOffer = { // Encrypted with seller's public key
   checkin: '2019/01/12',
   checkout: '2019/01/14',
   offeredPrice: '250',
@@ -42,18 +42,18 @@ const HomeshareOffer = { // Encrypted with seller's public key
   specialRequests: 'I will be checking in late',
 }
 
-const HomeshareOfferAccepted = { // Encrypted with buyer's public key
+export const HomeshareOfferAccepted = { // Encrypted with buyer's public key
   message: 'Please text me when you arrive so I can give you the key'
 }
 
-const HomeshareOfferFinalized: { // Unencrypted
+export const HomeshareOfferFinalized = { // Unencrypted
   rating: '5/5',
   review: 'Lovely home'
 }
 
 
 
-const ForSaleListing: { // Unencrypted
+export const ForSaleListing = { // Unencrypted
   title: 'Shiny kids bike',
   description: 'Good condition',
   approxLocation: '40.017,-105.306',
@@ -64,7 +64,7 @@ const ForSaleListing: { // Unencrypted
   publicKey: 'ssh-rsa KH93Ud5FPUfQ+lht1UhFtM4ysVOxM...'
 }
 
-const ForSaleOffer: { // Encrypted with seller's public key
+export const ForSaleOffer = { // Encrypted with seller's public key
   title: 'Shiny kids bike',
   description: 'Good condition',
   approxLocation: '40.017,-105.306',
@@ -73,18 +73,18 @@ const ForSaleOffer: { // Encrypted with seller's public key
   acceptedCoins: ['ETH', 'BTC']
 }
 
-const ForSaleOfferAccepted: { // Encrypted with buyer's public key
+export const ForSaleOfferAccepted = { // Encrypted with buyer's public key
   message: 'Address is 123 Fake St. Please come by tomorrow between 5pm and 7pm to pick it up - thanks.'
 }
 
-const ForSaleOfferFinalized: { // Unencrypted
+export const ForSaleOfferFinalized = { // Unencrypted
   rating: '5/5',
   review: 'No complaints'
 }
 
 
 
-const RideShareListing: { // Unencrypted
+export const RideShareListing = { // Unencrypted
   approxLocation: '40.017,-105.306',
   carManufacturer: 'Telsa',
   carModel: 'Model S P100D',
@@ -98,7 +98,7 @@ const RideShareListing: { // Unencrypted
   acceptedCoins: ['DAI']
 }
 
-const RideShareOffer: { // Encrypted with seller's public key
+export const RideShareOffer = { // Encrypted with seller's public key
   pickup: '40.017,-105.306',
   pickupTime: 'ASAP (10:31am)',
   destination: '40.181,-105.209',
@@ -107,11 +107,55 @@ const RideShareOffer: { // Encrypted with seller's public key
   acceptedCoins: ['ETH', 'BTC']
 }
 
-const RideShareOfferAccepted: { // Encrypted with buyer's public key
+export const RideShareOfferAccepted = { // Encrypted with buyer's public key
   approxPickupTime: '10:35am'
 }
 
-const RideShareOfferFinalized: { // Unencrypted
+export const RideShareOfferFinalized = { // Unencrypted
   rating: '5/5',
   review: 'Good driver'
+}
+
+
+
+export const TicketedEventListing = { // Unencrypted
+  title: 'Radiohead',
+  venue: 'The Roundhouse, London, UK',
+  date: '2018/09/01 7:00pm',
+  priceTiers: [
+    {
+      tier: 'General Admission',
+      price: 100,
+      availability: 500
+    },
+    {
+      tier: 'VIP',
+      price: 500,
+      availability: 25
+    }
+  ],
+  currency: 'USD',
+  acceptedCoins: ['DAI'],
+  deliveryOptions: [
+    { name: 'Will Call', price: 0 },
+    { name: 'Email', price: 0 },
+    { name: 'US Mail', price: 2 }
+  ]
+}
+
+export const TicketedEventOffer = { // Encrypted with seller's public key
+  name: 'Bill Smith',
+  tier: 'VIP',
+  quantity: 2,
+  price: 1000,
+  pickup: 'Will Call'
+}
+
+export const TicketedEventAccepted = { // Encrypted with buyer's public key
+  seats: [{ row: 'C', seat: '16' }, { row: 'C', seat: '17' }]
+}
+
+export const TicketedEventFinalized = { // Unencrypted
+  rating: '5/5',
+  review: 'Awesome show, great venue'
 }

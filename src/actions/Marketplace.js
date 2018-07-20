@@ -105,11 +105,7 @@ export function createListing(json) {
       return
     }
 
-    if (state.parties.active.publicKey) {
-      json.publicKey = state.parties.active.publicKey
-    }
-
-    var ipfsHash = await post(state.network.ipfsRPC, json)
+    var ipfsHash = await post(state.network.ipfsRPC, json.ipfs)
 
     const Contract = new web3.eth.Contract(Marketplace.abi, address)
 
@@ -269,7 +265,7 @@ export function getAllListings() {
         data.withdrawn = true
       }
 
-      listings.push({ ...data, ...listing, id: idx })
+      listings.push({ ...listing, id: idx, ipfs: data })
     }
 
     dispatch({
@@ -317,24 +313,24 @@ export function makeOffer(listingID, json) {
     }
 
     var listing = state.marketplace.listings[listingID],
-      currency = listing.currencyId,
+      currency = listing.ipfs.currencyId,
       ipfsHash
 
     const currencyAddr =
-      listing.currencyId === 'ETH'
+      listing.ipfs.currencyId === 'ETH'
         ? '0x0'
-        : state.token.contractAddresses[listing.currencyId]
+        : state.token.contractAddresses[listing.ipfs.currencyId]
 
     var value =
       currency === 'ETH' ? web3.utils.toWei(json.amount, 'ether') : json.amount
 
-    json.currencyId = listing.currencyId
+    json.currencyId = listing.ipfs.currencyId
     json.value = value
     json.buyer = web3.eth.defaultAccount
 
-    if (json.encrypt && listing.publicKey) {
+    if (json.encrypt && listing.ipfs.publicKey) {
       json.publicKey = state.parties.active.publicKey
-      var keys = [listing.publicKey, state.parties.active.publicKey]
+      var keys = [listing.ipfs.publicKey, state.parties.active.publicKey]
       ipfsHash = await postEnc(state.network.ipfsRPC, json, keys)
     } else {
       ipfsHash = await post(state.network.ipfsRPC, json)

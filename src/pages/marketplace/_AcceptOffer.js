@@ -4,12 +4,22 @@ import Modal from 'components/Modal'
 import Loading from 'components/Loading'
 import FormRow from 'components/FormRow'
 
+import * as Blobs from '../../../data/example-ipfs-blobs.js'
+
 class AcceptOffer extends Component {
   constructor(props) {
     super(props)
-    this.state = {
-      message: ''
+    var obj = { message: '' }
+    if (props.listing.ipfs.listingType === 'For Sale') {
+      obj = { ...obj, ...Blobs.ForSaleOfferAccepted }
+    } else if (props.listing.ipfs.listingType === 'Car Share') {
+      obj = { ...obj, ...Blobs.RideShareOfferAccepted }
+    } else if (props.listing.ipfs.listingType === 'Home Share') {
+      obj = { ...obj, ...Blobs.HomeshareOfferAccepted }
+    } else if (props.listing.ipfs.listingType === 'Ticket') {
+      obj = { ...obj, ...Blobs.TicketedEventOfferAccepted }
     }
+    this.state = obj
   }
 
   componentDidMount() {
@@ -64,11 +74,7 @@ class AcceptOffer extends Component {
         <div className="text-right">
           <button
             className="btn btn-primary"
-            onClick={() => {
-              this.props.acceptOffer({
-                message: this.state.message
-              })
-            }}
+            onClick={() => this.props.acceptOffer(this.state)}
           >
             Accept
           </button>

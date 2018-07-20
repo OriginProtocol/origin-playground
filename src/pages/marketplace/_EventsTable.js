@@ -6,10 +6,88 @@ import { decode, getText, getIpfsHashFromBytes32 } from 'utils/ipfsHash'
 
 import BtnGroup from 'components/BtnGroup'
 
+class Events extends Component {
+  componentDidMount() {
+    this.props.getEvents(this.props.listing)
+  }
+
+  componentDidUpdate(prevProps) {
+    if (
+      prevProps.listing !== this.props.listing ||
+      prevProps.network.block.number !== this.props.network.block.number
+    ) {
+      this.props.getEvents(this.props.listing)
+    }
+  }
+
+  render() {
+    if (this.props.eventsResponse === null && !this.props.events.length) {
+      return <div>Loading...</div>
+    }
+    let events = this.props.events
+    const offerID =
+      this.props.offer === undefined ? null : String(this.props.offer)
+    if (offerID) {
+      events = events.filter(e => e.returnValues.offerID === offerID)
+    }
+
+    return (
+      <table className="table table-sm mb-0">
+        <thead>
+          <tr>
+            <th>Event</th>
+            {offerID ? null : <th className="text-center">Offer</th>}
+            <th className="text-center">Sender</th>
+            <th className="text-center">Block</th>
+            <th className="text-center">IPFS</th>
+          </tr>
+        </thead>
+        <tbody>
+          {this.props.events.length ? null : (
+            <tr>
+              <td colSpan={5}>No Events</td>
+            </tr>
+          )}
+          {events.map((event, idx) => (
+            <EventRow
+              offerID={offerID}
+              event={event}
+              key={idx}
+              ipfs={this.props.ipfs}
+              party={this.props.party}
+              block={this.props.network.block.number}
+            />
+          ))}
+        </tbody>
+      </table>
+    )
+  }
+}
+
+export function displayEvent(obj) {
+  if (typeof obj !== 'object') {
+    return ''
+  }
+  var ret = []
+  Object.keys(obj).forEach(key => {
+    if (!key.match(/^([0-9]+|__.*)$/)) {
+      if (typeof obj[key] === 'string') {
+        var val = String(obj[key])
+        val = val.length > 32 ? `${val.substr(0, 32)}...` : val
+        ret.push(`${key}: ${val}`)
+      } else {
+        ret.push(`${key}: ${JSON.stringify(obj[key], null, 4)}`)
+      }
+    }
+  })
+  return ret.join('\n')
+}
+
+
 class EventRow extends Component {
   constructor() {
     super()
-    this.state = {}
+    this.state = { showDecrypted: true }
   }
 
   render() {
@@ -64,17 +142,22 @@ class EventRow extends Component {
             this.setState({ ipfsContent, decrypted })
           }}
         >
-          <td style={{ borderLeft: `1px solid ${this.state.open ? '#dee2e6' : '#fff' }` }}>
+          <td
+            className="no-wrap"
+            style={{
+              borderLeft: `1px solid ${this.state.open ? '#dee2e6' : '#fff'}`
+            }}
+          >
             <i
               className={`ml-0 mr-1 px-0 fa fa-fw fa-${
                 this.state.open ? 'caret-down' : 'caret-right'
               }`}
             />
+            {event.event}
           </td>
-          <td className="text-center">{event.blockNumber}</td>
-          <td>{event.event}</td>
           {offerID ? null : <td className="text-center">{json.offerID}</td>}
           <td className="text-center">{partyAddr.substr(0, 6)}</td>
+          <td className="text-center">{event.blockNumber}</td>
           <td className="text-center">{data}</td>
         </tr>
         {this.renderDetail()}
@@ -100,9 +183,9 @@ class EventRow extends Component {
 
     return (
       <tr>
-        <td className="border-top-0 pt-0" style={{ borderLeft: '1px solid #dee2e6' }} />
         <td
-          className="border-top-0 pt-0"
+          className="border-top-0 pl-3 pt-2"
+          style={{ borderLeft: '1px solid #dee2e6' }}
           colSpan={5}
         >
           {this.state.decrypted ? (
@@ -130,77 +213,8 @@ class EventRow extends Component {
   }
 }
 
-class Events extends Component {
-  componentDidMount() {
-    this.props.getEvents(this.props.listing)
-  }
-
-  componentDidUpdate(prevProps) {
-    if (prevProps.listing !== this.props.listing) {
-      this.props.getEvents(this.props.listing)
-    }
-  }
-
-  render() {
-    if (this.props.eventsResponse === null) {
-      return <div>Loading...</div>
-    }
-    let events = this.props.events
-    const offerID =
-      this.props.offer === undefined ? null : String(this.props.offer)
-    if (offerID) {
-      events = events.filter(e => e.returnValues.offerID === offerID)
-    }
-
-    return (
-      <table className="table table-sm mb-0">
-        <thead>
-          <tr>
-            <th style={{ width: 20 }} />
-            <th className="text-center">Block</th>
-            <th>Event</th>
-            {offerID ? null : <th className="text-center">Offer</th>}
-            <th className="text-center">Party</th>
-            <th className="text-center">IPFS</th>
-          </tr>
-        </thead>
-        <tbody>
-          {this.props.events.length ? null : (
-            <tr>
-              <td colSpan={5}>No Events</td>
-            </tr>
-          )}
-          {events.map((event, idx) => (
-            <EventRow
-              offerID={offerID}
-              event={event}
-              key={idx}
-              ipfs={this.props.ipfs}
-              party={this.props.party}
-            />
-          ))}
-        </tbody>
-      </table>
-    )
-  }
-}
-
-export function displayEvent(obj) {
-  if (typeof obj !== 'object') {
-    return ''
-  }
-  var ret = []
-  Object.keys(obj).forEach(key => {
-    if (!key.match(/^([0-9]+|__.*)$/)) {
-      var val = String(obj[key])
-      val = val.length > 32 ? `${val.substr(0, 32)}...` : val
-      ret.push(`${key}: ${val}`)
-    }
-  })
-  return ret.join('\n')
-}
-
 const mapStateToProps = state => ({
+  network: state.network,
   events: state.marketplace.events,
   eventsResponse: state.marketplace.eventsResponse,
   ipfs: state.network.ipfsGateway,

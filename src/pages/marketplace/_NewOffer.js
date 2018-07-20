@@ -5,6 +5,8 @@ import Loading from 'components/Loading'
 import FormRow from 'components/FormRow'
 import BtnGroup from 'components/BtnGroup'
 
+import * as Blobs from '../../../data/example-ipfs-blobs.js'
+
 class NewOffer extends Component {
   constructor(props) {
     super(props)
@@ -12,7 +14,7 @@ class NewOffer extends Component {
       p => p.name === 'OriginArbitrator'
     )
     this.state = {
-      amount: props.listing.price,
+      amount: props.listing.ipfs.price,
       expires: this.days(1 / 6),
       finalizes: this.days(1 / 2),
       commission: '2',
@@ -74,7 +76,7 @@ class NewOffer extends Component {
                 />
                 <div className="input-group-append">
                   <span className="input-group-text">
-                    {this.props.listing.currencyId}
+                    {this.props.listing.ipfs.currencyId}
                   </span>
                 </div>
               </div>
@@ -214,6 +216,17 @@ class NewOffer extends Component {
               if (this.props.reviseOffer !== null) {
                 obj.withdraw = this.props.reviseOffer
               }
+
+              if (this.props.listing.ipfs.listingType === 'For Sale') {
+                obj = { ...Blobs.ForSaleOffer, ...obj }
+              } else if (this.props.listing.ipfs.listingType === 'Car Share') {
+                obj = { ...Blobs.RideShareOffer, ...obj }
+              } else if (this.props.listing.ipfs.listingType === 'Home Share') {
+                obj = { ...Blobs.HomeshareOffer, ...obj }
+              } else if (this.props.listing.ipfs.listingType === 'Ticket') {
+                obj = { ...Blobs.TicketedEventOffer, ...obj }
+              }
+
               this.props.makeOffer(obj)
             }}
           >

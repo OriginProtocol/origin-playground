@@ -59,9 +59,7 @@ class Listings extends Component {
                     className="btn btn-sm btn-outline-primary"
                     onClick={e => {
                       e.preventDefault()
-                      this.setState({
-                        newListing: true
-                      })
+                      this.setState({ newListing: true })
                     }}
                   >
                     <i className="fa fa-plus" /> Add a Listing
@@ -92,7 +90,7 @@ class Listings extends Component {
                         : ''
                     }lock`}
                   />
-                  {listing.title}
+                  {listing.ipfs.title}
                   {!listing.publicKey ? null : (
                     <i
                       className="fa fa-key ml-2"
@@ -101,7 +99,7 @@ class Listings extends Component {
                   )}
                 </td>
                 <td className="text-center">
-                  {`${listing.price} ${listing.currencyId}`}
+                  {`${listing.ipfs.price} ${listing.ipfs.currencyId}`}
                 </td>
                 <td className="text-center">{`${listing.deposit} OGN`}</td>
                 <td className="text-center">
@@ -119,6 +117,7 @@ class Listings extends Component {
             party={this.props.activeParty}
             parties={this.props.parties}
             response={this.props.marketplace.createListingResponse}
+            error={this.props.marketplace.createListingError}
           />
         )}
       </>

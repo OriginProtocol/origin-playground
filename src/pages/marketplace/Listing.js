@@ -54,7 +54,7 @@ class Listing extends Component {
                   e.preventDefault()
                 }}
               >
-                {listing.title}
+                {listing.ipfs.title}
               </a>
             </li>
             <li className="nav-item">
@@ -93,13 +93,9 @@ class Listing extends Component {
           <Route
             path={`/marketplace/listing/:idx/info`}
             render={() => (
-              <>
-                <div className="d-flex flex-column align-items-center">
-                  <div className="mono w-100">
-                    {`Seller: ${listing.seller}`}
-                  </div>
-                </div>
-              </>
+              <pre style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-all' }}>
+                {JSON.stringify(listing, null, 4)}
+              </pre>
             )}
           />
           <Route
@@ -113,9 +109,9 @@ class Listing extends Component {
                       </span>
                     )}
                     <b className="mr-1">Asking price:</b>
-                    {`${listing.price} ${listing.currencyId}`}
+                    {`${listing.ipfs.price} ${listing.ipfs.currencyId}`}
                     <b className="ml-3 mr-1">Category:</b>
-                    {`${listing.listingType}`}
+                    {`${listing.ipfs.listingType}`}
                   </div>
                   {isArbitrator || isOwner ? (
                     <div className="ml-auto">

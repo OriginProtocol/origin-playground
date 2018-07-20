@@ -59,6 +59,13 @@ export default function Token(state = initialState, action = {}) {
         createListingGas: action.receipt.gasUsed
       }
 
+    case MarketplaceConstants.CREATE_LISTING_ERROR:
+      return {
+        ...state,
+        createListingResponse: 'error',
+        createListingError: action.message
+      }
+
     case MarketplaceConstants.UPDATE_LISTING:
       return { ...state, updateListingResponse: 'submitted' }
 
@@ -101,6 +108,9 @@ export default function Token(state = initialState, action = {}) {
         acceptOfferResponse: 'success',
         acceptOfferGas: action.receipt.gasUsed
       }
+
+    case MarketplaceConstants.FINALIZE_OFFER:
+      return { ...state, finalizeOfferResponse: 'submitted' }
 
     case MarketplaceConstants.FINALIZE_OFFER_RECEIPT:
       return {
