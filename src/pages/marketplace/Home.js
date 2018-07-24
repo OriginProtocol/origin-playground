@@ -26,6 +26,7 @@ import { deployTokenContract, transferToken, approveToken } from 'actions/Token'
 import { addAccount, UNSAFE_saveWallet, selectAccount } from 'actions/Wallet'
 import { sendFromNode } from 'actions/Network'
 import { addParty } from 'actions/Parties'
+import { ExampleListings } from './_NewListing'
 import GasPrice from 'utils/gasPriceInDollars'
 const price = GasPrice({})
 
@@ -299,15 +300,15 @@ class Home extends Component {
               prerequisite={hasDAI}
               gas={this.props.marketplaceRaw.createListingGas}
               onAction={() => {
+                const rnd = Math.floor(Math.random() * ExampleListings.length)
                 this.props.selectAccount(Seller)
                 this.props.createListing({
-                  title: 'Bike',
-                  listingType: 'For Sale',
                   deposit: '10',
-                  price: '100',
-                  currencyId: 'DAI',
-                  publicKey: sellerParty.publicKey,
-                  arbitrator: Seller
+                  arbitrator: Seller,
+                  ipfs: {
+                    ...ExampleListings[rnd],
+                    currencyId: 'DAI'
+                  }
                 })
               }}
               action="Add"
@@ -411,7 +412,6 @@ class Home extends Component {
 
 const mapStateToProps = state => ({
   wallet: state.wallet,
-  accounts: state.wallet.accounts,
   parties: state.parties.parties,
   activeParty: state.parties.active,
   nodeAccounts: state.network.accounts,
@@ -422,6 +422,7 @@ const mapStateToProps = state => ({
   marketplaceParty: state.parties.parties.find(
     p => p.address === state.marketplace.contractAddress
   ),
+  accounts: state.wallet.accounts,
   sellerWallet: state.wallet.accounts[0],
   seller: state.parties.parties.find(
     p => p.address === state.wallet.accounts[0]

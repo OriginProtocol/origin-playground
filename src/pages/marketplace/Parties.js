@@ -67,17 +67,55 @@ class Parties extends Component {
     const { parties } = this.props.parties
     const { wallet } = this.props
 
+    const renderParty = (party = {}, idx) => (
+      <>
+        <td className="text-center mono">
+          {party.address ? party.address.substr(2, 4) : ''}
+        </td>
+        <td
+          className={`text-center${this.state.colors[`ETH-${idx}`] || ''}${
+            this.state.doFade ? ' fadebg' : ''
+          }`}
+        >
+          {party.ETH ? party.ETH.substr(0, 6) : ''}
+        </td>
+        <td
+          className={`text-center${this.state.colors[`OGN-${idx}`] || ''}${
+            this.state.doFade ? ' fadebg' : ''
+          }`}
+        >
+          {party.OGN || ''}
+        </td>
+        <td
+          className={`text-center${this.state.colors[`DAI-${idx}`] || ''}${
+            this.state.doFade ? ' fadebg' : ''
+          }`}
+        >
+          {party.DAI || ''}
+        </td>
+      </>
+    )
+
+    const activeWallet = this.props.wallet.activeAddress
+    const activePartyIdx = parties.findIndex(p => p.address === activeWallet)
+    const activeParty = parties[activePartyIdx]
+
     return (
       <>
         <table
           className={`table table-sm${
-            parties.length ? ' table-hover' : ''
+            parties.length && this.state.open ? ' table-hover' : ''
           } identities-list`}
         >
           <thead>
-            <tr>
+            <tr
+              style={{ cursor: 'pointer' }}
+              onClick={() =>
+                this.setState({ open: this.state.open ? false : true })
+              }
+            >
               <th className="border-top-0">
-                <i className="fa fa-users mr-2" />Parties
+                <i className={`fa fa-fw fa-${this.state.open ? 'caret-down' : 'caret-right'}`} />Parties
                 {!parties.length ? null : (
                   <a
                     href="#"
@@ -100,66 +138,95 @@ class Parties extends Component {
             </tr>
           </thead>
           <tbody>
-            {!parties.length && (
+            {!this.state.open && (
               <tr>
-                <td colSpan={2} className="p-2">
-                  <button
-                    href="#"
-                    className="btn btn-sm btn-outline-primary"
-                    onClick={e => {
-                      e.preventDefault()
-                      this.setState({ newParty: true })
-                    }}
-                  >
-                    <i className="fa fa-plus" /> Add a Party
-                  </button>
+                <td>
+                  <div className="btn-group">
+                    <button
+                      className={`btn btn-sm btn-outline-secondary${
+                        activeWallet === this.props.buyerWallet ? ' active' : ''
+                      }`}
+                      onClick={() =>
+                        this.props.selectAccount(this.props.buyerWallet)
+                      }
+                    >
+                      Buyer
+                    </button>
+                    <button
+                      className={`btn btn-sm btn-outline-secondary${
+                        activeWallet === this.props.sellerWallet
+                          ? ' active'
+                          : ''
+                      }`}
+                      onClick={() =>
+                        this.props.selectAccount(this.props.sellerWallet)
+                      }
+                    >
+                      Seller
+                    </button>
+                    <button
+                      className={`btn btn-sm btn-outline-secondary${
+                        activeWallet === this.props.arbitratorWallet
+                          ? ' active'
+                          : ''
+                      }`}
+                      onClick={() =>
+                        this.props.selectAccount(this.props.arbitratorWallet)
+                      }
+                    >
+                      Arbitrator
+                    </button>
+                  </div>
                 </td>
+                {renderParty(activeParty, activePartyIdx)}
               </tr>
             )}
-            {parties.map((party, idx) => (
-              <tr
-                key={idx}
-                style={{ cursor: 'pointer' }}
-                className={this.rowCls(party, idx)}
-                onClick={() => {
-                  if (
-                    wallet.accounts.find(a => a === party.address) &&
-                    wallet.activeAddress !== party.address
-                  ) {
-                    this.props.selectAccount(party.address)
-                  }
-                }}
-              >
-                <td>
-                  <i className={`fa fa-fw mr-1${this.icon(party)}`} />
-                  {party.name}
-                  {!party.publicKey ? null : (
-                    <i className="fa fa-key ml-2" style={{ opacity: 0.5 }} />
-                  )}
-                </td>
-                <td className="text-center mono">
-                  {party.address ? party.address.substr(2, 4) : ''}
-                </td>
-                <td
-                  className={`text-center${this.state.colors[`ETH-${idx}`] ||
-                    ''}${this.state.doFade ? ' fadebg' : ''}`}
-                >
-                  {party.ETH ? party.ETH.substr(0, 6) : ''}
-                </td>
-                <td
-                  className={`text-center${this.state.colors[`OGN-${idx}`] ||
-                    ''}${this.state.doFade ? ' fadebg' : ''}`}
-                >
-                  {party.OGN || ''}
-                </td>
-                <td
-                  className={`text-center${this.state.colors[`DAI-${idx}`] ||
-                    ''}${this.state.doFade ? ' fadebg' : ''}`}
-                >
-                  {party.DAI || ''}
-                </td>
-              </tr>
-            ))}
+            {!this.state.open ? null : (
+              <>
+                {!parties.length && (
+                  <tr>
+                    <td colSpan={2} className="p-2">
+                      <button
+                        href="#"
+                        className="btn btn-sm btn-outline-primary"
+                        onClick={e => {
+                          e.preventDefault()
+                          this.setState({ newParty: true })
+                        }}
+                      >
+                        <i className="fa fa-plus" /> Add a Party
+                      </button>
+                    </td>
+                  </tr>
+                )}
+                {parties.map((party, idx) => (
+                  <tr
+                    key={idx}
+                    style={{ cursor: 'pointer' }}
+                    onClick={() => {
+                      if (
+                        wallet.accounts.find(a => a === party.address) &&
+                        wallet.activeAddress !== party.address
+                      ) {
+                        this.props.selectAccount(party.address)
+                      }
+                    }}
+                  >
+                    <td>
+                      <i className={`fa fa-fw mr-1${this.icon(party)}`} />
+                      {party.name}
+                      {!party.publicKey ? null : (
+                        <i
+                          className="fa fa-key ml-2"
+                          style={{ opacity: 0.5 }}
+                        />
+                      )}
+                    </td>
+                    {renderParty(party, idx)}
+                  </tr>
+                ))}
+              </>
+            )}
           </tbody>
         </table>
 
@@ -189,22 +256,14 @@ class Parties extends Component {
     }
     return cls
   }
-
-  rowCls() {
-    //party) {
-    var cls = ''
-    // if (this.props.wallet.activeAddress === party.address) {
-    //   cls += 'table-warning'
-    // } else {
-    //   cls += 'table-active'
-    // }
-    return cls
-  }
 }
 
 const mapStateToProps = state => ({
   parties: state.parties,
-  wallet: state.wallet
+  wallet: state.wallet,
+  sellerWallet: state.wallet.accounts[0],
+  buyerWallet: state.wallet.accounts[1],
+  arbitratorWallet: state.wallet.accounts[3]
 })
 
 const mapDispatchToProps = dispatch => ({

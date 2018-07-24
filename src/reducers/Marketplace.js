@@ -79,6 +79,19 @@ export default function Token(state = initialState, action = {}) {
         updateListingGas: action.receipt.gasUsed
       }
 
+    case MarketplaceConstants.ADD_DATA:
+      return { ...state, addDataResponse: 'submitted' }
+
+    case MarketplaceConstants.ADD_DATA_HASH:
+      return { ...state, addDataResponse: 'in-pool' }
+
+    case MarketplaceConstants.ADD_DATA_RECEIPT:
+      return {
+        ...state,
+        addDataResponse: 'success',
+        addDataGas: action.receipt.gasUsed
+      }
+
     case MarketplaceConstants.MAKE_OFFER:
       return { ...state, makeOfferResponse: 'submitted' }
 
@@ -142,11 +155,18 @@ export default function Token(state = initialState, action = {}) {
     case MarketplaceConstants.GET_ALL_LISTINGS_SUCCESS:
       return { ...state, listings: action.listings }
 
+    case MarketplaceConstants.GET_OFFERS:
+      if (action.opts.refresh) {
+        return { ...state, offers: [] }
+      } else {
+        return state
+      }
+
     case MarketplaceConstants.GET_OFFERS_SUCCESS:
       return { ...state, offers: action.offers }
 
     case MarketplaceConstants.GET_EVENTS:
-      return { ...state, eventsResponse: null }
+      return { ...state, eventsResponse: null, events: [] }
 
     case MarketplaceConstants.GET_EVENTS_SUCCESS:
       return { ...state, events: action.events, eventsResponse: 200 }

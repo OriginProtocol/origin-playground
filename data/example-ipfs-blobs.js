@@ -61,7 +61,8 @@ export const ForSaleListing = { // Unencrypted
   currency: 'USD',
   acceptedCoins: ['ETH', 'BTC'],
   contactMethods: [{ type: 'Telegram', channel: '0xabc123' }, { type: 'Email' }],
-  publicKey: 'ssh-rsa KH93Ud5FPUfQ+lht1UhFtM4ysVOxM...'
+  publicKey: 'ssh-rsa KH93Ud5FPUfQ+lht1UhFtM4ysVOxM...',
+  image: 'Qmcgwn3ADR482jPnuVtJbZTEfcaZw7hdLyzshSm2qNkLAW'
 }
 
 export const ForSaleOffer = { // Encrypted with seller's public key

@@ -45,7 +45,7 @@ class ArbitrateListing extends Component {
         <div className="font-weight-bold mb-2">Arbitrate Listing:</div>
         <table className="w-100">
           <tbody>
-            <FormRow label="Target">
+            <FormRow label="Send to">
               <select
                 className="form-control"
                 value={this.state.target}

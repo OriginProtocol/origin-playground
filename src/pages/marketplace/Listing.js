@@ -6,13 +6,15 @@ import {
   getOffers,
   updateListing,
   withdrawListing,
-  arbitrateListing
+  arbitrateListing,
+  addData
 } from 'actions/Marketplace'
 
 import Events from './_EventsTable'
 import UpdateListing from './_UpdateListing'
 import ArbitrateListing from './_ArbitrateListing'
 import WithdrawListing from './_WithdrawListing'
+import AddData from './_AddData'
 import Offers from './Offers'
 
 class Listing extends Component {
@@ -30,12 +32,13 @@ class Listing extends Component {
       this.props.activeListing !== nextProps.activeListing ||
       nextProps.wallet.activeAddress !== this.props.wallet.activeAddress
     ) {
-      this.props.getOffers(nextProps.activeListing)
+      var refresh = this.props.activeListing !== nextProps.activeListing ? true : false
+      this.props.getOffers(nextProps.activeListing, { refresh })
     }
   }
 
   render() {
-    var listing = this.props.marketplace.listings[this.props.activeListing]
+    var listing = this.props.marketplace.listings.find(l => l.id == this.props.activeListing)
     if (!listing) {
       return null
     }
@@ -102,47 +105,60 @@ class Listing extends Component {
             render={() => (
               <div>
                 <div className="mb-2 d-flex">
-                  <div className="my-1">
+                  <div className="my-1 d-flex align-items-top">
                     {listing.withdrawn && (
                       <span className="text-danger mr-3 font-weight-bold">
                         Withdrawn
                       </span>
+                    )}
+                    {!listing.ipfs.image ? null : (
+                      <div>
+                        <img
+                          src={`${this.props.ipfs}/ipfs/${listing.ipfs.image}`}
+                          width={80}
+                          className="mr-3 mb-3"
+                        />
+                      </div>
                     )}
                     <b className="mr-1">Asking price:</b>
                     {`${listing.ipfs.price} ${listing.ipfs.currencyId}`}
                     <b className="ml-3 mr-1">Category:</b>
                     {`${listing.ipfs.listingType}`}
                   </div>
-                  {isArbitrator || isOwner ? (
-                    <div className="ml-auto">
-                      {!isOwner ? null : (
+                  <div className="ml-auto">
+                    {!isOwner ? null : (
+                      <button
+                        className="btn btn-sm btn-outline-secondary mr-1"
+                        onClick={() => this.setState({ updateListing: true })}
+                      >
+                        Update
+                      </button>
+                    )}
+                    {!isArbitrator ? null : (
+                      <>
                         <button
                           className="btn btn-sm btn-outline-secondary mr-1"
-                          onClick={() => this.setState({ updateListing: true })}
+                          onClick={() => this.setState({ arbitrate: true })}
                         >
-                          Update
+                          Arbitrate
                         </button>
-                      )}
-                      {!isArbitrator ? null : (
-                        <>
-                          <button
-                            className="btn btn-sm btn-outline-secondary mr-1"
-                            onClick={() => this.setState({ arbitrate: true })}
-                          >
-                            Arbitrate
-                          </button>
-                          <button
-                            className="btn btn-sm btn-outline-danger mr-1"
-                            onClick={() =>
-                              this.setState({ withdrawListing: true })
-                            }
-                          >
-                            <i className="fa fa-trash" />
-                          </button>
-                        </>
-                      )}
-                    </div>
-                  ) : null}
+                        <button
+                          className="btn btn-sm btn-outline-danger mr-1"
+                          onClick={() =>
+                            this.setState({ withdrawListing: true })
+                          }
+                        >
+                          <i className="fa fa-trash" />
+                        </button>
+                      </>
+                    )}
+                    <button
+                      className="btn btn-sm btn-outline-primary mr-1"
+                      onClick={() => this.setState({ addData: [this.props.activeListing] })}
+                    >
+                      <i className="fa fa-commenting" />
+                    </button>
+                  </div>
                 </div>
                 <Offers listing={listing} />
               </div>
@@ -182,12 +198,20 @@ class Listing extends Component {
             response={this.props.marketplace.withdrawListingResponse}
           />
         )}
+        {this.state.addData && (
+          <AddData
+            addData={obj => this.props.addData(obj, this.state.addData[0])}
+            onClose={() => this.setState({ addData: null })}
+            response={this.props.marketplace.addDataResponse}
+          />
+        )}
       </>
     )
   }
 }
 
 const mapStateToProps = (state, ownProps) => ({
+  ipfs: state.network.ipfsGateway,
   wallet: state.wallet,
   activeListing: ownProps.match.params.idx,
   marketplace: state.marketplace,
@@ -197,10 +221,11 @@ const mapStateToProps = (state, ownProps) => ({
 })
 
 const mapDispatchToProps = dispatch => ({
-  getOffers: idx => dispatch(getOffers(idx)),
+  getOffers: (...args) => dispatch(getOffers(...args)),
   withdrawListing: (...args) => dispatch(withdrawListing(...args)),
   updateListing: (idx, json) => dispatch(updateListing(idx, json)),
-  arbitrateListing: (idx, json) => dispatch(arbitrateListing(idx, json))
+  arbitrateListing: (idx, json) => dispatch(arbitrateListing(idx, json)),
+  addData: (...args) => dispatch(addData(...args)),
 })
 
 export default connect(

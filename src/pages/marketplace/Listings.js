@@ -3,6 +3,7 @@ import { connect } from 'react-redux'
 import { withRouter, matchPath } from 'react-router'
 
 import { getAllListings, createListing } from 'actions/Marketplace'
+import { selectAccount } from 'actions/Wallet'
 
 import NewListing from './_NewListing'
 
@@ -37,6 +38,7 @@ class Listings extends Component {
                     onClick={e => {
                       e.preventDefault()
                       this.setState({ newListing: true })
+                      this.props.selectAccount(this.props.sellerWallet)
                     }}
                   >
                     <i className="fa fa-plus" />
@@ -60,6 +62,7 @@ class Listings extends Component {
                     onClick={e => {
                       e.preventDefault()
                       this.setState({ newListing: true })
+                      this.props.selectAccount(this.props.sellerWallet)
                     }}
                   >
                     <i className="fa fa-plus" /> Add a Listing
@@ -67,11 +70,11 @@ class Listings extends Component {
                 </td>
               </tr>
             )}
-            {listings.map((listing, idx) => (
+            {listings.map(listing => (
               <tr
-                key={idx}
+                key={listing.id}
                 onClick={() => {
-                  var url = `/marketplace/listing/${idx}`
+                  var url = `/marketplace/listing/${listing.id}`
                   if (this.props.location.pathname.match(/events$/)) {
                     url += '/events'
                   } else if (this.props.location.pathname.match(/info$/)) {
@@ -80,22 +83,13 @@ class Listings extends Component {
                   this.props.history.push(url)
                 }}
                 style={{ cursor: 'pointer' }}
-                className={this.rowCls(listing, idx)}
+                className={this.rowCls(listing, listing.id)}
               >
                 <td>
-                  <i
-                    className={`row-fa fa fa-${
-                      this.props.wallet.activeAddress === listing.owner
-                        ? 'un'
-                        : ''
-                    }lock`}
-                  />
+                  <span className="ml-1 mr-2 mono">{listing.id}</span>
                   {listing.ipfs.title}
                   {!listing.publicKey ? null : (
-                    <i
-                      className="fa fa-key ml-2"
-                      style={{ opacity: 0.5 }}
-                    />
+                    <i className="fa fa-key ml-2" style={{ opacity: 0.5 }} />
                   )}
                 </td>
                 <td className="text-center">
@@ -113,6 +107,11 @@ class Listings extends Component {
         {this.state.newListing && (
           <NewListing
             onClose={() => this.setState({ newListing: false })}
+            onSuccess={() => {
+              this.props.history.push(
+                `/marketplace/listing/${this.props.marketplace.listings.length}`
+              )
+            }}
             createListing={this.props.createListing}
             party={this.props.activeParty}
             parties={this.props.parties}
@@ -130,11 +129,11 @@ class Listings extends Component {
       path: '/marketplace/listing/:idx'
     })
     if (match && match.params.idx === String(idx)) {
-      if (this.props.wallet.activeAddress === listing.seller) {
-        cls += 'table-warning'
-      } else {
+      // if (this.props.wallet.activeAddress === listing.seller) {
+      //   cls += 'table-warning'
+      // } else {
         cls += 'table-active'
-      }
+      // }
     }
     return cls
   }
@@ -144,12 +143,14 @@ const mapStateToProps = state => ({
   marketplace: state.marketplace,
   wallet: state.wallet,
   activeParty: state.parties.active,
-  parties: state.parties.parties
+  parties: state.parties.parties,
+  sellerWallet: state.wallet.accounts[0]
 })
 
 const mapDispatchToProps = dispatch => ({
   createListing: listing => dispatch(createListing(listing)),
-  getAllListings: () => dispatch(getAllListings())
+  getAllListings: () => dispatch(getAllListings()),
+  selectAccount: (...args) => dispatch(selectAccount(...args))
 })
 
 export default withRouter(

@@ -29,7 +29,8 @@ export const MarketplaceConstants = generateConstants('MARKETPLACE', {
     'DISPUTE_OFFER',
     'DISPUTE_RULING',
     'ACCEPT_OFFER',
-    'WITHDRAW_OFFER'
+    'WITHDRAW_OFFER',
+    'ADD_DATA',
   ]
 })
 
@@ -123,10 +124,45 @@ export function createListing(json) {
   }
 }
 
+export function addData(json, listingID, offerID) {
+  return async function(dispatch, getState) {
+    var state = getState(),
+      address = state.marketplace.contractAddress,
+      tx
+
+    if (!address) {
+      return
+    }
+
+    var ipfsHash = await post(state.network.ipfsRPC, json)
+
+    const Contract = new web3.eth.Contract(Marketplace.abi, address)
+
+    if (offerID !== undefined) {
+      tx = Contract.methods
+        .addData(listingID, offerID, ipfsHash)
+        .send({ gas: 4612388, from: web3.eth.defaultAccount })
+    } else {
+      tx = Contract.methods
+        .addData(listingID, ipfsHash)
+        .send({ gas: 4612388, from: web3.eth.defaultAccount })
+    }
+
+    var data = { listingID, offerID, json }
+
+    dispatch(
+      sendTransaction(tx, MarketplaceConstants.ADD_DATA, data, () => {
+        dispatch(getEvents(listingID))
+      })
+    )
+  }
+}
+
 export function updateListing(listingId, json) {
   return async function(dispatch, getState) {
     var state = getState(),
       address = state.marketplace.contractAddress
+
     if (!address) {
       return
     }
@@ -136,7 +172,7 @@ export function updateListing(listingId, json) {
     }
 
     const Contract = new web3.eth.Contract(Marketplace.abi, address)
-    const ipfsHash = await post(state.network.ipfsRPC, json)
+    const ipfsHash = await post(state.network.ipfsRPC, json.ipfs)
 
     var tx = Contract.methods
       .updateListing(listingId, ipfsHash, json.deposit)
@@ -234,7 +270,7 @@ export function getAllListings() {
       fromBlock: 0
     })
 
-    var ids = Array.from({ length: Number(totalListings) }, (v, i) => i)
+    var ids = Array.from({ length: Number(totalListings) }, (v, i) => i).reverse()
 
     var listings = []
     for (let idx of ids) {
@@ -516,7 +552,7 @@ export function disputeRuling(listingID, offerID, ruling) {
   }
 }
 
-export function getOffers(listingID) {
+export function getOffers(listingID, opts = {}) {
   return async function(dispatch, getState) {
     var state = getState(),
       address = state.marketplace.contractAddress,
@@ -525,6 +561,8 @@ export function getOffers(listingID) {
     if (!address) {
       return
     }
+
+    dispatch({ type: MarketplaceConstants.GET_OFFERS, opts })
 
     var Contract = new web3.eth.Contract(Marketplace.abi, address)
     var totalOffers = await Contract.methods.totalOffers(listingID).call()

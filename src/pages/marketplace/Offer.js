@@ -7,11 +7,13 @@ import {
   disputeOffer,
   disputeRuling,
   finalizeOffer,
-  withdrawOffer
+  withdrawOffer,
+  addData
 } from 'actions/Marketplace'
 
 import Btn from 'components/Btn'
 import AcceptOffer from './_AcceptOffer'
+import AddData from './_AddData'
 import FinalizeOffer from './_FinalizeOffer'
 import EventsTable from './_EventsTable'
 
@@ -77,7 +79,12 @@ class Offer extends Component {
             this.setState({ open: this.state.open ? false : true })
           }
         >
-          <td className="pl-2" style={{ borderLeft: `1px solid ${this.state.open ? '#dee2e6' : '#fff' }` }}>
+          <td
+            className="pl-2"
+            style={{
+              borderLeft: `1px solid ${this.state.open ? '#dee2e6' : '#fff'}`
+            }}
+          >
             <i
               className={`ml-0 mr-1 px-0 fa fa-fw fa-${
                 this.state.open ? 'caret-down' : 'caret-right'
@@ -140,7 +147,7 @@ class Offer extends Component {
             </Btn>
             <Btn
               showIf={true}
-              onClick={() => {}}
+              onClick={() => this.setState({ addData: [lID, idx] })}
               color="primary ml-1"
             >
               <i className="fa fa-commenting" />
@@ -174,6 +181,19 @@ class Offer extends Component {
             }
             onClose={() => this.setState({ finalizeOffer: null })}
             response={this.props.marketplace.finalizeOfferResponse}
+          />
+        )}
+        {this.state.addData && (
+          <AddData
+            addData={obj => {
+              this.props.addData(
+                obj,
+                this.state.addData[0],
+                this.state.addData[1]
+              )
+            }}
+            onClose={() => this.setState({ addData: null })}
+            response={this.props.marketplace.addDataResponse}
           />
         )}
       </>
@@ -216,7 +236,8 @@ const mapDispatchToProps = dispatch => ({
   disputeOffer: (...args) => dispatch(disputeOffer(...args)),
   finalizeOffer: (...args) => dispatch(finalizeOffer(...args)),
   withdrawOffer: (...args) => dispatch(withdrawOffer(...args)),
-  disputeRuling: (...args) => dispatch(disputeRuling(...args))
+  disputeRuling: (...args) => dispatch(disputeRuling(...args)),
+  addData: (...args) => dispatch(addData(...args)),
 })
 
 export default connect(

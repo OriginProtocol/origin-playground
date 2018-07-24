@@ -75,18 +75,19 @@ const startIpfs = (opts = {}) =>
 const populateIpfs = () =>
   new Promise((resolve, reject) => {
     var ipfs = ipfsAPI('localhost', '5002', { protocol: 'http' })
-    console.log('Populate IPFS...')
+    console.log('Populate IPFS:')
     ipfs.util.addFromFs('data/fixtures', { recursive: true }, (err, result) => {
       if (err) {
         return reject(err)
       }
+      result.forEach(r => console.log(`  ${r.hash} ${r.path}`))
       resolve(result)
     })
   })
 
 async function start() {
   await startGanache()
-  await startIpfs()
+  await startIpfs({ populate: true })
   const webpackDevServer = spawn('./node_modules/.bin/webpack-dev-server', [
     '--info=false',
     '--port=8082',
