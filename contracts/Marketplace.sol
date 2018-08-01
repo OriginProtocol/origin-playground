@@ -31,6 +31,7 @@ contract Marketplace is IMarketplace {
   event OfferRuling      (address indexed party, uint indexed listingID, uint indexed offerID, bytes32 ipfsHash, uint ruling);
   event OfferFinalized   (address indexed party, uint indexed listingID, uint indexed offerID, bytes32 ipfsHash);
   event OfferData        (address indexed party, uint indexed listingID, uint indexed offerID, bytes32 ipfsHash);
+  event MarketplaceData  (address indexed party, bytes32 ipfsHash);
 
   struct Listing {
     address seller;     // Seller wallet / identity contract / other contract
@@ -41,6 +42,7 @@ contract Marketplace is IMarketplace {
   struct Offer {
     uint value;         // Amount in Eth or token buyer is offering
     uint commission;    // Amount of commission earned if offer is accepted
+    uint refund;        // Amount to refund buyer upon finalization
     ERC20 currency;     // Currency of listing. Copied incase seller deleted listing
     address buyer;      // Buyer wallet / identity contract / other contract
     address affiliate;  // Address to send any commission
@@ -138,7 +140,8 @@ contract Marketplace is IMarketplace {
       commission: _commission,
       currency: _currency,
       value: _value,
-      arbitrator: _arbitrator
+      arbitrator: _arbitrator,
+      refund: 0
     }));
 
     if (address(_currency) == 0x0) { // Listing is in ETH
@@ -246,6 +249,17 @@ contract Marketplace is IMarketplace {
     delete offers[listingID][offerID];
   }
 
+  // @dev Update the refund amount
+  function updateRefund(uint listingID, uint offerID, uint _refund, bytes32 _ipfsHash) public {
+    Offer offer = offers[listingID][offerID];
+    Listing listing = listings[listingID];
+    require(msg.sender == listing.seller);
+    require(offer.status == 2); // Offer must be 'Accepted'
+    require(_refund <= offer.value);
+    offer.refund = _refund;
+    emit OfferData(msg.sender, listingID, offerID, _ipfsHash);
+  }
+
   // @dev Refunds buyer in ETH or ERC20
   function refund(uint listingID, uint offerID) private {
     Offer offer = offers[listingID][offerID];
@@ -260,11 +274,14 @@ contract Marketplace is IMarketplace {
   function paySeller(uint listingID, uint offerID) private {
     Listing listing = listings[listingID];
     Offer offer = offers[listingID][offerID];
+    uint value = offer.value - offer.refund;
 
     if (address(offer.currency) == 0x0) {
-      require(listing.seller.send(offer.value));
+      require(offer.buyer.send(offer.refund));
+      require(listing.seller.send(value));
     } else {
-      require(offer.currency.transfer(listing.seller, offer.value));
+      require(offer.currency.transfer(offer.buyer, offer.refund));
+      require(offer.currency.transfer(listing.seller, value));
     }
   }
 
@@ -276,7 +293,10 @@ contract Marketplace is IMarketplace {
     }
   }
 
-  // @dev Associate ipfs data with a listing
+  function addData(bytes32 ipfsHash) public {
+    emit MarketplaceData(msg.sender, ipfsHash);
+  }
+
   function addData(uint listingID, bytes32 ipfsHash) public {
     emit ListingData(msg.sender, listingID, ipfsHash);
   }

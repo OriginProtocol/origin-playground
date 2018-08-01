@@ -1,5 +1,8 @@
 export const HomeshareListing = { // Unencrypted
-  title: 'Beautiful mountain home',
+  listingType: 'Home Share',
+  title: 'Home For Rent',
+  price: '85',
+  currencyId: 'DAI',
   description: 'A lovely home close to downtown Boulder',
   approxLocation: '40.017,-105.306',
 
@@ -54,12 +57,13 @@ export const HomeshareOfferFinalized = { // Unencrypted
 
 
 export const ForSaleListing = { // Unencrypted
-  title: 'Shiny kids bike',
+  listingType: 'For Sale',
+  title: 'Bike For Sale',
   description: 'Good condition',
   approxLocation: '40.017,-105.306',
-  price: 150,
-  currency: 'USD',
-  acceptedCoins: ['ETH', 'BTC'],
+  price: '50',
+  currencyId: 'DAI',
+  acceptedCoins: ['ETH', 'BTC', 'DAI'],
   contactMethods: [{ type: 'Telegram', channel: '0xabc123' }, { type: 'Email' }],
   publicKey: 'ssh-rsa KH93Ud5FPUfQ+lht1UhFtM4ysVOxM...',
   image: 'Qmcgwn3ADR482jPnuVtJbZTEfcaZw7hdLyzshSm2qNkLAW'
@@ -86,6 +90,10 @@ export const ForSaleOfferFinalized = { // Unencrypted
 
 
 export const RideShareListing = { // Unencrypted
+  listingType: 'Car Share',
+  title: 'Driver For Hire',
+  price: '10',
+  currencyId: 'DAI',
   approxLocation: '40.017,-105.306',
   carManufacturer: 'Telsa',
   carModel: 'Model S P100D',
@@ -120,7 +128,11 @@ export const RideShareOfferFinalized = { // Unencrypted
 
 
 export const TicketedEventListing = { // Unencrypted
-  title: 'Radiohead',
+  listingType: 'Ticket',
+  title: 'Ticket For Sale',
+  price: '60',
+  currencyId: 'DAI',
+  artist: 'Radiohead',
   venue: 'The Roundhouse, London, UK',
   date: '2018/09/01 7:00pm',
   priceTiers: [

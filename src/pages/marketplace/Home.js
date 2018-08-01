@@ -26,7 +26,7 @@ import { deployTokenContract, transferToken, approveToken } from 'actions/Token'
 import { addAccount, UNSAFE_saveWallet, selectAccount } from 'actions/Wallet'
 import { sendFromNode } from 'actions/Network'
 import { addParty } from 'actions/Parties'
-import { ExampleListings } from './_NewListing'
+import { ListingTypes } from './_NewListing'
 import GasPrice from 'utils/gasPriceInDollars'
 const price = GasPrice({})
 
@@ -296,17 +296,18 @@ class Home extends Component {
               open={this.state.basicListingOffer ? true : false}
               title="Create Listing"
               isDone={this.props.hasListing}
+              checked={false}
               success="Added"
               prerequisite={hasDAI}
               gas={this.props.marketplaceRaw.createListingGas}
               onAction={() => {
-                const rnd = Math.floor(Math.random() * ExampleListings.length)
+                const rnd = Math.floor(Math.random() * ListingTypes.length)
                 this.props.selectAccount(Seller)
                 this.props.createListing({
                   deposit: '10',
                   arbitrator: Seller,
                   ipfs: {
-                    ...ExampleListings[rnd],
+                    ...ListingTypes[rnd].example,
                     currencyId: 'DAI'
                   }
                 })
@@ -328,7 +329,9 @@ class Home extends Component {
                   expires: +new Date() / 1000 + 60 * 60,
                   finalizes: +new Date() / 1000 + 60 * 60 * 2,
                   commission: 0,
-                  currencyId: 'DAI',
+                  ipfs: {
+                    currencyId: 'DAI'
+                  },
                   arbitrator: this.props.originArbitrator
                 })
               }}

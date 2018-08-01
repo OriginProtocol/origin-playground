@@ -28,6 +28,7 @@ export const MarketplaceConstants = generateConstants('MARKETPLACE', {
     'FINALIZE_OFFER',
     'DISPUTE_OFFER',
     'DISPUTE_RULING',
+    'UPDATE_REFUND',
     'ACCEPT_OFFER',
     'WITHDRAW_OFFER',
     'ADD_DATA',
@@ -349,18 +350,17 @@ export function makeOffer(listingID, json) {
     }
 
     var listing = state.marketplace.listings[listingID],
-      currency = listing.ipfs.currencyId,
+      currencyId = json.ipfs.currencyId,
       ipfsHash
 
     const currencyAddr =
-      listing.ipfs.currencyId === 'ETH'
+      currencyId === 'ETH'
         ? '0x0'
-        : state.token.contractAddresses[listing.ipfs.currencyId]
+        : state.token.contractAddresses[currencyId]
 
     var value =
-      currency === 'ETH' ? web3.utils.toWei(json.amount, 'ether') : json.amount
+      currencyId === 'ETH' ? web3.utils.toWei(json.amount, 'ether') : json.amount
 
-    json.currencyId = listing.ipfs.currencyId
     json.value = value
     json.buyer = web3.eth.defaultAccount
 
@@ -388,7 +388,7 @@ export function makeOffer(listingID, json) {
     }
     var tx = Contract.methods.makeOffer(...args)
 
-    if (currency === 'ETH') {
+    if (currencyId === 'ETH') {
       tx = tx.send({
         gas: 4612388,
         from: web3.eth.defaultAccount,
@@ -486,6 +486,35 @@ export function finalizeOffer(listingID, offerID, obj = {}) {
 
     dispatch(
       sendTransaction(tx, MarketplaceConstants.FINALIZE_OFFER, {}, () => {
+        dispatch(getAllListings())
+        dispatch(getOffers(listingID))
+      })
+    )
+  }
+}
+
+export function updateRefund(listingID, offerID, refund, obj = {}) {
+  return async function(dispatch, getState) {
+    var state = getState(),
+      address = state.marketplace.contractAddress
+    if (!address) {
+      return
+    }
+
+    var offer = state.marketplace.offers[offerID]
+    if (offer.ipfs.currencyId === 'ETH') {
+      refund = web3.utils.toWei(refund, 'ether')
+    }
+
+    var ipfsHash = await post(state.network.ipfsRPC, { ...obj, refund })
+
+    var Contract = new web3.eth.Contract(Marketplace.abi, address)
+    var tx = Contract.methods
+      .updateRefund(listingID, offerID, refund, ipfsHash)
+      .send({ gas: 4612388, from: web3.eth.defaultAccount })
+
+    dispatch(
+      sendTransaction(tx, MarketplaceConstants.UPDATE_REFUND, {}, () => {
         dispatch(getAllListings())
         dispatch(getOffers(listingID))
       })

@@ -122,6 +122,16 @@ export default function Token(state = initialState, action = {}) {
         acceptOfferGas: action.receipt.gasUsed
       }
 
+    case MarketplaceConstants.UPDATE_REFUND:
+      return { ...state, updateOfferRefundResponse: 'submitted' }
+
+    case MarketplaceConstants.UPDATE_REFUND_RECEIPT:
+      return {
+        ...state,
+        updateOfferRefundResponse: 'success',
+        updateOfferRefundGas: action.receipt.gasUsed
+      }
+
     case MarketplaceConstants.FINALIZE_OFFER:
       return { ...state, finalizeOfferResponse: 'submitted' }
 

@@ -37,6 +37,11 @@ class GasTracker extends Component {
     }
   }
 
+  componentWillUnmount() {
+    clearTimeout(this.hideTimeout)
+    clearTimeout(this.hideTimeout2)
+  }
+
   render() {
     if (!this.state.show) return null
     var items = this.props.items.slice(this.state.to)

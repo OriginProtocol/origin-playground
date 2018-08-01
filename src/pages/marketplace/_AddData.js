@@ -44,6 +44,7 @@ class AddData extends Component {
       >
         <Loading show={this.state.loading} />
         <div className="font-weight-bold mb-2">Add Data:</div>
+
         <table className="w-100">
           <tbody>
             <FormRow label="Data">
@@ -52,9 +53,7 @@ class AddData extends Component {
                 ref={ref => (this.dataInput = ref)}
                 type="text"
                 value={this.state.data}
-                onChange={e =>
-                  this.setState({ data: e.currentTarget.value })
-                }
+                onChange={e => this.setState({ data: e.currentTarget.value })}
               />
             </FormRow>
           </tbody>

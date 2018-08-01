@@ -24,6 +24,8 @@ class NewOffer extends Component {
       obj = { ...Blobs.TicketedEventOffer, ...obj }
     }
 
+    obj.currencyId = props.listing.ipfs.currencyId
+
     this.state = {
       amount: props.listing.ipfs.price,
       finalizes: this.days(1 / 2),
@@ -86,7 +88,7 @@ class NewOffer extends Component {
       { type: 'checkbox', label: 'Encrypt IPFS JSON', field: 'encrypt' }
     ]
 
-    const ipfsRows = [
+    let ipfsRows = [
       {
         type: 'select',
         label: 'Expires',
@@ -120,7 +122,8 @@ class NewOffer extends Component {
             amount: json.amount,
             expires: json.ipfs.expires,
             finalizes: json.finalizes,
-            arbitrator: json.arbitrator
+            arbitrator: json.arbitrator,
+            ipfs: json.ipfs
           }
           if (json.affiliate === '' && json.affiliate !== '0x0') {
             obj.commission = 0

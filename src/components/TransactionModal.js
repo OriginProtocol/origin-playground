@@ -29,6 +29,12 @@ class TransactionModal extends Component {
     if (this.props.response !== 'error' && nextProps.response === 'error') {
       this.setState({ error: nextProps.error, loading: false })
     }
+    if (JSON.stringify(nextProps.data) !== JSON.stringify(this.props.data)) {
+      this.setState({
+        data: nextProps.data,
+        ipfsRaw: JSON.stringify(nextProps.data.ipfs, null, 2)
+      })
+    }
   }
 
   render() {
@@ -45,20 +51,16 @@ class TransactionModal extends Component {
         {!this.state.error ? null : (
           <div className="alert alert-danger">{this.state.error}</div>
         )}
+        {this.props.content || this.renderContent()}
+      </Modal>
+    )
+  }
+
+  renderContent() {
+    return (
+      <>
         <table className="w-100">
           <tbody>
-            <DataRows
-              data={this.state.data}
-              rows={this.props.contractRows}
-              onChange={(field, value) =>
-                this.setState({ data: { ...this.state.data, [field]: value } })
-              }
-            />
-            <tr>
-              <td colSpan={2}>
-                <hr className="mt-2 mb-3" />
-              </td>
-            </tr>
             {this.state.showIpfs ? (
               <tr>
                 <td colSpan={2}>
@@ -67,19 +69,7 @@ class TransactionModal extends Component {
                     style={{ minHeight: 150, fontFamily: 'monospace' }}
                     type="text"
                     value={this.state.ipfsRaw}
-                    onChange={e => {
-                      const ipfsRaw = e.currentTarget.value
-                      try {
-                        const ipfs = JSON.parse(ipfsRaw)
-                        this.setState({
-                          ipfsRaw,
-                          data: { ...this.state.data, ipfs },
-                          jsonError: false
-                        })
-                      } catch (e) {
-                        this.setState({ ipfsRaw, jsonError: true })
-                      }
-                    }}
+                    onChange={e => this.onChangeJSON(e)}
                   />
                 </td>
               </tr>
@@ -90,6 +80,20 @@ class TransactionModal extends Component {
                 onChange={(...args) => this.updateIpfs(...args)}
               />
             )}
+            <tr>
+              <td colSpan={2}>
+                <hr className="mt-2 mb-3" />
+              </td>
+            </tr>
+            <DataRows
+              data={this.state.data}
+              rows={this.props.contractRows}
+              onChange={(field, value) =>
+                this.setState({
+                  data: { ...this.state.data, [field]: value }
+                })
+              }
+            />
           </tbody>
         </table>
         <div className="d-flex align-items-baseline mt-2">
@@ -123,8 +127,22 @@ class TransactionModal extends Component {
             {this.props.executeText}
           </button>
         </div>
-      </Modal>
+      </>
     )
+  }
+
+  onChangeJSON(e) {
+    const ipfsRaw = e.currentTarget.value
+    try {
+      const ipfs = JSON.parse(ipfsRaw)
+      this.setState({
+        ipfsRaw,
+        data: { ...this.state.data, ipfs },
+        jsonError: false
+      })
+    } catch (e) {
+      this.setState({ ipfsRaw, jsonError: true })
+    }
   }
 
   updateIpfs(field, value) {

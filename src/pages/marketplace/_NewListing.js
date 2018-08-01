@@ -4,39 +4,18 @@ import TransactionModal from 'components/TransactionModal'
 
 import * as Blobs from '../../../data/example-ipfs-blobs.js'
 
-export const ExampleListings = [
-  {
-    ...Blobs.ForSaleListing,
-    title: 'Bike For Sale',
-    price: '50',
-    listingType: 'For Sale'
-  },
-  {
-    ...Blobs.RideShareListing,
-    title: 'Driver For Hire',
-    price: '10',
-    listingType: 'Car Share'
-  },
-  {
-    ...Blobs.HomeshareListing,
-    title: 'Home For Rent',
-    price: '85',
-    listingType: 'Home Share'
-  },
-  {
-    ...Blobs.TicketedEventListing,
-    title: 'Ticket For Sale',
-    price: '60',
-    listingType: 'Ticket'
-  }
+export const ListingTypes = [
+  { type: 'For Sale', example: Blobs.ForSaleListing },
+  { type: 'Home Share', example: Blobs.HomeshareListing },
+  { type: 'Car Share', example: Blobs.RideShareListing },
+  { type: 'Ticket', example: Blobs.TicketedEventListing }
 ]
 
 class NewListing extends Component {
   constructor(props) {
     super(props)
     const arbitrator = props.parties.find(p => p.name === 'Arbitrator')
-    const rnd = Math.floor(Math.random() * ExampleListings.length)
-    const ipfs = { ...ExampleListings[rnd], currencyId: 'DAI' }
+    const ipfs = { currencyId: 'DAI' }
     this.state = {
       ipfs,
       deposit: '10',
@@ -62,26 +41,39 @@ class NewListing extends Component {
       }
     ]
 
-    const ipfsRows = [
-      {
-        type: 'select',
-        label: 'Type',
-        field: 'listingType',
-        options: ['For Sale', 'Home Share', 'Car Share', 'Ticket', 'Job Offer']
-      },
+    let ipfsRows = [
       { label: 'Title', field: 'title' },
       {
         type: 'select',
         label: 'Currency',
         field: 'currencyId',
         options: ['ETH', 'DAI']
-      },
-      {
-        label: 'Price',
-        field: 'price',
-        appendLabel: data => data.currencyId
       }
     ]
+
+    if (this.state.listingType === 'Home Share') {
+      ipfsRows = [
+        ...ipfsRows,
+        {
+          label: 'Description',
+          field: 'description'
+        },
+        {
+          label: 'Price / nt',
+          field: 'price',
+          appendLabel: data => data.currencyId
+        }
+      ]
+    } else {
+      ipfsRows = [
+        ...ipfsRows,
+        {
+          label: 'Price',
+          field: 'price',
+          appendLabel: data => data.currencyId
+        }
+      ]
+    }
 
     return (
       <TransactionModal
@@ -90,6 +82,7 @@ class NewListing extends Component {
         contractRows={contractRows}
         ipfsRows={ipfsRows}
         data={this.state}
+        content={this.state.listingType ? null : this.renderStep1()}
         executeText="Create"
         onExecute={json => {
           var ipfs = json.ipfs
@@ -104,6 +97,27 @@ class NewListing extends Component {
           this.props.createListing(obj)
         }}
       />
+    )
+  }
+
+  renderStep1() {
+    return (
+      <div className="d-flex flex-column mt-2">
+        {ListingTypes.map((listingType, idx) => (
+          <button
+            key={idx}
+            className="btn btn-outline-primary mb-2"
+            onClick={() =>
+              this.setState({
+                listingType: listingType.type,
+                ipfs: { ...listingType.example }
+              })
+            }
+          >
+            {listingType.type}
+          </button>
+        ))}
+      </div>
     )
   }
 }

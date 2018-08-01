@@ -8,13 +8,15 @@ import {
   disputeRuling,
   finalizeOffer,
   withdrawOffer,
-  addData
+  addData,
+  updateRefund
 } from 'actions/Marketplace'
 
 import Btn from 'components/Btn'
 import AcceptOffer from './_AcceptOffer'
 import AddData from './_AddData'
 import FinalizeOffer from './_FinalizeOffer'
+import PartialRefund from './_PartialRefund'
 import EventsTable from './_EventsTable'
 
 function showStatus(offer, timestamp) {
@@ -66,10 +68,6 @@ class Offer extends Component {
     const isArbitrator = this.props.marketplace.arbitrator === wallet
     const finalized = this.props.network.block.timestamp > offer.finalizes
     const status = String(offer.status)
-    let value = offer.value
-    if (offer.currencyId === 'ETH') {
-      value = web3.utils.fromWei(value, 'ether')
-    }
 
     return (
       <>
@@ -90,7 +88,14 @@ class Offer extends Component {
                 this.state.open ? 'caret-down' : 'caret-right'
               }`}
             />
-            {`${value} ${offer.currencyId || ''}`}
+            {`${this.valueOf(offer.value)} ${(offer.ipfs &&
+              offer.ipfs.currencyId) ||
+              ''}`}
+            {offer.refund !== '0' && (
+              <small className="ml-1 text-danger">{`${this.valueOf(
+                offer.refund
+              )} refund`}</small>
+            )}
           </td>
           <td className="text-center mono">{offer.buyer.substr(2, 4)}</td>
           <td className="text-center">{`${offer.commission} OGN`}</td>
@@ -114,6 +119,12 @@ class Offer extends Component {
               showIf={isBuyer && status === '2' && !listingWithdrawn}
               onClick={() => this.props.disputeOffer(lID, idx)}
               text="Dispute"
+              color="danger ml-1"
+            />
+            <Btn
+              showIf={isSeller && status === '2'}
+              onClick={() => this.setState({ partialRefund: [lID, idx] })}
+              text="Partial Refund"
               color="danger ml-1"
             />
             <Btn
@@ -183,6 +194,21 @@ class Offer extends Component {
             response={this.props.marketplace.finalizeOfferResponse}
           />
         )}
+        {this.state.partialRefund && (
+          <PartialRefund
+            offer={offer}
+            updateRefund={obj => {
+              this.props.updateRefund(
+                this.state.partialRefund[0],
+                this.state.partialRefund[1],
+                obj.refund,
+                obj.ipfs
+              )
+            }}
+            onClose={() => this.setState({ partialRefund: null })}
+            response={this.props.marketplace.updateOfferRefundResponse}
+          />
+        )}
         {this.state.addData && (
           <AddData
             addData={obj => {
@@ -198,6 +224,14 @@ class Offer extends Component {
         )}
       </>
     )
+  }
+
+  valueOf(value) {
+    const offer = this.props.marketplace.offers[this.props.offerID] || {}
+    if (offer.ipfs && offer.ipfs.currencyId === 'ETH') {
+      return web3.utils.fromWei(value, 'ether')
+    }
+    return value
   }
 
   renderDetail() {
@@ -238,6 +272,7 @@ const mapDispatchToProps = dispatch => ({
   withdrawOffer: (...args) => dispatch(withdrawOffer(...args)),
   disputeRuling: (...args) => dispatch(disputeRuling(...args)),
   addData: (...args) => dispatch(addData(...args)),
+  updateRefund: (...args) => dispatch(updateRefund(...args))
 })
 
 export default connect(

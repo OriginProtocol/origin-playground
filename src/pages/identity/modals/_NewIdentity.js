@@ -28,7 +28,7 @@ class NewIdentity extends Component {
     }
   }
 
-  componentWillReceiveProps(nextProps) {
+  UNSAFE_componentWillReceiveProps(nextProps) {
     if (this.props.response !== 'success' && nextProps.response === 'success') {
       this.setState({ shouldClose: true, submitted: true })
     }

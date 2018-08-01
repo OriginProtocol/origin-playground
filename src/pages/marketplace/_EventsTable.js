@@ -136,7 +136,7 @@ class EventRow extends Component {
                 ipfsContent = JSON.stringify(JSON.parse(ipfsContent), null, 4)
               }
             } catch (e) {
-              console.log(ipfsContent, party, e) /* Ignore */
+              /* Ignore */
             }
 
             this.setState({ ipfsContent, decrypted })
