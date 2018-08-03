@@ -35,17 +35,25 @@ export const MarketplaceConstants = generateConstants('MARKETPLACE', {
   ]
 })
 
+class OriginMarketplace {
+  constructor(Marketplace) {
+    this.raw = Marketplace
+    this.contract = new web3.eth.Contract(Marketplace.abi)
+  }
+
+  deploy(...args) {
+    return this.contract.deploy({
+      data: '0x' + Marketplace.data, arguments: [...args]
+    }).send({ gas: 4612388, from: web3.eth.defaultAccount })
+  }
+}
+
+const originMarketplace = new OriginMarketplace(Marketplace)
+
 export function deployMarketplaceContract(...args) {
   return async function(dispatch) {
-    var Contract = new web3.eth.Contract(Marketplace.abi)
-    var tx = Contract.deploy({
-      data: '0x' + Marketplace.data,
-      arguments: [...args]
-    }).send({ gas: 4612388, from: web3.eth.defaultAccount })
-
-    var data = {}
-
-    dispatch(sendTransaction(tx, MarketplaceConstants.DEPLOY, data))
+    var tx = originMarketplace.deploy(...args)
+    dispatch(sendTransaction(tx, MarketplaceConstants.DEPLOY))
   }
 }
 
@@ -119,7 +127,7 @@ export function createListing(json) {
 
     dispatch(
       sendTransaction(tx, MarketplaceConstants.CREATE_LISTING, data, () => {
-        dispatch(getAllListings())
+        dispatch(getListings())
       })
     )
   }
@@ -183,7 +191,7 @@ export function updateListing(listingId, json) {
 
     dispatch(
       sendTransaction(tx, MarketplaceConstants.UPDATE_LISTING, data, () => {
-        dispatch(getAllListings())
+        dispatch(getListings())
       })
     )
   }
@@ -206,7 +214,7 @@ export function withdrawListing(listingID, json) {
 
     dispatch(
       sendTransaction(tx, MarketplaceConstants.WITHDRAW_LISTING, json, () => {
-        dispatch(getAllListings())
+        dispatch(getListings())
       })
     )
   }
@@ -231,31 +239,13 @@ export function arbitrateListing(listingId, json) {
 
     dispatch(
       sendTransaction(tx, MarketplaceConstants.ARBITRATE_LISTING, data, () => {
-        dispatch(getAllListings())
+        dispatch(getListings())
       })
     )
   }
 }
 
-export function getTotalListings() {
-  return async function(dispatch, getState) {
-    var state = getState(),
-      address = state.marketplace.contractAddress
-    if (!address) {
-      return
-    }
-
-    var Contract = new web3.eth.Contract(Marketplace.abi, address)
-    var totalListings = await Contract.methods.totalListings().call()
-
-    dispatch({
-      type: MarketplaceConstants.GET_TOTAL_LISTINGS_SUCCESS,
-      totalListings
-    })
-  }
-}
-
-export function getAllListings() {
+export function getListings() {
   return async function(dispatch, getState) {
     var state = getState(),
       address = state.marketplace.contractAddress
@@ -405,7 +395,7 @@ export function makeOffer(listingID, json) {
 
     dispatch(
       sendTransaction(tx, MarketplaceConstants.MAKE_OFFER, data, () => {
-        dispatch(getAllListings())
+        dispatch(getListings())
         dispatch(getOffers(listingID))
       })
     )
@@ -438,7 +428,7 @@ export function acceptOffer(listingID, offerID, obj = {}) {
 
     dispatch(
       sendTransaction(tx, MarketplaceConstants.ACCEPT_OFFER, {}, () => {
-        dispatch(getAllListings())
+        dispatch(getListings())
         dispatch(getOffers(listingID))
       })
     )
@@ -462,7 +452,7 @@ export function withdrawOffer(listingID, offerID) {
 
     dispatch(
       sendTransaction(tx, MarketplaceConstants.WITHDRAW_OFFER, {}, () => {
-        dispatch(getAllListings())
+        dispatch(getListings())
         dispatch(getOffers(listingID))
       })
     )
@@ -486,14 +476,14 @@ export function finalizeOffer(listingID, offerID, obj = {}) {
 
     dispatch(
       sendTransaction(tx, MarketplaceConstants.FINALIZE_OFFER, {}, () => {
-        dispatch(getAllListings())
+        dispatch(getListings())
         dispatch(getOffers(listingID))
       })
     )
   }
 }
 
-export function updateRefund(listingID, offerID, refund, obj = {}) {
+export function setOfferRefund(listingID, offerID, refund, obj = {}) {
   return async function(dispatch, getState) {
     var state = getState(),
       address = state.marketplace.contractAddress
@@ -515,7 +505,7 @@ export function updateRefund(listingID, offerID, refund, obj = {}) {
 
     dispatch(
       sendTransaction(tx, MarketplaceConstants.UPDATE_REFUND, {}, () => {
-        dispatch(getAllListings())
+        dispatch(getListings())
         dispatch(getOffers(listingID))
       })
     )
@@ -539,7 +529,7 @@ export function disputeOffer(listingID, offerID) {
 
     dispatch(
       sendTransaction(tx, MarketplaceConstants.DISPUTE_OFFER, {}, () => {
-        dispatch(getAllListings())
+        dispatch(getListings())
         dispatch(getOffers(listingID))
       })
     )
@@ -574,7 +564,7 @@ export function disputeRuling(listingID, offerID, ruling) {
 
     dispatch(
       sendTransaction(tx, MarketplaceConstants.DISPUTE_RULING, {}, () => {
-        dispatch(getAllListings())
+        dispatch(getListings())
         dispatch(getOffers(listingID))
       })
     )
@@ -644,26 +634,6 @@ export function getOffers(listingID, opts = {}) {
       type: MarketplaceConstants.GET_OFFERS_SUCCESS,
       listingID,
       offers
-    })
-  }
-}
-
-export function getOffer(listingID, offerID) {
-  return async function(dispatch, getState) {
-    var state = getState(),
-      address = state.marketplace.contractAddress
-    if (!address) {
-      return
-    }
-
-    var Contract = new web3.eth.Contract(Marketplace.abi, address)
-    var offer = await Contract.methods.offers(listingID, offerID).call()
-
-    dispatch({
-      type: MarketplaceConstants.GET_OFFER_SUCCESS,
-      listingID,
-      offerID,
-      offer
     })
   }
 }

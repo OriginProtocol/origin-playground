@@ -2,7 +2,7 @@ import React, { Component } from 'react'
 import { connect } from 'react-redux'
 import { withRouter } from 'react-router'
 
-import { getAllListings, makeOffer } from 'actions/Marketplace'
+import { getListings, makeOffer } from 'actions/Marketplace'
 import { selectAccount } from 'actions/Wallet'
 
 import Btn from 'components/Btn'
@@ -17,7 +17,7 @@ class Offers extends Component {
   }
 
   componentDidMount() {
-    this.props.getAllListings()
+    this.props.getListings()
   }
 
   render() {
@@ -109,7 +109,7 @@ const mapStateToProps = state => ({
 
 const mapDispatchToProps = dispatch => ({
   makeOffer: (...args) => dispatch(makeOffer(...args)),
-  getAllListings: () => dispatch(getAllListings()),
+  getListings: () => dispatch(getListings()),
   selectAccount: (...args) => dispatch(selectAccount(...args))
 })
 

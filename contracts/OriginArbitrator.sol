@@ -25,7 +25,7 @@ contract OriginArbitrator is Arbitrable {
     arbitrator = Arbitrator(_arbitrator);
   }
 
-  function createDispute(uint listingID, uint offerID) returns (uint) {
+  function createDispute(uint listingID, uint offerID) public returns (uint) {
     uint disputeID = arbitrator.createDispute(1, '0x00');
 
     disputes[disputeID] = DisputeMap({
@@ -39,7 +39,7 @@ contract OriginArbitrator is Arbitrable {
 
   // @dev Called from arbitration contract
   function executeRuling(uint _disputeID, uint _ruling) internal {
-    DisputeMap dispute = disputes[_disputeID];
+    DisputeMap storage dispute = disputes[_disputeID];
     Marketplace marketplace = Marketplace(dispute.marketplace);
 
     marketplace.executeRuling(

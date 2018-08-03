@@ -7,14 +7,19 @@ pragma solidity ^0.4.24;
  * Listings may be priced in Eth or ERC20.
  */
 
-import '/node_modules/openzeppelin-solidity/contracts/token/ERC20/ERC20.sol';
-import '/contracts/IMarketplace.sol';
+/* import '/node_modules/openzeppelin-solidity/contracts/token/ERC20/ERC20.sol'; */
+/* import '/contracts/IMarketplace.sol'; */
 
 contract IArbitrator {
-  function createDispute(uint listingID, uint offerID) returns (uint);
+  function createDispute(uint listingID, uint offerID) external returns (uint);
 }
 
-contract Marketplace is IMarketplace {
+contract ERC20 {
+  function transfer(address _to, uint256 _value) external returns (bool);
+  function transferFrom(address _from, address _to, uint256 _value) external returns (bool);
+}
+
+contract Marketplace {
 
   /**
    * @notice All events have the same indexed signature offsets for easy filtering
@@ -96,8 +101,8 @@ contract Marketplace is IMarketplace {
     uint listingID,
     bytes32 _ipfsHash,       // Updated IPFS hash
     uint _additionalDeposit  // Additional deposit to add
-  ) {
-    Listing listing = listings[listingID];
+  ) public {
+    Listing storage listing = listings[listingID];
     require(listing.seller == msg.sender);
 
     if (_additionalDeposit > 0) {
@@ -110,7 +115,7 @@ contract Marketplace is IMarketplace {
 
   // @dev Listing arbitrator withdraws listing. IPFS hash contains reason for withdrawl.
   function withdrawListing(uint listingID, address _target, bytes32 _ipfsHash) public {
-    Listing listing = listings[listingID];
+    Listing storage listing = listings[listingID];
     require(msg.sender == listing.arbitrator);
     require(_target != 0x0);
     tokenAddr.transfer(_target, listing.deposit); // Send deposit to target
@@ -175,8 +180,8 @@ contract Marketplace is IMarketplace {
 
   // @dev Seller accepts offer
   function acceptOffer(uint listingID, uint offerID, bytes32 _ipfsHash) public {
-    Listing listing = listings[listingID];
-    Offer offer = offers[listingID][offerID];
+    Listing storage listing = listings[listingID];
+    Offer storage offer = offers[listingID][offerID];
     require(msg.sender == listing.seller);
     require(offer.status == 1); // Offer must be in state 'Created'
     require(listing.deposit >= offer.commission);
@@ -187,8 +192,8 @@ contract Marketplace is IMarketplace {
 
   // @dev Buyer withdraws offer. IPFS hash contains reason for withdrawl.
   function withdrawOffer(uint listingID, uint offerID, bytes32 _ipfsHash) public {
-    Listing listing = listings[listingID];
-    Offer offer = offers[listingID][offerID];
+    Listing storage listing = listings[listingID];
+    Offer storage offer = offers[listingID][offerID];
     require(msg.sender == offer.buyer);
     if (listing.seller == 0x0) { // If listing was withdrawn
       require(offer.status == 1 || offer.status == 2); // Offer must be in state 'Created' or 'Accepted'
@@ -205,8 +210,8 @@ contract Marketplace is IMarketplace {
 
   // @dev Buyer must finalize transaction to receive commission
   function finalize(uint listingID, uint offerID, bytes32 _ipfsHash) public {
-    Listing listing = listings[listingID];
-    Offer offer = offers[listingID][offerID];
+    Listing storage listing = listings[listingID];
+    Offer storage offer = offers[listingID][offerID];
     if (now <= offer.finalizes) { // Only buyer can finalize before finalization window
       require(msg.sender == offer.buyer);
     } else { // Allow both seller and buyer to finalize if finalization window has passed
@@ -223,7 +228,7 @@ contract Marketplace is IMarketplace {
 
   // @dev Buyer can dispute transaction during finalization window
   function dispute(uint listingID, uint offerID, bytes32 _ipfsHash) public {
-    Offer offer = offers[listingID][offerID];
+    Offer storage offer = offers[listingID][offerID];
     require(msg.sender == offer.buyer);
     require(offer.status == 2); // Offer must be in 'Accepted' state
     require(now <= offer.finalizes); // Must be before agreed finalization window
@@ -234,8 +239,8 @@ contract Marketplace is IMarketplace {
 
   // @dev Called from arbitration contract
   function executeRuling(uint listingID, uint offerID, uint _ruling) public {
-    Offer offer = offers[listingID][offerID];
-    Listing listing = listings[listingID];
+    Offer storage offer = offers[listingID][offerID];
+    Listing storage listing = listings[listingID];
     require(msg.sender == offer.arbitrator);
     require(offer.status == 3); // Offer must be 'disputed'
     if (_ruling == 0 || listing.seller == 0x0) { // If seller withdrew listing, buyer wins by default
@@ -251,8 +256,8 @@ contract Marketplace is IMarketplace {
 
   // @dev Update the refund amount
   function updateRefund(uint listingID, uint offerID, uint _refund, bytes32 _ipfsHash) public {
-    Offer offer = offers[listingID][offerID];
-    Listing listing = listings[listingID];
+    Offer storage offer = offers[listingID][offerID];
+    Listing storage listing = listings[listingID];
     require(msg.sender == listing.seller);
     require(offer.status == 2); // Offer must be 'Accepted'
     require(_refund <= offer.value);
@@ -262,7 +267,7 @@ contract Marketplace is IMarketplace {
 
   // @dev Refunds buyer in ETH or ERC20
   function refund(uint listingID, uint offerID) private {
-    Offer offer = offers[listingID][offerID];
+    Offer storage offer = offers[listingID][offerID];
     if (address(offer.currency) == 0x0) {
       require(offer.buyer.send(offer.value));
     } else {
@@ -272,8 +277,8 @@ contract Marketplace is IMarketplace {
 
   // @dev Pay seller in ETH or ERC20
   function paySeller(uint listingID, uint offerID) private {
-    Listing listing = listings[listingID];
-    Offer offer = offers[listingID][offerID];
+    Listing storage listing = listings[listingID];
+    Offer storage offer = offers[listingID][offerID];
     uint value = offer.value - offer.refund;
 
     if (address(offer.currency) == 0x0) {
@@ -287,7 +292,7 @@ contract Marketplace is IMarketplace {
 
   // @dev Pay commission to affiliate
   function payCommission(uint listingID, uint offerID) private {
-    Offer offer = offers[listingID][offerID];
+    Offer storage offer = offers[listingID][offerID];
     if (offer.affiliate != 0x0) {
       require(tokenAddr.transfer(offer.affiliate, offer.commission));
     }
@@ -308,7 +313,7 @@ contract Marketplace is IMarketplace {
 
   // @dev Allow listing arbitrator to send deposit
   function sendDeposit(uint listingID, address target, uint value, bytes32 ipfsHash) public {
-    Listing listing = listings[listingID];
+    Listing storage listing = listings[listingID];
     require(listing.arbitrator == msg.sender);
     require(listing.deposit >= value);
     listing.deposit -= value;

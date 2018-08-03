@@ -9,7 +9,7 @@ import {
   finalizeOffer,
   withdrawOffer,
   addData,
-  updateRefund
+  setOfferRefund
 } from 'actions/Marketplace'
 
 import Btn from 'components/Btn'
@@ -197,8 +197,8 @@ class Offer extends Component {
         {this.state.partialRefund && (
           <PartialRefund
             offer={offer}
-            updateRefund={obj => {
-              this.props.updateRefund(
+            setOfferRefund={obj => {
+              this.props.setOfferRefund(
                 this.state.partialRefund[0],
                 this.state.partialRefund[1],
                 obj.refund,
@@ -272,7 +272,7 @@ const mapDispatchToProps = dispatch => ({
   withdrawOffer: (...args) => dispatch(withdrawOffer(...args)),
   disputeRuling: (...args) => dispatch(disputeRuling(...args)),
   addData: (...args) => dispatch(addData(...args)),
-  updateRefund: (...args) => dispatch(updateRefund(...args))
+  setOfferRefund: (...args) => dispatch(setOfferRefund(...args))
 })
 
 export default connect(

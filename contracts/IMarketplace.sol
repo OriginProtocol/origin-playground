@@ -26,27 +26,27 @@ interface IMarketplace {
   event OfferData       (address indexed party, uint indexed listingID, uint indexed offerID, bytes32 ipfsHash);
 
   // @dev Return the total number of listings
-  function totalListings() public constant returns (uint);
+  function totalListings() external constant returns (uint);
 
   // @dev Return the total number of offers
-  function totalOffers(uint listingID) public constant returns (uint);
+  function totalOffers(uint listingID) external constant returns (uint);
 
   // @dev Seller creates listing
   function createListing(
     bytes32 _ipfsHash, // IPFS JSON with details, pricing, availability
     uint _deposit,    // Deposit in Origin Token
     address _arbitrator
-  ) public;
+  ) external;
 
   // @dev Seller updates listing
   function updateListing(
     uint listingID,
     bytes32 _ipfsHash,      // Updated IPFS hash
     uint _additionalDeposit // Additonal deposit to add
-  ) public;
+  ) external;
 
   // @dev Seller withdraws listing. IPFS hash contains reason for withdrawl.
-  function withdrawListing(uint listingID, address _target, bytes32 _ipfsHash) public;
+  function withdrawListing(uint listingID, address _target, bytes32 _ipfsHash) external;
 
   // @dev Buyer makes offer.
   function makeOffer(
@@ -58,24 +58,24 @@ interface IMarketplace {
     uint _value,         // Offer amount in ERC20 or Eth
     ERC20 _currency,
     address _arbitrator
-  ) public payable;
+  ) external payable;
 
   // @dev Seller accepts offer
-  function acceptOffer(uint listingID, uint offerID, bytes32 _ipfsHash) public;
+  function acceptOffer(uint listingID, uint offerID, bytes32 _ipfsHash) external;
 
   // @dev Buyer withdraws offer. IPFS hash contains reason for withdrawl.
-  function withdrawOffer(uint listingID, uint offerID, bytes32 _ipfsHash) public;
+  function withdrawOffer(uint listingID, uint offerID, bytes32 _ipfsHash) external;
 
   // @dev Buyer must finalize transaction to receive commission
   // Seller can finalize after finalization window has passed
-  function finalize(uint listingID, uint offerID, bytes32 _ipfsHash) public;
+  function finalize(uint listingID, uint offerID, bytes32 _ipfsHash) external;
 
   // @dev Buyer can dispute transaction during finalization window
-  function dispute(uint listingID, uint offerID, bytes32 _ipfsHash) public;
+  function dispute(uint listingID, uint offerID, bytes32 _ipfsHash) external;
 
   // @dev Associate ipfs data with a listing
-  function addData(uint listingID, bytes32 ipfsHash) public;
+  function addData(uint listingID, bytes32 ipfsHash) external;
 
   // @dev Associate ipfs data with an offer
-  function addData(uint listingID, uint offerID, bytes32 ipfsHash) public;
+  function addData(uint listingID, uint offerID, bytes32 ipfsHash) external;
 }

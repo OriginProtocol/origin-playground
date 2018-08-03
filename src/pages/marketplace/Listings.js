@@ -2,7 +2,7 @@ import React, { Component } from 'react'
 import { connect } from 'react-redux'
 import { withRouter, matchPath } from 'react-router'
 
-import { getAllListings, createListing } from 'actions/Marketplace'
+import { getListings, createListing } from 'actions/Marketplace'
 import { selectAccount } from 'actions/Wallet'
 
 import NewListing from './_NewListing'
@@ -14,7 +14,7 @@ class Listings extends Component {
   }
 
   componentDidMount() {
-    this.props.getAllListings()
+    this.props.getListings()
   }
 
   render() {
@@ -149,7 +149,7 @@ const mapStateToProps = state => ({
 
 const mapDispatchToProps = dispatch => ({
   createListing: listing => dispatch(createListing(listing)),
-  getAllListings: () => dispatch(getAllListings()),
+  getListings: () => dispatch(getListings()),
   selectAccount: (...args) => dispatch(selectAccount(...args))
 })
 

@@ -34,7 +34,7 @@ class PartialRefund extends Component {
         data={this.state}
         executeText="Refund"
         onExecute={json => {
-          this.props.updateRefund(json)
+          this.props.setOfferRefund(json)
         }}
       />
     )
