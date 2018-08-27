@@ -3,6 +3,7 @@ export const HomeshareListing = { // Unencrypted
   title: 'Home For Rent',
   price: '85',
   currencyId: 'DAI',
+  deposit: '50',
   description: 'A lovely home close to downtown Boulder',
   approxLocation: '40.017,-105.306',
 

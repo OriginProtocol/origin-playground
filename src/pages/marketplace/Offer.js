@@ -29,13 +29,13 @@ function showStatus(offer, timestamp) {
     var time = distanceInWords(timestamp * 1000, offer.expires * 1000)
     return expired
       ? `Expired ${time} ago`
-      : `Expires in ${time}`.replace('in about ', '~')
+      : `Expires in ${time}`.replace('in about ', '~').replace(' hours', 'h')
   } else if (status === 2) {
     let desc = distanceInWords(timestamp * 1000, offer.finalizes * 1000)
     if (Number(offer.finalizes) < timestamp) {
       return 'Finalizied ' + desc + ' ago'
     } else {
-      return `Finalizes in ${desc}`.replace('in about ', '~')
+      return `Finalizes in ${desc}`.replace('in about ', '~').replace(' hours', 'h')
     }
   } else if (status === 3) {
     return 'Disputed'

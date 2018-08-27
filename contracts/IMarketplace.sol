@@ -57,7 +57,8 @@ interface IMarketplace {
     uint256 _commission, // Amount of commission to send in Origin Token if offer finalizes
     uint _value,         // Offer amount in ERC20 or Eth
     ERC20 _currency,
-    address _arbitrator
+    address _arbitrator,
+    uint _refund
   ) external payable;
 
   // @dev Seller accepts offer

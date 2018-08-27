@@ -41,26 +41,32 @@ class NewListing extends Component {
       }
     ]
 
-    let ipfsRows = [
-      { label: 'Title', field: 'title' },
-      {
-        type: 'select',
-        label: 'Currency',
-        field: 'currencyId',
-        options: ['ETH', 'DAI']
-      }
-    ]
+    const title = { label: 'Title', field: 'title' }
+    const currency = {
+      type: 'select',
+      label: 'Currency',
+      field: 'currencyId',
+      options: ['ETH', 'DAI']
+    }
+
+    let ipfsRows = [title, currency]
 
     if (this.state.listingType === 'Home Share') {
       ipfsRows = [
-        ...ipfsRows,
+        title,
         {
           label: 'Description',
           field: 'description'
         },
+        currency,
         {
           label: 'Price / nt',
           field: 'price',
+          appendLabel: data => data.currencyId
+        },
+        {
+          label: 'Deposit',
+          field: 'deposit',
           appendLabel: data => data.currencyId
         }
       ]

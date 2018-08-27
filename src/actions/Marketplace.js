@@ -524,7 +524,7 @@ export function disputeOffer(listingID, offerID) {
 
     var Contract = new web3.eth.Contract(Marketplace.abi, address)
     var tx = Contract.methods
-      .dispute(listingID, offerID, ipfsHash)
+      .dispute(listingID, offerID, ipfsHash, 0)
       .send({ gas: 4612388, from: web3.eth.defaultAccount })
 
     dispatch(

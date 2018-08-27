@@ -25,9 +25,8 @@ class NewOffer extends Component {
     }
 
     obj.currencyId = props.listing.ipfs.currencyId
-
     this.state = {
-      amount: props.listing.ipfs.price,
+      amount: props.offer ? props.offer.amount : props.listing.ipfs.price,
       finalizes: this.days(1 / 2),
       commission: '2',
       affiliate: '',

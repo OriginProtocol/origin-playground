@@ -90,6 +90,7 @@ class Offers extends Component {
             parties={this.props.parties}
             activeParty={this.props.activeParty}
             reviseOffer={this.state.reviseOffer}
+            offer={this.state.reviseOffer === null ? null : offers[this.state.reviseOffer]}
             error={this.props.marketplace.makeOfferError}
           />
         )}
