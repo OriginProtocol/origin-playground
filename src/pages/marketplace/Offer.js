@@ -9,15 +9,26 @@ import {
   finalizeOffer,
   withdrawOffer,
   addData,
+  addFunds,
   setOfferRefund
 } from 'actions/Marketplace'
 
 import Btn from 'components/Btn'
 import AcceptOffer from './_AcceptOffer'
 import AddData from './_AddData'
+import AddFunds from './_AddFunds'
 import FinalizeOffer from './_FinalizeOffer'
+import ExecuteRuling from './_ExecuteRuling'
+import DisputeOffer from './_DisputeOffer'
 import PartialRefund from './_PartialRefund'
 import EventsTable from './_EventsTable'
+
+function timeDistance(now, time) {
+  return distanceInWords(now * 1000, time * 1000)
+    .replace(' hours', 'h')
+    .replace('in about ', '~')
+    .replace('about ', '~')
+}
 
 function showStatus(offer, timestamp) {
   if (!timestamp) return ''
@@ -26,16 +37,16 @@ function showStatus(offer, timestamp) {
   var expired = Number(offer.expires) < timestamp,
     status = Number(offer.status)
   if (status === 1) {
-    var time = distanceInWords(timestamp * 1000, offer.expires * 1000)
+    var time = timeDistance(timestamp, offer.expires)
     return expired
       ? `Expired ${time} ago`
-      : `Expires in ${time}`.replace('in about ', '~').replace(' hours', 'h')
+      : `Expires ${time}`.replace('in about ', '~')
   } else if (status === 2) {
-    let desc = distanceInWords(timestamp * 1000, offer.finalizes * 1000)
+    let desc = timeDistance(timestamp, offer.finalizes)
     if (Number(offer.finalizes) < timestamp) {
       return 'Finalizied ' + desc + ' ago'
     } else {
-      return `Finalizes in ${desc}`.replace('in about ', '~').replace(' hours', 'h')
+      return `Finalizes ${desc}`
     }
   } else if (status === 3) {
     return 'Disputed'
@@ -65,7 +76,7 @@ class Offer extends Component {
     const listingWithdrawn = this.props.listing.withdrawn
     const isBuyer = wallet === offer.buyer
     const isSeller = this.props.listing.seller === wallet
-    const isArbitrator = this.props.marketplace.arbitrator === wallet
+    const isArbitrator = offer.arbitrator === wallet
     const finalized = this.props.network.block.timestamp > offer.finalizes
     const status = String(offer.status)
 
@@ -102,9 +113,15 @@ class Offer extends Component {
           <td className="text-center">{showStatus(offer, timestamp)}</td>
           <td className="text-right">
             <Btn
+              showIf={isBuyer && status === '2' && !listingWithdrawn}
+              onClick={() => this.setState({ addFunds: [lID, idx] })}
+              text={<i className="fa fa-money" />}
+            />
+            <Btn
               showIf={isSeller && status === '1'}
               onClick={() => this.setState({ acceptOffer: [lID, idx] })}
               text="Accept"
+              color="success ml-1"
             />
             <Btn
               showIf={
@@ -113,12 +130,13 @@ class Offer extends Component {
                 !listingWithdrawn
               }
               onClick={() => this.setState({ finalizeOffer: [lID, idx] })}
-              text="Finalize"
+              text={<i className="fa fa-check" />}
+              color="success ml-1"
             />
             <Btn
               showIf={isBuyer && status === '2' && !listingWithdrawn}
-              onClick={() => this.props.disputeOffer(lID, idx)}
-              text="Dispute"
+              onClick={() => this.setState({ disputeOffer: [lID, idx] })}
+              text={<i className="fa fa-exclamation px-1" />}
               color="danger ml-1"
             />
             <Btn
@@ -144,17 +162,11 @@ class Offer extends Component {
             />
             <Btn
               showIf={isArbitrator && status === '3'}
-              onClick={() => this.props.disputeRuling(lID, idx, '0')}
+              onClick={() => this.setState({ executeRuling: [lID, idx] })}
               color="warning"
             >
-              <i className="fa fa-gavel mr-1" />Buyer
-            </Btn>
-            <Btn
-              showIf={isArbitrator && status === '3'}
-              onClick={() => this.props.disputeRuling(lID, idx, '1')}
-              color="warning ml-1"
-            >
-              <i className="fa fa-gavel mr-1" />Seller
+              <i className="fa fa-gavel mr-1" />
+              Execute Ruling
             </Btn>
             <Btn
               showIf={true}
@@ -194,6 +206,19 @@ class Offer extends Component {
             response={this.props.marketplace.finalizeOfferResponse}
           />
         )}
+        {this.state.disputeOffer && (
+          <DisputeOffer
+            disputeOffer={obj =>
+              this.props.disputeOffer(
+                this.state.disputeOffer[0],
+                this.state.disputeOffer[1],
+                obj
+              )
+            }
+            onClose={() => this.setState({ disputeOffer: null })}
+            response={this.props.marketplace.disputeOfferResponse}
+          />
+        )}
         {this.state.partialRefund && (
           <PartialRefund
             offer={offer}
@@ -209,6 +234,20 @@ class Offer extends Component {
             response={this.props.marketplace.updateOfferRefundResponse}
           />
         )}
+        {this.state.addFunds && (
+          <AddFunds
+            offer={offer}
+            addFunds={obj => {
+              this.props.addFunds(
+                this.state.addFunds[0],
+                this.state.addFunds[1],
+                obj
+              )
+            }}
+            onClose={() => this.setState({ addFunds: null })}
+            response={this.props.marketplace.addFundsResponse}
+          />
+        )}
         {this.state.addData && (
           <AddData
             addData={obj => {
@@ -220,6 +259,20 @@ class Offer extends Component {
             }}
             onClose={() => this.setState({ addData: null })}
             response={this.props.marketplace.addDataResponse}
+          />
+        )}
+        {this.state.executeRuling && (
+          <ExecuteRuling
+            offer={offer}
+            executeRuling={obj => {
+              this.props.disputeRuling(
+                this.state.executeRuling[0],
+                this.state.executeRuling[1],
+                obj
+              )
+            }}
+            onClose={() => this.setState({ executeRuling: null })}
+            response={this.props.marketplace.disputeRulingResponse}
           />
         )}
       </>
@@ -272,6 +325,7 @@ const mapDispatchToProps = dispatch => ({
   withdrawOffer: (...args) => dispatch(withdrawOffer(...args)),
   disputeRuling: (...args) => dispatch(disputeRuling(...args)),
   addData: (...args) => dispatch(addData(...args)),
+  addFunds: (...args) => dispatch(addFunds(...args)),
   setOfferRefund: (...args) => dispatch(setOfferRefund(...args))
 })
 

@@ -32,6 +32,7 @@ export const MarketplaceConstants = generateConstants('MARKETPLACE', {
     'ACCEPT_OFFER',
     'WITHDRAW_OFFER',
     'ADD_DATA',
+    'ADD_FUNDS',
   ]
 })
 
@@ -133,6 +134,33 @@ export function createListing(json) {
   }
 }
 
+export function addFunds(listingID, offerID, json) {
+  return async function(dispatch, getState) {
+    var state = getState(),
+      address = state.marketplace.contractAddress,
+      tx
+
+    if (!address) {
+      return
+    }
+
+    var ipfsHash = await post(state.network.ipfsRPC, json)
+
+    const Contract = new web3.eth.Contract(Marketplace.abi, address)
+
+    tx = Contract.methods
+      .addFunds(listingID, offerID, ipfsHash, json.amount)
+      .send({ gas: 4612388, from: web3.eth.defaultAccount })
+
+    var data = { listingID, offerID, json }
+
+    dispatch(
+      sendTransaction(tx, MarketplaceConstants.ADD_FUNDS, data, () => {
+        dispatch(getOffers(listingID))
+      })
+    )
+  }
+}
 export function addData(json, listingID, offerID) {
   return async function(dispatch, getState) {
     var state = getState(),
@@ -512,7 +540,7 @@ export function setOfferRefund(listingID, offerID, refund, obj = {}) {
   }
 }
 
-export function disputeOffer(listingID, offerID) {
+export function disputeOffer(listingID, offerID, obj) {
   return async function(dispatch, getState) {
     var state = getState(),
       address = state.marketplace.contractAddress
@@ -520,11 +548,11 @@ export function disputeOffer(listingID, offerID) {
       return
     }
 
-    var ipfsHash = await post(state.network.ipfsRPC, { dispute: true })
+    var ipfsHash = await post(state.network.ipfsRPC, obj)
 
     var Contract = new web3.eth.Contract(Marketplace.abi, address)
     var tx = Contract.methods
-      .dispute(listingID, offerID, ipfsHash, 0)
+      .dispute(listingID, offerID, ipfsHash)
       .send({ gas: 4612388, from: web3.eth.defaultAccount })
 
     dispatch(
@@ -536,34 +564,29 @@ export function disputeOffer(listingID, offerID) {
   }
 }
 
-export function disputeRuling(listingID, offerID, ruling) {
+export function disputeRuling(listingID, offerID, obj) {
   return async function(dispatch, getState) {
     var state = getState(),
-      address = state.marketplace.arbitratorAddress,
-      marketplaceAddress = state.marketplace.contractAddress
+      address = state.marketplace.contractAddress
     if (!address) {
       return
     }
 
-    var MarketplaceContract = new web3.eth.Contract(
-      Marketplace.abi,
-      marketplaceAddress
-    )
-    var Contract = new web3.eth.Contract(Arbitrator.abi, address)
+    var ipfsHash = await post(state.network.ipfsRPC, obj)
 
-    var events = await MarketplaceContract.getPastEvents('OfferDisputed', {
-      filter: { listingID, offerID },
-      fromBlock: 0
-    })
+    var ruling = Number(obj.ruling),
+        payCommission = Number(obj.commission) // 0: pay, 1: refund
+    if (payCommission === 0) {
+      ruling += 2
+    }
 
-    var disputeID = events[0].returnValues.disputeID
-
+    var Contract = new web3.eth.Contract(Marketplace.abi, address)
     var tx = Contract.methods
-      .giveRuling(disputeID, ruling)
+      .executeRuling(listingID, offerID, ipfsHash, ruling, obj.refund)
       .send({ gas: 4612388, from: web3.eth.defaultAccount })
 
     dispatch(
-      sendTransaction(tx, MarketplaceConstants.DISPUTE_RULING, {}, () => {
+      sendTransaction(tx, MarketplaceConstants.DISPUTE_RULING, obj, () => {
         dispatch(getListings())
         dispatch(getOffers(listingID))
       })
@@ -622,11 +645,19 @@ export function getOffers(listingID, opts = {}) {
         t => tokens[t] === offer.currency
       )
       var offerObj = { currencyId, ...offer, ...data }
+      if (offer.buyer.indexOf('0x000') < 0) {
+        offerObj = { currencyId, ...data, ...offer }
+      }
       if (lastEvent === 'OfferFinalized') {
         offerObj.status = 4
       } else if (lastEvent === 'OfferWithdrawn') {
         offerObj.status = 0
       }
+
+      if (Number(offer.finalizes) > Number(data.finalizes)) {
+        offerObj.finalizes = offer.finalizes
+      }
+
       offers.push(offerObj)
     }
 

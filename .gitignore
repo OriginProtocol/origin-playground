@@ -5,6 +5,7 @@ public/vendor*.js
 public/css/app.css
 data/db
 data/ipfs
+data/geth
 data/OfficialIdentities.js
 NOTES
 src/contracts/deployed.js

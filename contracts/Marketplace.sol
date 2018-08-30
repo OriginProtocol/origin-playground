@@ -7,12 +7,7 @@ pragma solidity ^0.4.24;
  * Listings may be priced in Eth or ERC20.
  */
 
-/* import '/node_modules/openzeppelin-solidity/contracts/token/ERC20/ERC20.sol'; */
 /* import '/contracts/IMarketplace.sol'; */
-
-contract IArbitrator {
-  function createDispute(uint listingID, uint offerID, uint refund) external returns (uint);
-}
 
 contract ERC20 {
   function transfer(address _to, uint256 _value) external returns (bool);
@@ -32,7 +27,8 @@ contract Marketplace {
   event OfferCreated     (address indexed party, uint indexed listingID, uint indexed offerID, bytes32 ipfsHash);
   event OfferWithdrawn   (address indexed party, uint indexed listingID, uint indexed offerID, bytes32 ipfsHash);
   event OfferAccepted    (address indexed party, uint indexed listingID, uint indexed offerID, bytes32 ipfsHash);
-  event OfferDisputed    (address indexed party, uint indexed listingID, uint indexed offerID, bytes32 ipfsHash, uint disputeID);
+  event OfferFundsAdded  (address indexed party, uint indexed listingID, uint indexed offerID, bytes32 ipfsHash);
+  event OfferDisputed    (address indexed party, uint indexed listingID, uint indexed offerID, bytes32 ipfsHash);
   event OfferRuling      (address indexed party, uint indexed listingID, uint indexed offerID, bytes32 ipfsHash, uint ruling);
   event OfferFinalized   (address indexed party, uint indexed listingID, uint indexed offerID, bytes32 ipfsHash);
   event OfferData        (address indexed party, uint indexed listingID, uint indexed offerID, bytes32 ipfsHash);
@@ -52,7 +48,7 @@ contract Marketplace {
     address buyer;      // Buyer wallet / identity contract / other contract
     address affiliate;  // Address to send any commission
     address arbitrator; // Address of arbitration contract
-    uint32 finalizes;   // Timestamp offer finalizes
+    uint finalizes;     // Timestamp offer finalizes
     uint8 status;       // 0: Undefined, 1: Created, 2: Accepted, 3: Disputed
   }
 
@@ -127,7 +123,7 @@ contract Marketplace {
   function makeOffer(
     uint listingID,
     bytes32 _ipfsHash,   // IPFS hash containing offer data
-    uint32 _finalizes,   // Timestamp an accepted offer will finalize
+    uint _finalizes,     // Timestamp an accepted offer will finalize
     address _affiliate,  // Address to send any required commission to
     uint256 _commission, // Amount of commission to send in Origin Token if offer finalizes
     uint _value,         // Offer amount in ERC20 or Eth
@@ -163,7 +159,7 @@ contract Marketplace {
   function makeOffer(
     uint listingID,
     bytes32 _ipfsHash,
-    uint32 _finalizes,
+    uint _finalizes,
     address _affiliate,
     uint256 _commission,
     uint _value,
@@ -185,6 +181,9 @@ contract Marketplace {
     require(msg.sender == listing.seller);
     require(offer.status == 1); // Offer must be in state 'Created'
     require(listing.deposit >= offer.commission);
+    if (offer.finalizes < 1000000000) { // Relative finalization window
+      offer.finalizes = now + offer.finalizes;
+    }
     listing.deposit -= offer.commission; // Accepting an offer puts Origin Token into escrow
     offer.status = 2; // Set offer to 'Accepted'
     emit OfferAccepted(msg.sender, listingID, offerID, _ipfsHash);
@@ -208,6 +207,22 @@ contract Marketplace {
     delete offers[listingID][offerID];
   }
 
+  // @dev Buyer adds extra funds to an accepted offer.
+  function addFunds(uint listingID, uint offerID, bytes32 _ipfsHash, uint _value) public payable {
+    Listing storage listing = listings[listingID];
+    Offer storage offer = offers[listingID][offerID];
+    require(msg.sender == offer.buyer);
+    require(offer.status == 2); // Offer must be in state 'Accepted'
+    if (address(offer.currency) == 0x0) { // Listing is in ETH
+      require(msg.value == _value);
+    } else { // Listing is in ERC20
+      require(msg.value == 0); // Make sure no ETH is sent (would be unrecoverable)
+      require(offer.currency.transferFrom(msg.sender, this, _value));
+    }
+    offer.value += _value;
+    emit OfferFundsAdded(msg.sender, listingID, offerID, _ipfsHash);
+  }
+
   // @dev Buyer must finalize transaction to receive commission
   function finalize(uint listingID, uint offerID, bytes32 _ipfsHash) public {
     Listing storage listing = listings[listingID];
@@ -227,25 +242,30 @@ contract Marketplace {
   }
 
   // @dev Buyer can dispute transaction during finalization window
-  function dispute(uint listingID, uint offerID, bytes32 _ipfsHash, uint _refund) public {
+  function dispute(uint listingID, uint offerID, bytes32 _ipfsHash) public {
     Offer storage offer = offers[listingID][offerID];
     require(msg.sender == offer.buyer);
     require(offer.status == 2); // Offer must be in 'Accepted' state
     require(now <= offer.finalizes); // Must be before agreed finalization window
     offer.status = 3; // Set status to "Disputed"
-    uint disputeID = IArbitrator(offer.arbitrator).createDispute(listingID, offerID, _refund);
-    emit OfferDisputed(msg.sender, listingID, offerID, _ipfsHash, disputeID);
+    emit OfferDisputed(msg.sender, listingID, offerID, _ipfsHash);
   }
 
-  // @dev Called from arbitration contract. 0: Seller, 1: Buyer, 2: Com + Seller, 3: Com + Buyer
-  function executeRuling(uint listingID, uint offerID, uint _ruling, uint _refund) public {
+  // @dev Called by arbitrator
+  function executeRuling(
+    uint listingID,
+    uint offerID,
+    bytes32 _ipfsHash,
+    uint _ruling, // 0: Seller, 1: Buyer, 2: Com + Seller, 3: Com + Buyer
+    uint _refund
+  ) public {
     Offer storage offer = offers[listingID][offerID];
     Listing storage listing = listings[listingID];
     require(msg.sender == offer.arbitrator);
     require(offer.status == 3); // Offer must be 'disputed'
     require(_refund <= offer.value); // Cannot refund more than value of listing
     offer.refund = _refund;
-    if (_ruling & 1 == 1 || listing.seller == 0x0) {
+    if (_ruling & 1 == 1) {
       refundBuyer(listingID, offerID);
     } else  {
       paySeller(listingID, offerID);
@@ -255,7 +275,7 @@ contract Marketplace {
     } else  { // Refund commission to seller
       listings[listingID].deposit += offer.commission;
     }
-    emit OfferRuling(offer.arbitrator, listingID, offerID, 0x0, _ruling);
+    emit OfferRuling(offer.arbitrator, listingID, offerID, _ipfsHash, _ruling);
     delete offers[listingID][offerID];
   }
 

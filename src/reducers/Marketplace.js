@@ -142,6 +142,36 @@ export default function Token(state = initialState, action = {}) {
         finalizeOfferGas: action.receipt.gasUsed
       }
 
+    case MarketplaceConstants.DISPUTE_OFFER:
+      return { ...state, disputeOfferResponse: 'submitted' }
+
+    case MarketplaceConstants.DISPUTE_OFFER_RECEIPT:
+      return {
+        ...state,
+        disputeOfferResponse: 'success',
+        disputeOfferGas: action.receipt.gasUsed
+      }
+
+    case MarketplaceConstants.ADD_FUNDS:
+      return { ...state, addFundsResponse: 'submitted' }
+
+    case MarketplaceConstants.ADD_FUNDS_RECEIPT:
+      return {
+        ...state,
+        addFundsResponse: 'success',
+        addFundsGas: action.receipt.gasUsed
+      }
+
+    case MarketplaceConstants.DISPUTE_RULING:
+      return { ...state, disputeRulingResponse: 'submitted' }
+
+    case MarketplaceConstants.DISPUTE_RULING_RECEIPT:
+      return {
+        ...state,
+        disputeRulingResponse: 'success',
+        disputeRulingGas: action.receipt.gasUsed
+      }
+
     case MarketplaceConstants.ARBITRATE_LISTING:
       return { ...state, arbitrateListingResponse: 'submitted' }
 

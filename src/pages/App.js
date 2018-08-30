@@ -9,7 +9,6 @@ import Identity from './identity'
 
 import { selectAccount, setCurrency, loadWallet } from 'actions/Wallet'
 import { init, timeTravel } from 'actions/Network'
-import { getTokenBalances } from 'actions/Token'
 
 import AccountChooser from 'components/AccountChooser'
 import TimeTraveler from 'components/TimeTraveler'
@@ -163,7 +162,6 @@ const mapStateToProps = state => ({
 const mapDispatchToProps = dispatch => ({
   initNetwork: () => dispatch(init()),
   loadWallet: () => dispatch(loadWallet()),
-  getTokenBalances: () => dispatch(getTokenBalances()),
   selectAccount: hash => dispatch(selectAccount(hash)),
   setCurrency: currency => dispatch(setCurrency(currency)),
   timeTravel: seconds => dispatch(timeTravel(seconds))

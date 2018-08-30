@@ -87,7 +87,7 @@ class TransactionModal extends Component {
             </tr>
             <DataRows
               data={this.state.data}
-              rows={this.props.contractRows}
+              rows={this.props.contractRows || []}
               onChange={(field, value) =>
                 this.setState({
                   data: { ...this.state.data, [field]: value }

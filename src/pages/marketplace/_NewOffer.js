@@ -7,10 +7,10 @@ import * as Blobs from '../../../data/example-ipfs-blobs.js'
 class NewOffer extends Component {
   constructor(props) {
     super(props)
-    const originArbitrator = props.parties.find(
-      p => p.name === 'OriginArbitrator'
+    const arbitrator = props.parties.find(
+      p => p.name === 'Arbitrator'
     )
-    var obj = {
+    let obj = {
       expires: this.days(1 / 6),
     }
 
@@ -30,9 +30,9 @@ class NewOffer extends Component {
       finalizes: this.days(1 / 2),
       commission: '2',
       affiliate: '',
-      arbitrator: originArbitrator ? originArbitrator.address : '',
+      arbitrator: arbitrator ? arbitrator.address : '',
       ipfs: obj,
-      encrypt: true,
+      encrypt: false,
     }
   }
 
@@ -41,6 +41,10 @@ class NewOffer extends Component {
       return this.props.timestamp + 60 * 60 * 24 * d
     }
     return Math.floor((+new Date() + 1000 * 60 * 60 * 24 * d) / 1000)
+  }
+
+  daysRelative(d) {
+    return 60 * 60 * 24 * d
   }
 
   render() {
@@ -60,7 +64,13 @@ class NewOffer extends Component {
           [this.days(1), '1 day'],
           [this.days(2), '2 days'],
           [this.days(7), '7 days'],
-          [this.days(30), '1 month']
+          [this.days(30), '1 month'],
+          [this.daysRelative(1 / 6), '4 hours after seller accepts'],
+          [this.daysRelative(1 / 2), '12 hours after seller accepts'],
+          [this.daysRelative(1), '1 day after seller accepts'],
+          [this.daysRelative(2), '2 days after seller accepts'],
+          [this.daysRelative(7), '7 days after seller accepts'],
+          [this.daysRelative(30), '1 month after seller accepts']
         ]
       },
       {
@@ -87,7 +97,7 @@ class NewOffer extends Component {
       { type: 'checkbox', label: 'Encrypt IPFS JSON', field: 'encrypt' }
     ]
 
-    let ipfsRows = [
+    const ipfsRows = [
       {
         type: 'select',
         label: 'Expires',
@@ -112,12 +122,12 @@ class NewOffer extends Component {
         data={this.state}
         executeText="Make Offer"
         onExecute={json => {
-          var ipfs = json.ipfs
+          const ipfs = json.ipfs
           if (this.props.party && this.props.party.publicKey) {
             ipfs.publicKey = this.props.party.publicKey
           }
 
-          var obj = {
+          const obj = {
             amount: json.amount,
             expires: json.ipfs.expires,
             finalizes: json.finalizes,

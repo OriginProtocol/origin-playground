@@ -193,7 +193,7 @@ class Home extends Component {
                 this.props.deployToken(['DAI', 'DAI', 2, 1000000])
               }}
             />
-            <Row
+            {/* <Row
               open={this.state.setup ? true : false}
               title="Arbitrator"
               prerequisite={this.props.stableCoin ? true : false}
@@ -214,11 +214,11 @@ class Home extends Component {
                 this.props.selectAccount(Arbitrator)
                 this.props.deployOriginArbitrator(this.props.arbitrator)
               }}
-            />
+            /> */}
             <Row
               open={this.state.setup ? true : false}
               title="Marketplace"
-              prerequisite={this.props.originArbitrator ? true : false}
+              prerequisite={this.props.stableCoin ? true : false}
               isDone={this.props.marketplace}
               gas={this.props.marketplaceRaw.deployMarketplaceGas}
               onAction={() => {
@@ -252,12 +252,12 @@ class Home extends Component {
                   address: Buyer,
                   ...buyerKey
                 })
-                this.props.addParty({ name: 'Affiliate', address: Affiliate })
                 this.props.addParty({ name: 'Arbitrator', address: Arbitrator })
-                this.props.addParty({
-                  name: 'OriginArbitrator',
-                  address: this.props.originArbitrator
-                })
+                this.props.addParty({ name: 'Affiliate', address: Affiliate })
+                // this.props.addParty({
+                //   name: 'OriginArbitrator',
+                //   address: this.props.originArbitrator
+                // })
               }}
             />
             <Row

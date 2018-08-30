@@ -12,7 +12,7 @@ const gasPriceInDollars = GasPriceInDollars({
   gasPriceGwei: 8,
   pricePerEth: 500
 })
-let gasUsed = []
+const gasUsed = []
 const trackGas = id => receipt => gasUsed.push([id, receipt.cumulativeGasUsed])
 const gasOrder = `
 Create Listing
@@ -28,8 +28,8 @@ Withdraw Listing
 `.split('\n')
 
 describe('Marketplace.sol', async function() {
-  var accounts, deploy, web3
-  var Marketplace,
+  let accounts, deploy, web3
+  let Marketplace,
     OriginToken,
     DaiStableCoin,
     Buyer,
@@ -119,7 +119,7 @@ describe('Marketplace.sol', async function() {
     })
     let used = []
     gasUsed.forEach(g => {
-      var existing = used.findIndex(u => u[0] === g[0])
+      const existing = used.findIndex(u => u[0] === g[0])
       if (existing < 0) {
         used.push([g[0], g[1], g[1]])
       } else {
@@ -133,7 +133,7 @@ describe('Marketplace.sol', async function() {
       return 0
     })
 
-    var createListing = used.find(u => u[0] === 'Create Listing'),
+    const createListing = used.find(u => u[0] === 'Create Listing'),
       makeOffer = used.find(u => u[0] === 'Make Offer'),
       makeOfferERC = used.find(u => u[0] === 'Make Offer ERC20'),
       acceptOffer = used.find(u => u[0] === 'Accept Offer'),
@@ -162,32 +162,32 @@ describe('Marketplace.sol', async function() {
 
   describe('A listing in ETH', function() {
     it('should allow a new listing to be added', async function() {
-      var result = await helpers.createListing({ Token: OriginToken })
+      const result = await helpers.createListing({ Token: OriginToken })
       assert(result)
 
-      var balance = await OriginToken.methods
+      const balance = await OriginToken.methods
         .balanceOf(Marketplace._address)
         .call()
       assert.equal(balance, 5)
 
-      var total = await Marketplace.methods.totalListings().call()
+      const total = await Marketplace.methods.totalListings().call()
       assert.equal(total, 1)
 
-      var listing = await Marketplace.methods.listings(0).call()
+      const listing = await Marketplace.methods.listings(0).call()
       assert.equal(listing.seller, Seller)
     })
 
     it('should allow an offer to be made', async function() {
-      var result = await helpers.makeOffer({ trackGas })
+      const result = await helpers.makeOffer({ trackGas })
 
       assert(result.events.OfferCreated)
 
-      var offer = await Marketplace.methods.offers(0, 0).call()
+      const offer = await Marketplace.methods.offers(0, 0).call()
       assert.equal(offer.buyer, Buyer)
     })
 
     it('should allow an offer to be accepted', async function() {
-      var result = await Marketplace.methods
+      const result = await Marketplace.methods
         .acceptOffer(0, 0, IpfsHash)
         .send({ from: Seller })
         .once('receipt', trackGas('Accept Offer'))
@@ -195,9 +195,9 @@ describe('Marketplace.sol', async function() {
     })
 
     it('should allow an offer to be finalized by buyer', async function() {
-      var balanceBefore = await web3.eth.getBalance(Seller)
+      const balanceBefore = await web3.eth.getBalance(Seller)
 
-      var result = await Marketplace.methods
+      const result = await Marketplace.methods
         .finalize(0, 0, IpfsHash)
         .send({
           from: Buyer
@@ -205,7 +205,7 @@ describe('Marketplace.sol', async function() {
         .once('receipt', trackGas('Finalize Offer'))
       assert(result.events.OfferFinalized)
 
-      var balanceAfter = await web3.eth.getBalance(Seller)
+      const balanceAfter = await web3.eth.getBalance(Seller)
       assert.equal(
         Number(balanceAfter),
         Number(balanceBefore) + Number(web3.utils.toWei('0.1', 'ether'))
@@ -214,22 +214,22 @@ describe('Marketplace.sol', async function() {
 
     describe('withdrawing an offer', function() {
       it('should allow another offer to be made', async function() {
-        var result = await helpers.makeOffer({})
+        const result = await helpers.makeOffer({})
         assert(result.events.OfferCreated)
 
-        var offer = await Marketplace.methods.offers(0, 1).call()
+        const offer = await Marketplace.methods.offers(0, 1).call()
         assert.equal(offer.buyer, Buyer)
       })
       it('should allow an offer to be withdrawn', async function() {
-        var balanceBefore = await web3.eth.getBalance(Buyer)
-        var result = await Marketplace.methods
+        const balanceBefore = await web3.eth.getBalance(Buyer)
+        const result = await Marketplace.methods
           .withdrawOffer(0, 1, IpfsHash)
           .send({ from: Buyer })
           .once('receipt', trackGas('Withdraw Offer'))
 
         assert(result.events.OfferWithdrawn)
 
-        var balanceAfter = await web3.eth.getBalance(Buyer)
+        const balanceAfter = await web3.eth.getBalance(Buyer)
 
         assert(Number(balanceAfter) > Number(balanceBefore))
       })
@@ -237,10 +237,10 @@ describe('Marketplace.sol', async function() {
 
     describe('updating an offer', function() {
       it('should allow an offer to be updated', async function() {
-        var result = await helpers.makeOffer({})
+        const result = await helpers.makeOffer({})
         assert(result.events.OfferCreated)
 
-        var result2 = await helpers.makeOffer({ withdraw: 2 })
+        const result2 = await helpers.makeOffer({ withdraw: 2 })
         assert(result2.events.OfferWithdrawn)
         assert(result2.events.OfferCreated)
       })
@@ -248,9 +248,9 @@ describe('Marketplace.sol', async function() {
 
     describe('withdrawing a listing', function() {
       it('should allow a listing to be withdrawn', async function() {
-        var listing = await helpers.createListing({ Token: OriginToken })
-        var listingID = listing.events.ListingCreated.returnValues.listingID
-        var result = await Marketplace.methods
+        const listing = await helpers.createListing({ Token: OriginToken })
+        const listingID = listing.events.ListingCreated.returnValues.listingID
+        const result = await Marketplace.methods
           .withdrawListing(listingID, Seller, IpfsHash)
           .send({ from: Seller })
           .once('receipt', trackGas('Withdraw Listing'))
@@ -268,7 +268,7 @@ describe('Marketplace.sol', async function() {
           .approve(Marketplace._address, 50)
           .send({ from: Seller })
 
-        var result = await Marketplace.methods
+        const result = await Marketplace.methods
           .createListing(IpfsHash, 50, Seller)
           .send({ from: Seller })
           .once('receipt', trackGas('Create Listing'))
@@ -279,19 +279,19 @@ describe('Marketplace.sol', async function() {
       })
 
       it('should allow an offer to be made', async function() {
-        var result = await helpers.makeERC20Offer({
+        const result = await helpers.makeERC20Offer({
           Buyer,
           Token: DaiStableCoin,
           listingID
         })
         assert(result)
 
-        var offer = await Marketplace.methods.offers(listingID, 0).call()
+        const offer = await Marketplace.methods.offers(listingID, 0).call()
         assert.equal(offer.buyer, Buyer)
       })
 
       it('should allow an offer to be accepted', async function() {
-        var result = await Marketplace.methods
+        const result = await Marketplace.methods
           .acceptOffer(listingID, 0, IpfsHash)
           .send({ from: Seller })
           .once('receipt', trackGas('Accept Offer'))
@@ -299,56 +299,56 @@ describe('Marketplace.sol', async function() {
       })
 
       it('should allow an offer to be finalized', async function() {
-        var balanceBefore = await DaiStableCoin.methods.balanceOf(Seller).call()
+        const balanceBefore = await DaiStableCoin.methods.balanceOf(Seller).call()
 
-        var result = await Marketplace.methods
+        const result = await Marketplace.methods
           .finalize(listingID, 0, IpfsHash)
           .send({ from: Buyer })
           .once('receipt', trackGas('Finalize Offer'))
         assert(result.events.OfferFinalized)
 
-        var balanceAfter = await DaiStableCoin.methods.balanceOf(Seller).call()
+        const balanceAfter = await DaiStableCoin.methods.balanceOf(Seller).call()
         assert.equal(Number(balanceAfter), Number(balanceBefore) + 10)
       })
     })
 
     describe('withdrawing an offer', function() {
       it('should allow another offer to be made', async function() {
-        var result = await helpers.makeERC20Offer({
+        const result = await helpers.makeERC20Offer({
           listingID,
           Buyer,
           Token: DaiStableCoin
         })
         assert(result)
 
-        var offer = await Marketplace.methods.offers(listingID, 1).call()
+        const offer = await Marketplace.methods.offers(listingID, 1).call()
         assert.equal(offer.buyer, Buyer)
       })
 
       it('should allow an offer to be withdrawn', async function() {
-        var balanceBefore = await DaiStableCoin.methods.balanceOf(Buyer).call()
+        const balanceBefore = await DaiStableCoin.methods.balanceOf(Buyer).call()
 
-        var result = await Marketplace.methods
+        const result = await Marketplace.methods
           .withdrawOffer(listingID, 1, IpfsHash)
           .send({ from: Buyer })
           .once('receipt', trackGas('Withdraw Offer'))
         assert(result.events.OfferWithdrawn)
 
-        var balanceAfter = await DaiStableCoin.methods.balanceOf(Buyer).call()
+        const balanceAfter = await DaiStableCoin.methods.balanceOf(Buyer).call()
         assert.equal(Number(balanceAfter), Number(balanceBefore) + 10)
       })
     })
 
     describe('updating an offer', function() {
       it('should allow another offer to be made', async function() {
-        var result = await helpers.makeERC20Offer({
+        const result = await helpers.makeERC20Offer({
           listingID,
           Buyer,
           Token: DaiStableCoin
         })
         assert(result)
 
-        var result2 = await helpers.makeERC20Offer({
+        const result2 = await helpers.makeERC20Offer({
           listingID,
           Buyer,
           Token: DaiStableCoin,
@@ -360,7 +360,7 @@ describe('Marketplace.sol', async function() {
   })
 
   describe('Arbitration', function() {
-    let disputeID, balanceBefore, balanceAfter
+    let listingID, offerID, balanceBefore, balanceAfter
 
     // When comparing Eth, take into account gas price
     function assertBN(before, expr, after) {
@@ -374,26 +374,26 @@ describe('Marketplace.sol', async function() {
 
     describe('dispute without refund (Eth)', function() {
       it('should resolve in favor of buyer (no commission)', async function() {
-        ({ disputeID, balance: balanceBefore } = await helpers.disputedOffer({}));
-        ({ balance: balanceAfter } = await helpers.giveRuling({ disputeID, ruling: 1 }))
+        ({ listingID, offerID, balance: balanceBefore } = await helpers.disputedOffer({}));
+        ({ balance: balanceAfter } = await helpers.giveRuling({ listingID, offerID, ruling: 1 }))
         assertBN(balanceBefore.eth, 'add 0.1 ether', balanceAfter.eth)
         assert(balanceAfter.ogn.eq(balanceBefore.ogn))
       })
       it('should resolve in favor of buyer (pay commission)', async function() {
-        ({ disputeID, balance: balanceBefore } = await helpers.disputedOffer({}));
-        ({ balance: balanceAfter } = await helpers.giveRuling({ disputeID, ruling: 3 }))
+        ({ listingID, offerID, balance: balanceBefore } = await helpers.disputedOffer({}));
+        ({ balance: balanceAfter } = await helpers.giveRuling({ listingID, offerID, ruling: 3 }))
         assertBN(balanceBefore.eth, 'add 0.1 ether', balanceAfter.eth)
         assert(balanceAfter.ogn.eq(balanceBefore.ogn.add(new web3.utils.BN('2'))))
       })
       it('should resolve in favor of seller (no commission)', async function() {
-        ({ disputeID, balance: balanceBefore } = await helpers.disputedOffer({ party: Seller }));
-        ({ balance: balanceAfter } = await helpers.giveRuling({ disputeID, ruling: 0, party: Seller }))
+        ({ listingID, offerID, balance: balanceBefore } = await helpers.disputedOffer({ party: Seller }));
+        ({ balance: balanceAfter } = await helpers.giveRuling({ listingID, offerID, ruling: 0, party: Seller }))
         assertBN(balanceBefore.eth, 'add 0.1 ether', balanceAfter.eth)
         assert(balanceAfter.ogn.eq(balanceBefore.ogn))
       })
       it('should resolve in favor of seller (pay commission)', async function() {
-        ({ disputeID, balance: balanceBefore } = await helpers.disputedOffer({ party: Seller }));
-        ({ balance: balanceAfter } = await helpers.giveRuling({ disputeID, ruling: 2, party: Seller }))
+        ({ listingID, offerID, balance: balanceBefore } = await helpers.disputedOffer({ party: Seller }));
+        ({ balance: balanceAfter } = await helpers.giveRuling({ listingID, offerID, ruling: 2, party: Seller }))
         assertBN(balanceBefore.eth, 'add 0.1 ether', balanceAfter.eth)
         assert(balanceAfter.ogn.eq(balanceBefore.ogn.add(new web3.utils.BN('2'))))
       })
@@ -408,7 +408,7 @@ describe('Marketplace.sol', async function() {
         .approve(Marketplace._address, 10)
         .send({ from: Seller })
 
-      var result = await Marketplace.methods
+      const result = await Marketplace.methods
         .createListing(IpfsHash, 10, Seller)
         .send({ from: Seller })
         .once('receipt', trackGas('Create Listing'))
@@ -423,7 +423,7 @@ describe('Marketplace.sol', async function() {
         .approve(Marketplace._address, 10)
         .send({ from: Seller })
 
-      var result = await Marketplace.methods
+      const result = await Marketplace.methods
         .updateListing(listingID, '0x98765432109876543210987654321098', 10)
         .send({ from: Seller })
         .once('receipt', trackGas('Update Listing'))
@@ -435,11 +435,11 @@ describe('Marketplace.sol', async function() {
   describe('A listing in ETH from an identity', function() {
     let listingID
     it('should allow a new listing to be added', async function() {
-      var result = await helpers.createListing({ Identity: SellerIdentity })
+      const result = await helpers.createListing({ Identity: SellerIdentity })
       assert(result)
       listingID = web3.utils.hexToNumber(result.events['1'].raw.topics[2])
 
-      var listing = await Marketplace.methods.listings(listingID).call()
+      const listing = await Marketplace.methods.listings(listingID).call()
       assert.equal(listing.seller, SellerIdentity._address)
     })
 

@@ -165,7 +165,7 @@ export const TicketedEventOffer = { // Encrypted with seller's public key
   pickup: 'Will Call'
 }
 
-export const TicketedEventAccepted = { // Encrypted with buyer's public key
+export const TicketedEventOfferAccepted = { // Encrypted with buyer's public key
   seats: [{ row: 'C', seat: '16' }, { row: 'C', seat: '17' }]
 }
 

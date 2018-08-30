@@ -47,6 +47,7 @@ contract OriginArbitrator is Arbitrable {
     marketplace.executeRuling(
       dispute.listingID,
       dispute.offerID,
+      '0x0',
       _ruling,
       dispute.refund
     );
