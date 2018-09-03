@@ -11,7 +11,8 @@ export const WalletConstants = generateConstants('WALLET', {
     'SAVE',
     'UNSAFE_SAVE',
     'REMOVE_ACCOUNT',
-    'UPDATE_BALANCE'
+    'UPDATE_BALANCE',
+    'CLEAR'
   ],
   regular: ['SET_CURRENCY', 'LOCK_WALLET', 'UNLOCK_WALLET', 'UNLOCKED_WALLET']
 })
@@ -217,6 +218,12 @@ export function UNSAFE_saveWallet() {
       dispatch({ type: WalletConstants.UNSAFE_SAVE_ERROR, error })
     }
   }
+}
+
+export function clearWallet() {
+  delete window.sessionStorage.privateKeys
+  web3.eth.accounts.wallet.clear()
+  return { type: WalletConstants.CLEAR }
 }
 
 export function updateBalance() {

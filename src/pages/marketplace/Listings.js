@@ -30,7 +30,8 @@ class Listings extends Component {
           <thead>
             <tr>
               <th className="border-top-0">
-                <i className="fa fa-th-list mr-2" />Listings
+                <i className="fa fa-th-list mr-2" />
+                Listings
                 {!listings.length ? null : (
                   <a
                     href="#"
@@ -58,9 +59,14 @@ class Listings extends Component {
                 <td colSpan={2} className="p-2">
                   <button
                     href="#"
-                    className="btn btn-sm btn-outline-primary"
+                    className={`btn btn-sm btn-outline-primary${
+                      this.props.marketplace.contractAddress ? '' : ' disabled'
+                    }`}
                     onClick={e => {
                       e.preventDefault()
+                      if (!this.props.marketplace.contractAddress) {
+                        return
+                      }
                       this.setState({ newListing: true })
                       this.props.selectAccount(this.props.sellerWallet)
                     }}
@@ -129,11 +135,7 @@ class Listings extends Component {
       path: '/marketplace/listing/:idx'
     })
     if (match && match.params.idx === String(idx)) {
-      // if (this.props.wallet.activeAddress === listing.seller) {
-      //   cls += 'table-warning'
-      // } else {
-        cls += 'table-active'
-      // }
+      cls += 'table-active'
     }
     return cls
   }

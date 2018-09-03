@@ -1,4 +1,5 @@
 import { MarketplaceConstants } from 'actions/Marketplace'
+import { ContractConstants } from 'actions/Contracts'
 
 const initialState = {
   listings: [],
@@ -6,25 +7,64 @@ const initialState = {
   events: []
 }
 
-if (window.localStorage.marketplaceContract) {
-  initialState.contractAddress = window.localStorage.marketplaceContract
-}
-if (window.localStorage.arbitratorContract) {
-  initialState.arbitratorAddress = window.localStorage.arbitratorContract
-}
-if (window.localStorage.originArbitratorContract) {
-  initialState.originArbitratorAddress =
-    window.localStorage.originArbitratorContract
-}
-
 export default function Token(state = initialState, action = {}) {
+  function chainAction(toHandle, prop) {
+    if (action.type === toHandle) {
+      state = { ...state, [`${prop}Response`]: 'submitted' }
+    } else if (action.type === `${toHandle}_HASH`) {
+      state = { ...state, [`${prop}Response`]: 'in-pool' }
+    } else if (action.type === `${toHandle}_RECEIPT`) {
+      state = {
+        ...state,
+        [`${prop}Response`]: 'success',
+        [`${prop}Gas`]: action.receipt.gasUsed
+      }
+    } else if (action.type === `${toHandle}_ERROR`) {
+      state = {
+        ...state,
+        [`${prop}Response`]: 'error',
+        [`${prop}Error`]: action.message
+      }
+    }
+  }
+
+  chainAction(MarketplaceConstants.CREATE_LISTING, 'createListing')
+  chainAction(MarketplaceConstants.MAKE_OFFER, 'makeOffer')
+  chainAction(MarketplaceConstants.UPDATE_LISTING, 'updateListing')
+  chainAction(MarketplaceConstants.ADD_DATA, 'addData')
+  chainAction(MarketplaceConstants.ACCEPT_OFFER, 'acceptOffer')
+  chainAction(MarketplaceConstants.UPDATE_REFUND, 'updateRefund')
+  chainAction(MarketplaceConstants.FINALIZE_OFFER, 'finalizeOffer')
+  chainAction(MarketplaceConstants.DISPUTE_OFFER, 'disputeOffer')
+  chainAction(MarketplaceConstants.ADD_FUNDS, 'addFunds')
+  chainAction(MarketplaceConstants.DISPUTE_RULING, 'disputeRuling')
+  chainAction(MarketplaceConstants.WITHDRAW_LISTING, 'withdrawListing')
+  chainAction(MarketplaceConstants.WITHDRAW_OFFER, 'withdrawOffer')
+  chainAction(MarketplaceConstants.ARBITRATE_LISTING, 'arbitrateListing')
+
   switch (action.type) {
+    case ContractConstants.FETCH:
+      return { ...state, contractAddress: action.contracts.marketplace }
+
+    case ContractConstants.RESET:
+      return initialState
+
     case MarketplaceConstants.DEPLOY_RECEIPT:
       return { ...state, deployMarketplaceGas: action.receipt.gasUsed }
 
-    case MarketplaceConstants.DEPLOY_SUCCESS:
-      window.localStorage.marketplaceContract = action.receipt._address
+    case MarketplaceConstants.DEPLOY_SUCCESS: {
+      let contracts = {}
+      try {
+        contracts = JSON.parse(localStorage.contracts)
+      } catch (e) {
+        /* Ignore */
+      }
+      window.localStorage.contracts = JSON.stringify({
+        ...contracts,
+        marketplace: action.receipt._address
+      })
       return { ...state, contractAddress: action.receipt._address }
+    }
 
     case MarketplaceConstants.DEPLOY_ARBITRATOR_RECEIPT:
       return { ...state, deployArbitratorGas: action.receipt.gasUsed }
@@ -36,6 +76,12 @@ export default function Token(state = initialState, action = {}) {
         arbitratorAddress: action.receipt._address
       }
 
+    case MarketplaceConstants.MAKE_OFFER_RECEIPT:
+      return {
+        ...state,
+        lastOfferId: action.receipt.events.OfferCreated.returnValues.offerID
+      }
+
     case MarketplaceConstants.DEPLOY_ORIGIN_ARBITRATOR_RECEIPT:
       return { ...state, deployOriginArbitratorGas: action.receipt.gasUsed }
 
@@ -44,152 +90,6 @@ export default function Token(state = initialState, action = {}) {
       return {
         ...state,
         originArbitratorAddress: action.receipt._address
-      }
-
-    case MarketplaceConstants.CREATE_LISTING:
-      return { ...state, createListingResponse: 'submitted' }
-
-    case MarketplaceConstants.CREATE_LISTING_HASH:
-      return { ...state, createListingResponse: 'in-pool' }
-
-    case MarketplaceConstants.CREATE_LISTING_RECEIPT:
-      return {
-        ...state,
-        createListingResponse: 'success',
-        createListingGas: action.receipt.gasUsed
-      }
-
-    case MarketplaceConstants.CREATE_LISTING_ERROR:
-      return {
-        ...state,
-        createListingResponse: 'error',
-        createListingError: action.message
-      }
-
-    case MarketplaceConstants.UPDATE_LISTING:
-      return { ...state, updateListingResponse: 'submitted' }
-
-    case MarketplaceConstants.UPDATE_LISTING_HASH:
-      return { ...state, updateListingResponse: 'in-pool' }
-
-    case MarketplaceConstants.UPDATE_LISTING_RECEIPT:
-      return {
-        ...state,
-        updateListingResponse: 'success',
-        updateListingGas: action.receipt.gasUsed
-      }
-
-    case MarketplaceConstants.ADD_DATA:
-      return { ...state, addDataResponse: 'submitted' }
-
-    case MarketplaceConstants.ADD_DATA_HASH:
-      return { ...state, addDataResponse: 'in-pool' }
-
-    case MarketplaceConstants.ADD_DATA_RECEIPT:
-      return {
-        ...state,
-        addDataResponse: 'success',
-        addDataGas: action.receipt.gasUsed
-      }
-
-    case MarketplaceConstants.MAKE_OFFER:
-      return { ...state, makeOfferResponse: 'submitted' }
-
-    case MarketplaceConstants.MAKE_OFFER_HASH:
-      return { ...state, makeOfferResponse: 'in-pool' }
-
-    case MarketplaceConstants.MAKE_OFFER_RECEIPT:
-      return {
-        ...state,
-        makeOfferResponse: 'success',
-        makeOfferGas: action.receipt.gasUsed
-      }
-
-    case MarketplaceConstants.MAKE_OFFER_ERROR:
-      return {
-        ...state,
-        makeOfferResponse: 'error',
-        makeOfferError: action.message
-      }
-
-    case MarketplaceConstants.ACCEPT_OFFER:
-      return { ...state, acceptOfferResponse: 'submitted' }
-
-    case MarketplaceConstants.ACCEPT_OFFER_RECEIPT:
-      return {
-        ...state,
-        acceptOfferResponse: 'success',
-        acceptOfferGas: action.receipt.gasUsed
-      }
-
-    case MarketplaceConstants.UPDATE_REFUND:
-      return { ...state, updateOfferRefundResponse: 'submitted' }
-
-    case MarketplaceConstants.UPDATE_REFUND_RECEIPT:
-      return {
-        ...state,
-        updateOfferRefundResponse: 'success',
-        updateOfferRefundGas: action.receipt.gasUsed
-      }
-
-    case MarketplaceConstants.FINALIZE_OFFER:
-      return { ...state, finalizeOfferResponse: 'submitted' }
-
-    case MarketplaceConstants.FINALIZE_OFFER_RECEIPT:
-      return {
-        ...state,
-        finalizeOfferResponse: 'success',
-        finalizeOfferGas: action.receipt.gasUsed
-      }
-
-    case MarketplaceConstants.DISPUTE_OFFER:
-      return { ...state, disputeOfferResponse: 'submitted' }
-
-    case MarketplaceConstants.DISPUTE_OFFER_RECEIPT:
-      return {
-        ...state,
-        disputeOfferResponse: 'success',
-        disputeOfferGas: action.receipt.gasUsed
-      }
-
-    case MarketplaceConstants.ADD_FUNDS:
-      return { ...state, addFundsResponse: 'submitted' }
-
-    case MarketplaceConstants.ADD_FUNDS_RECEIPT:
-      return {
-        ...state,
-        addFundsResponse: 'success',
-        addFundsGas: action.receipt.gasUsed
-      }
-
-    case MarketplaceConstants.DISPUTE_RULING:
-      return { ...state, disputeRulingResponse: 'submitted' }
-
-    case MarketplaceConstants.DISPUTE_RULING_RECEIPT:
-      return {
-        ...state,
-        disputeRulingResponse: 'success',
-        disputeRulingGas: action.receipt.gasUsed
-      }
-
-    case MarketplaceConstants.ARBITRATE_LISTING:
-      return { ...state, arbitrateListingResponse: 'submitted' }
-
-    case MarketplaceConstants.ARBITRATE_LISTING_RECEIPT:
-      return {
-        ...state,
-        arbitrateListingResponse: 'success',
-        arbitrateListingGas: action.receipt.gasUsed
-      }
-
-    case MarketplaceConstants.WITHDRAW_LISTING:
-      return { ...state, withdrawListingResponse: 'submitted' }
-
-    case MarketplaceConstants.WITHDRAW_LISTING_RECEIPT:
-      return {
-        ...state,
-        withdrawListingResponse: 'success',
-        withdrawListingGas: action.receipt.gasUsed
       }
 
     case MarketplaceConstants.GET_ALL_LISTINGS_SUCCESS:

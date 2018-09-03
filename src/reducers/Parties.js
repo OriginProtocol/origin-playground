@@ -19,6 +19,13 @@ if (window.localStorage.parties) {
 
 export default function Token(state = initialState, action = {}) {
   switch (action.type) {
+    case PartyConstants.CLEAR: {
+      return {
+        parties: [],
+        active: null
+      }
+    }
+
     case PartyConstants.ADD: {
       let parties = state.parties
       parties.push(action.party)

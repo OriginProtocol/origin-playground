@@ -7,9 +7,7 @@ import FormRow from 'components/FormRow'
 class ArbitrateListing extends Component {
   constructor(props) {
     super(props)
-    const buyer = props.parties.find(
-      p => p.name === 'Buyer'
-    )
+    const buyer = props.parties.find(p => p.name === 'Buyer')
     this.state = {
       value: '1',
       target: buyer ? buyer.address : '',
@@ -49,9 +47,7 @@ class ArbitrateListing extends Component {
               <select
                 className="form-control"
                 value={this.state.target}
-                onChange={e =>
-                  this.setState({ target: e.currentTarget.value })
-                }
+                onChange={e => this.setState({ target: e.currentTarget.value })}
               >
                 {this.props.parties.map((party, idx) => (
                   <option key={idx} value={party.address}>
@@ -75,16 +71,14 @@ class ArbitrateListing extends Component {
                 </div>
               </div>
             </FormRow>
-              <FormRow label="Reason">
-                <input
-                  className="form-control"
-                  type="text"
-                  value={this.state.reason}
-                  onChange={e =>
-                    this.setState({ reason: e.currentTarget.value })
-                  }
-                />
-              </FormRow>
+            <FormRow label="Reason">
+              <input
+                className="form-control"
+                type="text"
+                value={this.state.reason}
+                onChange={e => this.setState({ reason: e.currentTarget.value })}
+              />
+            </FormRow>
           </tbody>
         </table>
         <div className="text-right">

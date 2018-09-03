@@ -38,7 +38,7 @@ const startGanache = () =>
       default_balance_ether: 100,
       db_path: 'data/db',
       network_id: 999,
-      seed: 123
+      seed: 123,
       // blocktime: 3
     })
     server.listen(8545, err => {

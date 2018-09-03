@@ -18,15 +18,20 @@ import {
   makeOffer,
   deployArbitratorContract,
   deployOriginArbitratorContract,
-  getOffers,
   acceptOffer,
   finalizeOffer
 } from 'actions/Marketplace'
 import { deployTokenContract, transferToken, approveToken } from 'actions/Token'
-import { addAccount, UNSAFE_saveWallet, selectAccount } from 'actions/Wallet'
+import {
+  addAccount,
+  UNSAFE_saveWallet,
+  selectAccount,
+  clearWallet
+} from 'actions/Wallet'
 import { sendFromNode } from 'actions/Network'
-import { addParty } from 'actions/Parties'
-import { ListingTypes } from './_NewListing'
+import { resetContracts } from 'actions/Contracts'
+import { addParty, clearParties } from 'actions/Parties'
+// import { ListingTypes } from './_NewListing'
 import GasPrice from 'utils/gasPriceInDollars'
 const price = GasPrice({})
 
@@ -64,11 +69,13 @@ class Row extends Component {
 
   render() {
     if (this.props.open === false) return null
-    const { title, isDone, success, action, prerequisite, gas } = this.props
-    let icon
-    if (this.state.doingAction && !this.props.isDone) {
+    const { title, success, action, prerequisite, gas } = this.props
+    let icon,
+      isDone = this.props.isDone
+    if (isDone && !prerequisite) isDone = false
+    if (this.state.doingAction && !isDone) {
       icon = <i className="fa fa-spinner fa-spin" />
-    } else if (this.props.isDone) {
+    } else if (isDone) {
       icon = <i className="fa fa-check text-success" />
     } else {
       icon = (
@@ -113,10 +120,9 @@ class Home extends Component {
     super()
     this.state = { setup: true, basicListingOffer: true }
   }
-  componentDidMount() {
-    this.props.getOffers(0)
-  }
+
   render() {
+    if (this.state.reset) return <div>Resetting...</div>
     const hasNodeAccounts = this.props.nodeAccounts.length ? true : false
     const hasWallets = this.props.wallet.accounts.length ? true : false
     const hasFunds = this.props.wallet.accounts.every(a => {
@@ -140,10 +146,7 @@ class Home extends Component {
       <div>
         <table className="table table-sm" style={{ width: 'auto' }}>
           <tbody>
-            {this.renderSection({
-              name: 'Setup',
-              id: 'setup'
-            })}
+            {this.renderSection({ name: 'Setup', id: 'setup' })}
             <Row
               open={this.state.setup ? true : false}
               title="Add Wallets"
@@ -157,11 +160,11 @@ class Home extends Component {
             />
             <Row
               open={this.state.setup ? true : false}
-              title="Add Ether"
+              title="Fund Wallets"
               prerequisite={hasWallets && hasNodeAccounts}
               isDone={hasWallets && hasFunds}
-              action="Add"
-              success="Added"
+              action="Fund"
+              success="Funded"
               onAction={() => {
                 this.props.wallet.accounts.forEach(a => {
                   var bal = this.props.wallet.balances[a],
@@ -288,7 +291,7 @@ class Home extends Component {
               success="Funded"
               action="Fund DAI"
             />
-            {this.renderSection({
+            {/* {this.renderSection({
               name: 'Basic Listing & Offer',
               id: 'basicListingOffer'
             })}
@@ -364,7 +367,7 @@ class Home extends Component {
                 this.props.selectAccount(Buyer)
                 this.props.finalizeOffer(0, 0)
               }}
-            />
+            /> */}
           </tbody>
         </table>
         <hr />
@@ -375,7 +378,13 @@ class Home extends Component {
             e.preventDefault()
             window.localStorage.clear()
             window.sessionStorage.clear()
-            window.location.reload()
+            this.props.clearWallet()
+            this.props.clearParties()
+            this.props.resetContracts()
+            this.setState({ reset: true })
+            setTimeout(() => {
+              this.setState({ reset: false })
+            }, 100)
           }}
         >
           Reset
@@ -459,9 +468,11 @@ const mapDispatchToProps = dispatch => ({
   saveWallet: (...args) => dispatch(UNSAFE_saveWallet(...args)),
   sendFromNode: (...args) => dispatch(sendFromNode(...args)),
   selectAccount: (...args) => dispatch(selectAccount(...args)),
-  getOffers: (...args) => dispatch(getOffers(...args)),
   acceptOffer: (...args) => dispatch(acceptOffer(...args)),
-  finalizeOffer: (...args) => dispatch(finalizeOffer(...args))
+  finalizeOffer: (...args) => dispatch(finalizeOffer(...args)),
+  resetContracts: (...args) => dispatch(resetContracts(...args)),
+  clearWallet: (...args) => dispatch(clearWallet(...args)),
+  clearParties: (...args) => dispatch(clearParties(...args)),
 })
 
 export default connect(

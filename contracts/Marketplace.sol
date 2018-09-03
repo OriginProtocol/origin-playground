@@ -193,7 +193,7 @@ contract Marketplace {
   function withdrawOffer(uint listingID, uint offerID, bytes32 _ipfsHash) public {
     Listing storage listing = listings[listingID];
     Offer storage offer = offers[listingID][offerID];
-    require(msg.sender == offer.buyer);
+    require(msg.sender == offer.buyer || msg.sender == listing.seller);
     if (listing.seller == 0x0) { // If listing was withdrawn
       require(offer.status == 1 || offer.status == 2); // Offer must be in state 'Created' or 'Accepted'
       if (offer.status == 2) { // Pay out commission if seller accepted offer then withdrew listing

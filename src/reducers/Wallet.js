@@ -25,6 +25,9 @@ const initialState = {
 
 export default function Wallet(state = initialState, action = {}) {
   switch (action.type) {
+    case WalletConstants.CLEAR:
+      return initialState
+
     case WalletConstants.SELECT_ACCOUNT_SUCCESS:
       window.localStorage.activeAddress = action.activeAddress
       return {

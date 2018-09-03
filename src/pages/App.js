@@ -9,6 +9,7 @@ import Identity from './identity'
 
 import { selectAccount, setCurrency, loadWallet } from 'actions/Wallet'
 import { init, timeTravel } from 'actions/Network'
+import { fetchContracts } from 'actions/Contracts'
 
 import AccountChooser from 'components/AccountChooser'
 import TimeTraveler from 'components/TimeTraveler'
@@ -22,6 +23,7 @@ class App extends Component {
 
   componentDidMount() {
     this.props.initNetwork()
+    this.props.fetchContracts()
     if (!this.props.wallet.activeAddress && window.sessionStorage.privateKeys) {
       this.props.loadWallet()
     }
@@ -161,6 +163,7 @@ const mapStateToProps = state => ({
 
 const mapDispatchToProps = dispatch => ({
   initNetwork: () => dispatch(init()),
+  fetchContracts: () => dispatch(fetchContracts()),
   loadWallet: () => dispatch(loadWallet()),
   selectAccount: hash => dispatch(selectAccount(hash)),
   setCurrency: currency => dispatch(setCurrency(currency)),

@@ -2,22 +2,14 @@ import React, { Component } from 'react'
 
 import TransactionModal from 'components/TransactionModal'
 
-class AddFunds extends Component {
+class WithdrawOffer extends Component {
   constructor(props) {
     super(props)
     const ipfs = { reason: '' }
-    this.state = { ipfs, amount: '0' }
+    this.state = { ipfs }
   }
 
   render() {
-    const contractRows = [
-      {
-        label: 'Amount',
-        appendLabel: this.props.offer.currencyId,
-        field: 'amount'
-      }
-    ]
-
     let ipfsRows = [
       { label: 'Reason', field: 'reason' }
     ]
@@ -25,15 +17,14 @@ class AddFunds extends Component {
     return (
       <TransactionModal
         {...this.props}
-        title="Add Funds:"
-        contractRows={contractRows}
+        title="Withdraw:"
         ipfsRows={ipfsRows}
         data={this.state}
-        executeText="Add Funds"
-        onExecute={json => this.props.addFunds(json)}
+        executeText="Withdraw"
+        onExecute={json => this.props.withdrawOffer(json)}
       />
     )
   }
 }
 
-export default AddFunds
+export default WithdrawOffer

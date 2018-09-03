@@ -2,7 +2,7 @@ import { generateConstants } from 'utils/generateConstants'
 import Token from '../contracts/Token'
 
 export const PartyConstants = generateConstants('WALLET', {
-  regular: ['ADD'],
+  regular: ['ADD', 'CLEAR'],
   successError: ['UPDATE']
 })
 
@@ -37,4 +37,8 @@ export function updateParties() {
 
     dispatch({ type: PartyConstants.UPDATE_SUCCESS, balances })
   }
+}
+
+export function clearParties() {
+  return { type: PartyConstants.CLEAR }
 }

@@ -12,7 +12,7 @@ const Currencies = ['ETH', 'DAI', 'OGN']
 class Parties extends Component {
   constructor() {
     super()
-    this.state = { colors: {}, balances: {} }
+    this.state = { colors: {}, balances: {}, open: true }
   }
 
   componentDidMount() {

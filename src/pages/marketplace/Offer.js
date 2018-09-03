@@ -18,6 +18,7 @@ import AcceptOffer from './_AcceptOffer'
 import AddData from './_AddData'
 import AddFunds from './_AddFunds'
 import FinalizeOffer from './_FinalizeOffer'
+import WithdrawOffer from './_WithdrawOffer'
 import ExecuteRuling from './_ExecuteRuling'
 import DisputeOffer from './_DisputeOffer'
 import PartialRefund from './_PartialRefund'
@@ -153,11 +154,11 @@ class Offer extends Component {
             />
             <Btn
               showIf={
-                isBuyer &&
+                (isBuyer || isSeller) &&
                 (status === '1' || (listingWithdrawn && status !== '0'))
               }
-              onClick={() => this.props.withdrawOffer(lID, idx)}
-              text="Withdraw"
+              onClick={() => this.setState({ withdrawOffer: [lID, idx] })}
+              text={<i className="fa fa-trash" />}
               color="danger ml-1"
             />
             <Btn
@@ -191,6 +192,7 @@ class Offer extends Component {
             }
             onClose={() => this.setState({ acceptOffer: null })}
             response={this.props.marketplace.acceptOfferResponse}
+            error={this.props.marketplace.acceptOfferError}
           />
         )}
         {this.state.finalizeOffer && (
@@ -204,6 +206,7 @@ class Offer extends Component {
             }
             onClose={() => this.setState({ finalizeOffer: null })}
             response={this.props.marketplace.finalizeOfferResponse}
+            error={this.props.marketplace.finalizeOfferError}
           />
         )}
         {this.state.disputeOffer && (
@@ -217,6 +220,7 @@ class Offer extends Component {
             }
             onClose={() => this.setState({ disputeOffer: null })}
             response={this.props.marketplace.disputeOfferResponse}
+            error={this.props.marketplace.disputeOfferError}
           />
         )}
         {this.state.partialRefund && (
@@ -232,6 +236,7 @@ class Offer extends Component {
             }}
             onClose={() => this.setState({ partialRefund: null })}
             response={this.props.marketplace.updateOfferRefundResponse}
+            error={this.props.marketplace.updateOfferRefundError}
           />
         )}
         {this.state.addFunds && (
@@ -246,6 +251,21 @@ class Offer extends Component {
             }}
             onClose={() => this.setState({ addFunds: null })}
             response={this.props.marketplace.addFundsResponse}
+            error={this.props.marketplace.addFundsError}
+          />
+        )}
+        {this.state.withdrawOffer && (
+          <WithdrawOffer
+            withdrawOffer={obj => {
+              this.props.withdrawOffer(
+                this.state.withdrawOffer[0],
+                this.state.withdrawOffer[1],
+                obj
+              )
+            }}
+            onClose={() => this.setState({ withdrawOffer: null })}
+            response={this.props.marketplace.withdrawOfferResponse}
+            error={this.props.marketplace.withdrawOfferError}
           />
         )}
         {this.state.addData && (
@@ -259,6 +279,7 @@ class Offer extends Component {
             }}
             onClose={() => this.setState({ addData: null })}
             response={this.props.marketplace.addDataResponse}
+            error={this.props.marketplace.addDataError}
           />
         )}
         {this.state.executeRuling && (
@@ -273,6 +294,7 @@ class Offer extends Component {
             }}
             onClose={() => this.setState({ executeRuling: null })}
             response={this.props.marketplace.disputeRulingResponse}
+            error={this.props.marketplace.disputeRulingError}
           />
         )}
       </>

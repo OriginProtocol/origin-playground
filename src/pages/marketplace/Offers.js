@@ -9,6 +9,7 @@ import Btn from 'components/Btn'
 
 import OfferRow from './Offer'
 import NewOffer from './_NewOffer'
+import QuickOffer from './_QuickOffer'
 
 class Offers extends Component {
   constructor() {
@@ -30,7 +31,8 @@ class Offers extends Component {
         <thead>
           <tr>
             <th className="border-top-0 no-wrap">
-              <i className="fa fa-money mr-2" />Offers
+              <i className="fa fa-money mr-2" />
+              Offers
               <Btn
                 showIf={offers.length && !listing.withdrawn}
                 onClick={() => {
@@ -66,16 +68,20 @@ class Offers extends Component {
         <tfoot>
           <tr>
             <td colSpan={5} className="p-2">
-              <Btn
-                showIf={!listing.withdrawn}
-                onClick={() => {
-                  this.setState({ makeOffer: true, reviseOffer: null })
-                  this.props.selectAccount(this.props.buyerWallet)
-                }}
-                color="primary"
-              >
-                <i className="fa fa-plus" /> Add an Offer
-              </Btn>
+              {!listing.withdrawn && (
+                <div className="btn-group">
+                  <button
+                    className="btn btn-sm btn-outline-primary"
+                    onClick={() => {
+                      this.setState({ makeOffer: true, reviseOffer: null })
+                      this.props.selectAccount(this.props.buyerWallet)
+                    }}
+                  >
+                    <i className="fa fa-plus" /> Add an Offer
+                  </button>
+                  <QuickOffer listing={this.props.listing} />
+                </div>
+              )}
             </td>
           </tr>
         </tfoot>
@@ -90,7 +96,11 @@ class Offers extends Component {
             parties={this.props.parties}
             activeParty={this.props.activeParty}
             reviseOffer={this.state.reviseOffer}
-            offer={this.state.reviseOffer === null ? null : offers[this.state.reviseOffer]}
+            offer={
+              this.state.reviseOffer === null
+                ? null
+                : offers[this.state.reviseOffer]
+            }
             error={this.props.marketplace.makeOfferError}
           />
         )}

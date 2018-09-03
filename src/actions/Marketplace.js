@@ -6,6 +6,24 @@ import { sendTransaction } from './helpers'
 import { generateConstants } from 'utils/generateConstants'
 import { get, post, postEnc } from 'utils/ipfsHash'
 
+export const MarketplaceChainActions = [
+  'DEPLOY',
+  'DEPLOY_ARBITRATOR',
+  'DEPLOY_ORIGIN_ARBITRATOR',
+  'CREATE_LISTING',
+  'UPDATE_LISTING',
+  'WITHDRAW_LISTING',
+  'ARBITRATE_LISTING',
+  'MAKE_OFFER',
+  'FINALIZE_OFFER',
+  'DISPUTE_OFFER',
+  'DISPUTE_RULING',
+  'UPDATE_REFUND',
+  'ACCEPT_OFFER',
+  'WITHDRAW_OFFER',
+  'ADD_DATA',
+  'ADD_FUNDS'
+]
 export const MarketplaceConstants = generateConstants('MARKETPLACE', {
   successError: [
     'GET_TOTAL_LISTINGS',
@@ -16,45 +34,18 @@ export const MarketplaceConstants = generateConstants('MARKETPLACE', {
     'GET_EVENTS',
     'GET_ARBITRATOR'
   ],
-  chain: [
-    'DEPLOY',
-    'DEPLOY_ARBITRATOR',
-    'DEPLOY_ORIGIN_ARBITRATOR',
-    'CREATE_LISTING',
-    'UPDATE_LISTING',
-    'WITHDRAW_LISTING',
-    'ARBITRATE_LISTING',
-    'MAKE_OFFER',
-    'FINALIZE_OFFER',
-    'DISPUTE_OFFER',
-    'DISPUTE_RULING',
-    'UPDATE_REFUND',
-    'ACCEPT_OFFER',
-    'WITHDRAW_OFFER',
-    'ADD_DATA',
-    'ADD_FUNDS',
-  ]
+  chain: MarketplaceChainActions
 })
-
-class OriginMarketplace {
-  constructor(Marketplace) {
-    this.raw = Marketplace
-    this.contract = new web3.eth.Contract(Marketplace.abi)
-  }
-
-  deploy(...args) {
-    return this.contract.deploy({
-      data: '0x' + Marketplace.data, arguments: [...args]
-    }).send({ gas: 4612388, from: web3.eth.defaultAccount })
-  }
-}
-
-const originMarketplace = new OriginMarketplace(Marketplace)
 
 export function deployMarketplaceContract(...args) {
   return async function(dispatch) {
-    var tx = originMarketplace.deploy(...args)
-    dispatch(sendTransaction(tx, MarketplaceConstants.DEPLOY))
+    var Contract = new web3.eth.Contract(Marketplace.abi)
+    var tx = Contract.deploy({
+      data: '0x' + Marketplace.data,
+      arguments: [...args]
+    }).send({ gas: 4612388, from: web3.eth.defaultAccount })
+
+    dispatch(sendTransaction(tx, MarketplaceConstants.DEPLOY, {}))
   }
 }
 
@@ -233,7 +224,10 @@ export function withdrawListing(listingID, json) {
       return
     }
 
-    var ipfsHash = await post(state.network.ipfsRPC, { withdrawn: true, ...json })
+    var ipfsHash = await post(state.network.ipfsRPC, {
+      withdrawn: true,
+      ...json
+    })
 
     var Contract = new web3.eth.Contract(Marketplace.abi, address)
     var tx = Contract.methods
@@ -289,7 +283,10 @@ export function getListings() {
       fromBlock: 0
     })
 
-    var ids = Array.from({ length: Number(totalListings) }, (v, i) => i).reverse()
+    var ids = Array.from(
+      { length: Number(totalListings) },
+      (v, i) => i
+    ).reverse()
 
     var listings = []
     for (let idx of ids) {
@@ -297,7 +294,9 @@ export function getListings() {
         data = {},
         ipfsHash,
         withdrawn = false,
-        listingEvents = events.filter(e => e.returnValues.listingID === String(idx))
+        listingEvents = events.filter(
+          e => e.returnValues.listingID === String(idx)
+        )
 
       listingEvents.forEach(e => {
         if (e.event === 'ListingCreated') {
@@ -316,7 +315,7 @@ export function getListings() {
           state.parties.active
         )
       }
-      if (!ipfsHash || withdrawn){
+      if (!ipfsHash || withdrawn) {
         data.withdrawn = true
       }
 
@@ -359,7 +358,7 @@ export function getListing(idx) {
   }
 }
 
-export function makeOffer(listingID, json) {
+export function makeOffer(listingID, json, callback) {
   return async function(dispatch, getState) {
     var state = getState(),
       marketplaceAddress = state.marketplace.contractAddress
@@ -372,12 +371,12 @@ export function makeOffer(listingID, json) {
       ipfsHash
 
     const currencyAddr =
-      currencyId === 'ETH'
-        ? '0x0'
-        : state.token.contractAddresses[currencyId]
+      currencyId === 'ETH' ? '0x0' : state.token.contractAddresses[currencyId]
 
     var value =
-      currencyId === 'ETH' ? web3.utils.toWei(json.amount, 'ether') : json.amount
+      currencyId === 'ETH'
+        ? web3.utils.toWei(json.amount, 'ether')
+        : json.amount
 
     json.value = value
     json.buyer = web3.eth.defaultAccount
@@ -404,33 +403,30 @@ export function makeOffer(listingID, json) {
     if (json.withdraw !== null && json.withdraw !== undefined) {
       args.push(json.withdraw)
     }
-    var tx = Contract.methods.makeOffer(...args)
 
+    var tx = Contract.methods.makeOffer(...args)
     if (currencyId === 'ETH') {
-      tx = tx.send({
-        gas: 4612388,
-        from: web3.eth.defaultAccount,
-        value
-      })
+      tx = tx.send({ gas: 4612388, from: web3.eth.defaultAccount, value })
     } else {
-      tx = tx.send({
-        gas: 4612388,
-        from: web3.eth.defaultAccount
-      })
+      tx = tx.send({ gas: 4612388, from: web3.eth.defaultAccount })
     }
 
     var data = { listingID, json }
 
     dispatch(
       sendTransaction(tx, MarketplaceConstants.MAKE_OFFER, data, () => {
-        dispatch(getListings())
-        dispatch(getOffers(listingID))
+        if (callback) {
+          callback()
+        } else {
+          dispatch(getListings())
+          dispatch(getOffers(listingID))
+        }
       })
     )
   }
 }
 
-export function acceptOffer(listingID, offerID, obj = {}) {
+export function acceptOffer(listingID, offerID, obj = {}, callback) {
   return async function(dispatch, getState) {
     var state = getState(),
       address = state.marketplace.contractAddress
@@ -456,14 +452,18 @@ export function acceptOffer(listingID, offerID, obj = {}) {
 
     dispatch(
       sendTransaction(tx, MarketplaceConstants.ACCEPT_OFFER, {}, () => {
-        dispatch(getListings())
-        dispatch(getOffers(listingID))
+        if (callback) {
+          callback()
+        } else {
+          dispatch(getListings())
+          dispatch(getOffers(listingID))
+        }
       })
     )
   }
 }
 
-export function withdrawOffer(listingID, offerID) {
+export function withdrawOffer(listingID, offerID, obj) {
   return async function(dispatch, getState) {
     var state = getState(),
       address = state.marketplace.contractAddress
@@ -471,7 +471,7 @@ export function withdrawOffer(listingID, offerID) {
       return
     }
 
-    var ipfsHash = await post(state.network.ipfsRPC, { withdrawn: true })
+    var ipfsHash = await post(state.network.ipfsRPC, obj)
 
     var Contract = new web3.eth.Contract(Marketplace.abi, address)
     var tx = Contract.methods
@@ -479,7 +479,7 @@ export function withdrawOffer(listingID, offerID) {
       .send({ gas: 4612388, from: web3.eth.defaultAccount })
 
     dispatch(
-      sendTransaction(tx, MarketplaceConstants.WITHDRAW_OFFER, {}, () => {
+      sendTransaction(tx, MarketplaceConstants.WITHDRAW_OFFER, obj, () => {
         dispatch(getListings())
         dispatch(getOffers(listingID))
       })
@@ -540,7 +540,7 @@ export function setOfferRefund(listingID, offerID, refund, obj = {}) {
   }
 }
 
-export function disputeOffer(listingID, offerID, obj) {
+export function disputeOffer(listingID, offerID, obj, callback) {
   return async function(dispatch, getState) {
     var state = getState(),
       address = state.marketplace.contractAddress
@@ -557,8 +557,12 @@ export function disputeOffer(listingID, offerID, obj) {
 
     dispatch(
       sendTransaction(tx, MarketplaceConstants.DISPUTE_OFFER, {}, () => {
-        dispatch(getListings())
-        dispatch(getOffers(listingID))
+        if (callback) {
+          callback()
+        } else {
+          dispatch(getListings())
+          dispatch(getOffers(listingID))
+        }
       })
     )
   }
@@ -575,7 +579,7 @@ export function disputeRuling(listingID, offerID, obj) {
     var ipfsHash = await post(state.network.ipfsRPC, obj)
 
     var ruling = Number(obj.ruling),
-        payCommission = Number(obj.commission) // 0: pay, 1: refund
+      payCommission = Number(obj.commission) // 0: pay, 1: refund
     if (payCommission === 0) {
       ruling += 2
     }
@@ -594,7 +598,7 @@ export function disputeRuling(listingID, offerID, obj) {
   }
 }
 
-export function getOffers(listingID, opts = {}) {
+export function getOffers(listingID, opts = {}, callback) {
   return async function(dispatch, getState) {
     var state = getState(),
       address = state.marketplace.contractAddress,
@@ -623,7 +627,9 @@ export function getOffers(listingID, opts = {}) {
         ipfsHash,
         lastEvent = ''
 
-      var offerEvents = listingEvents.filter(e => e.returnValues.offerID === String(idx))
+      var offerEvents = listingEvents.filter(
+        e => e.returnValues.offerID === String(idx)
+      )
 
       offerEvents.forEach(e => {
         if (e.event === 'OfferCreated') {
@@ -666,6 +672,10 @@ export function getOffers(listingID, opts = {}) {
       listingID,
       offers
     })
+
+    if (callback) {
+      callback()
+    }
   }
 }
 

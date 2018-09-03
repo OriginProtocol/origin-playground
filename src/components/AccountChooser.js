@@ -46,7 +46,9 @@ export default class AccountChooser extends Component {
               <span className="ml-3">{`${a.substr(0, 8)}`}</span>
             </a>
           ))}
-          <div className="dropdown-divider" />
+          {wallet.accounts && wallet.accounts.length ? (
+            <div className="dropdown-divider" />
+          ) : null}
 
           <a className="dropdown-item" href="#/console">
             Network / Wallet Settings

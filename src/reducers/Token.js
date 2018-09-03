@@ -1,21 +1,31 @@
 import { TokenConstants } from 'actions/Token'
+import { ContractConstants } from 'actions/Contracts'
 
-let initialState = {
+const initialState = {
   contractAddresses: {}
-}
-
-if (window.localStorage.tokenContracts) {
-  try {
-    initialState.contractAddresses = JSON.parse(window.localStorage.tokenContracts)
-  } catch(e) { /* Ignore */ }
 }
 
 export default function Token(state = initialState, action = {}) {
   switch (action.type) {
+    case ContractConstants.FETCH:
+      return { ...state, contractAddresses: action.contracts.tokens || {} }
+
+    case ContractConstants.RESET:
+      return { ...state, contractAddresses: {} }
+
     case TokenConstants.DEPLOY_SUCCESS: {
       var addrs = state.contractAddresses
       addrs[action.symbol] = action.receipt._address
-      window.localStorage.tokenContracts = JSON.stringify(addrs)
+      let contracts = {}
+      try {
+        contracts = JSON.parse(localStorage.contracts)
+      } catch (e) {
+        /* Ignore */
+      }
+      window.localStorage.contracts = JSON.stringify({
+        ...contracts,
+        tokens: addrs
+      })
       return {
         ...state,
         contractAddresses: addrs
