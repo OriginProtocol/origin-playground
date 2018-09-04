@@ -26,12 +26,15 @@ export async function web3Helper(provider = 'ws://localhost:7545') {
 function findImportsPath(prefix) {
   return function findImports(path) {
     try {
-      var contents = fs.readFileSync(prefix + path).toString()
+      if (path.indexOf('node_modules') < 0) {
+        path = prefix+path
+      }
+      const contents = fs.readFileSync(path).toString()
       return {
         contents
       }
     } catch (e) {
-      console.log(`File not found: ${prefix}${path}`)
+      console.log(`File not found: ${path}`)
       return { error: 'File not found' }
     }
   }

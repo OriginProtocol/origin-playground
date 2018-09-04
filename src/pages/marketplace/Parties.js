@@ -103,9 +103,7 @@ class Parties extends Component {
     return (
       <>
         <table
-          className={`table table-sm${
-            parties.length && this.state.open ? ' table-hover' : ''
-          } identities-list`}
+          className={`table table-sm identities-list`}
         >
           <thead>
             <tr
@@ -202,6 +200,7 @@ class Parties extends Component {
                 {parties.map((party, idx) => (
                   <tr
                     key={idx}
+                    className={this.hoverCls(party)}
                     style={{ cursor: 'pointer' }}
                     onClick={() => {
                       if (
@@ -255,6 +254,14 @@ class Parties extends Component {
       cls += 'fa-sticky-note-o text-muted'
     }
     return cls
+  }
+
+  hoverCls(party) {
+    if (this.props.wallet.accounts.find(a => a === party.address)) {
+      return 'tr-hover'
+    } else {
+      return ''
+    }
   }
 }
 

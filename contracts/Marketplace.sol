@@ -1,5 +1,7 @@
 pragma solidity ^0.4.24;
 
+import "node_modules/openzeppelin-solidity/contracts/ownership/Ownable.sol";
+
 /**
  * @title A Marketplace contract for managing listings, offers, payments, escrow and arbitration
  * @author Nick Poulden <nick@poulden.com>
@@ -7,14 +9,12 @@ pragma solidity ^0.4.24;
  * Listings may be priced in Eth or ERC20.
  */
 
-/* import '/contracts/IMarketplace.sol'; */
-
 contract ERC20 {
   function transfer(address _to, uint256 _value) external returns (bool);
   function transferFrom(address _from, address _to, uint256 _value) external returns (bool);
 }
 
-contract Marketplace {
+contract Marketplace is Ownable {
 
   /**
    * @notice All events have the same indexed signature offsets for easy filtering
@@ -55,10 +55,11 @@ contract Marketplace {
   Listing[] public listings;
   mapping(uint => Offer[]) public offers; // listingID => Offers
 
-  ERC20 private tokenAddr; // Origin Token address
+  ERC20 public tokenAddr; // Origin Token address
 
   constructor(address _tokenAddr) public {
-    tokenAddr = ERC20(_tokenAddr); // Origin Token contract
+    owner = msg.sender;
+    setTokenAddr(_tokenAddr); // Origin Token contract
   }
 
   // @dev Return the total number of listings
@@ -79,7 +80,7 @@ contract Marketplace {
   )
     public
   {
-    require(_deposit > 0); // Listings must deposit some amount of Origin Token
+    /* require(_deposit > 0); // Listings must deposit some amount of Origin Token */
     require(_arbitrator != 0x0); // Must specify an arbitrator
 
     listings.push(Listing({
@@ -88,7 +89,9 @@ contract Marketplace {
       arbitrator: _arbitrator
     }));
 
-    tokenAddr.transferFrom(msg.sender, this, _deposit); // Transfer Origin Token
+    if (_deposit > 0) {
+      tokenAddr.transferFrom(msg.sender, this, _deposit); // Transfer Origin Token
+    }
     emit ListingCreated(msg.sender, listings.length - 1, _ipfsHash);
   }
 
@@ -209,7 +212,6 @@ contract Marketplace {
 
   // @dev Buyer adds extra funds to an accepted offer.
   function addFunds(uint listingID, uint offerID, bytes32 _ipfsHash, uint _value) public payable {
-    Listing storage listing = listings[listingID];
     Offer storage offer = offers[listingID][offerID];
     require(msg.sender == offer.buyer);
     require(offer.status == 2); // Offer must be in state 'Accepted'
@@ -260,7 +262,6 @@ contract Marketplace {
     uint _refund
   ) public {
     Offer storage offer = offers[listingID][offerID];
-    Listing storage listing = listings[listingID];
     require(msg.sender == offer.arbitrator);
     require(offer.status == 3); // Offer must be 'disputed'
     require(_refund <= offer.value); // Cannot refund more than value of listing
@@ -344,5 +345,10 @@ contract Marketplace {
     listing.deposit -= value;
     require(tokenAddr.transfer(target, value));
     emit ListingArbitrated(target, listingID, ipfsHash);
+  }
+
+  // @dev Set the address of the Origin token contract
+  function setTokenAddr(address _tokenAddr) public onlyOwner {
+    tokenAddr = ERC20(_tokenAddr);
   }
 }

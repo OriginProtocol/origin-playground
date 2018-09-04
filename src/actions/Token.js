@@ -2,8 +2,6 @@ import { generateConstants } from 'utils/generateConstants'
 import Token from '../contracts/Token'
 import { sendTransaction } from './helpers'
 
-const Contract = new web3.eth.Contract(Token.abi)
-
 export const TokenConstants = generateConstants('TOKEN', {
   chain: ['DEPLOY', 'TRANSFER', 'APPROVE']
 })
@@ -11,6 +9,7 @@ export const TokenConstants = generateConstants('TOKEN', {
 export function deployTokenContract(args) {
   return async function(dispatch) {
     web3.setProvider(web3.currentProvider.host)
+    const Contract = new web3.eth.Contract(Token.abi)
     var tx = Contract.deploy({
       data: '0x' + Token.data,
       arguments: args

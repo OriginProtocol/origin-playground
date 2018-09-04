@@ -114,6 +114,7 @@ class EventRow extends Component {
       <>
         <tr
           style={{ cursor: 'pointer' }}
+          className={this.state.open ? '' : 'tr-hover'}
           onClick={async () => {
             this.setState({ open: this.state.open ? false : true })
             var ipfsContent = await getText(

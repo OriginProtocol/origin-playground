@@ -17,6 +17,15 @@ class Listings extends Component {
     this.props.getListings()
   }
 
+  componentDidUpdate(prevProps) {
+    if (
+      this.props.marketplace.contractAddress !==
+      prevProps.marketplace.contractAddress
+    ) {
+      this.props.getListings()
+    }
+  }
+
   render() {
     const { listings } = this.props.marketplace
 

@@ -60,9 +60,9 @@ export function loadWallet(external) {
 
       web3.setProvider(state.network.provider)
 
-      // wallet.load is expensive, so cache private keys in sessionStorage
-      if (window.sessionStorage.privateKeys) {
-        JSON.parse(window.sessionStorage.privateKeys).forEach(key =>
+      // wallet.load is expensive, so cache private keys in localStorage
+      if (window.localStorage.privateKeys) {
+        JSON.parse(window.localStorage.privateKeys).forEach(key =>
           web3.eth.accounts.wallet.add(key)
         )
       } else {
@@ -73,7 +73,7 @@ export function loadWallet(external) {
           accountKeys.push(wallet[k].privateKey)
         }
         if (accountKeys.length) {
-          window.sessionStorage.privateKeys = JSON.stringify(accountKeys)
+          window.localStorage.privateKeys = JSON.stringify(accountKeys)
         }
       }
 
@@ -210,7 +210,7 @@ export function UNSAFE_saveWallet() {
     var state = getState()
 
     try {
-      window.sessionStorage.privateKeys = JSON.stringify(
+      window.localStorage.privateKeys = JSON.stringify(
         state.wallet.accounts.map(a => state.wallet.raw[a].privateKey)
       )
       dispatch({ type: WalletConstants.UNSAFE_SAVE_SUCCESS })
@@ -221,7 +221,7 @@ export function UNSAFE_saveWallet() {
 }
 
 export function clearWallet() {
-  delete window.sessionStorage.privateKeys
+  delete window.localStorage.privateKeys
   web3.eth.accounts.wallet.clear()
   return { type: WalletConstants.CLEAR }
 }

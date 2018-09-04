@@ -4,8 +4,8 @@ import Providers from 'constants/Providers'
 
 const HOST = process.env.HOST || 'localhost'
 let ipfsGateway = 'https://gateway.originprotocol.com',
-  ipfsRPC = 'https://gateway.originprotocol.com',
-  provider = 'https://rinkeby.infura.io',
+  ipfsRPC = 'https://gateway.originprotocol.com:5002',
+  provider = 'https://eth-node.dapptix.com',
   browserProvider = false
 
 if (process.env.NODE_ENV !== 'production') {

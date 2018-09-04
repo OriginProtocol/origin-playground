@@ -2,6 +2,10 @@ const HOST = process.env.HOST || 'localhost'
 
 export default [
   {
+    name: 'Origin Test',
+    endpoints: [`https://eth-node.dapptix.com`]
+  },
+  {
     name: 'Localhost',
     endpoints: [`http://${HOST}:8545`, `ws://${HOST}:8545`]
   },

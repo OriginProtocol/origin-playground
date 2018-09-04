@@ -12,6 +12,12 @@
   </head>
   <body><div id="app"></div></body>
   <script src="vendor/web3.min.js"></script>
+  <script crossorigin src="vendor/openpgp.min.js"></script>
+  <script>
+    openpgp.config.show_comment = false
+    openpgp.config.show_version = false
+    openpgp.initWorker({ path: 'vendor/openpgp.worker.min.js' })
+  </script>
   <script crossorigin src="vendor.js"></script>
   <script crossorigin src="app.js"></script>
 </html>

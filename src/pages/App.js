@@ -79,7 +79,7 @@ class App extends Component {
                 </li>
                 <li className="nav-item">
                   <NavLink className="nav-link" to="/identity">
-                    Identity
+                    ERC725
                   </NavLink>
                 </li>
               </ul>
@@ -125,7 +125,13 @@ class App extends Component {
             <Route path="/console" component={Console} />
             <Route path="/identity" component={Identity} />
             <Route path="/marketplace" component={Selector} />
-            <Redirect from="/" to="/marketplace" />
+            <Route exact path="/" render={() => {
+              if (String(window.location.origin).indexOf('erc725') > 0) {
+                return <Redirect to="/identity" />
+              } else {
+                return <Redirect to="/marketplace" />
+              }
+            }}/>
           </Switch>
 
           <div className="footer">
@@ -141,7 +147,7 @@ class App extends Component {
               </a>
             </div>
             <div className="right">
-              <a href="https://github.com/OriginProtocol/identity-playground">
+              <a href="https://github.com/OriginProtocol/origin-playground">
                 <i className="fa fa-lg fa-github" />
               </a>
               <Versions />
@@ -181,6 +187,8 @@ require('react-styl')(`
       border-top: 0
     .btn-sm
       padding: 0.125rem 0.375rem
+    .tr-hover:hover > td
+      background-color: rgba(0,0,0,.075)
   .navbar
     border-bottom: 1px solid #E5E9EF;
   .navbar-light .navbar-text .dropdown-item.active,

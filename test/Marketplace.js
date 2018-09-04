@@ -28,6 +28,8 @@ Withdraw Listing
 `.split('\n')
 
 describe('Marketplace.sol', async function() {
+  const ZERO_ADDRESS = '0x0000000000000000000000000000000000000000'
+
   let accounts, deploy, web3
   let Marketplace,
     OriginToken,
@@ -504,5 +506,32 @@ describe('Marketplace.sol', async function() {
     //     Number(balanceBefore) + Number(web3.utils.toWei('0.1', 'ether'))
     //   )
     // })
+  })
+
+  describe('Ownership', function() {
+    it('should allow the contract owner to set the token address', async function() {
+      try {
+        await Marketplace.methods.setTokenAddr(ZERO_ADDRESS).send()
+        assert.equal(
+          await Marketplace.methods.tokenAddr().call(),
+          ZERO_ADDRESS)
+      } finally {
+        await Marketplace.methods.setTokenAddr(OriginToken._address).send()
+        assert.equal(
+          await Marketplace.methods.tokenAddr().call(),
+          OriginToken._address)
+      }
+    })
+
+    it('should not allow non-owners to set the token address', async function() {
+      try {
+        await Marketplace.methods.setTokenAddr(ZERO_ADDRESS).send({
+          from: Buyer
+        })
+        assert(false)
+      } catch (e) {
+        assert(e.message.match(/revert/))
+      }
+    })
   })
 })

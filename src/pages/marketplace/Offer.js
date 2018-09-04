@@ -85,6 +85,7 @@ class Offer extends Component {
       <>
         <tr
           style={{ cursor: 'pointer' }}
+          className={this.state.open ? '' : 'tr-hover'}
           onClick={() =>
             this.setState({ open: this.state.open ? false : true })
           }
@@ -235,8 +236,8 @@ class Offer extends Component {
               )
             }}
             onClose={() => this.setState({ partialRefund: null })}
-            response={this.props.marketplace.updateOfferRefundResponse}
-            error={this.props.marketplace.updateOfferRefundError}
+            response={this.props.marketplace.updateRefundResponse}
+            error={this.props.marketplace.updateRefundError}
           />
         )}
         {this.state.addFunds && (
