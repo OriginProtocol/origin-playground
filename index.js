@@ -49,7 +49,7 @@ const startGanache = () =>
   })
 
 async function start() {
-  // await startGanache()
+  await startGanache()
   const webpackDevServer = spawn('./node_modules/.bin/webpack-dev-server', [
     '--info=false',
     '--port=8082',
