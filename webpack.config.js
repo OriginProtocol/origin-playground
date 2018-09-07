@@ -28,7 +28,12 @@ var config = {
         test: /\.js$/,
         exclude: /node_modules/,
         loader: 'babel-loader'
-      }
+      },
+      {
+        test: /\.mjs$/,
+        include: /node_modules/,
+        type: "javascript/auto",
+      },
     ]
   },
   resolve: {

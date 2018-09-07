@@ -1,17 +1,17 @@
 import React from 'react'
 import ReactDOM from 'react-dom'
-import { Provider } from 'react-redux'
+import { ApolloProvider } from 'react-apollo'
 import { Route, HashRouter } from 'react-router-dom'
 
-import Store from './Store'
+import client from './graphql'
 import App from './pages/App'
 
 ReactDOM.render(
-  <Provider store={Store}>
+  <ApolloProvider client={client}>
     <HashRouter>
       <Route component={App} />
     </HashRouter>
-  </Provider>,
+  </ApolloProvider>,
   document.getElementById('app')
 )
 
