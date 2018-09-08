@@ -2,7 +2,7 @@ import React, { Component } from 'react'
 import { Mutation } from 'react-apollo'
 import gql from 'graphql-tag'
 import { Button } from '@blueprintjs/core'
-import fragments from '../../fragments'
+import fragments from '../../../fragments'
 
 import {
   Dialog,
@@ -10,28 +10,20 @@ import {
   InputGroup,
   ControlGroup,
   HTMLSelect,
-  Slider
+  Slider,
+  Callout
 } from '@blueprintjs/core'
 
-// mutation sendFromNode($from: String, $to: String, $value: String) {
-//   sendFromNode(from: $from, to: $to, value: $value) {
-//     fromAccount
-//     toAccount
-//   }
-// }
-// { "from": "0xBECf244F615D69AaE9648E4bB3f32161A87caFF1",
-//  "to": "0x25A7ACe6bD49f1dB57B11ae005EF40ae30195Ef6",
-//  "value": "1"}
-
-import query from './_query'
+import query from '../queries/_listings'
 
 const CreateListingMutation = gql`
   mutation CreateListing(
     $deposit: String
     $arbitrator: String
+    $from: String
     $data: NewListingInput
   ) {
-    createListing(deposit: $deposit, arbitrator: $arbitrator, data: $data) {
+    createListing(deposit: $deposit, arbitrator: $arbitrator, from: $from, data: $data) {
       ...basicListingFields
     }
   }
@@ -59,13 +51,22 @@ class CreateListing extends Component {
         update={this.onUpdate}
         onCompleted={this.props.onCompleted}
       >
-        {(createListing, { loading }) => (
+        {(createListing, { loading, error }) => (
           <Dialog
             title="Create Listing"
             isOpen={this.props.isOpen}
             onClose={this.props.onCompleted}
           >
             <div className="bp3-dialog-body">
+              {error && (
+                <Callout
+                  style={{ marginBottom: 15 }}
+                  intent="danger"
+                  icon="error"
+                >
+                  {error.toString()}
+                </Callout>
+              )}
               <div style={{ display: 'flex' }}>
                 <div style={{ flex: 1, marginRight: 20 }}>
                   <FormGroup label="Category">
@@ -113,16 +114,16 @@ class CreateListing extends Component {
                   </FormGroup>
                 </div>
                 <div style={{ flex: 1, padding: '0 5px' }}>
-                    <FormGroup label="Deposit" labelInfo="(OGN)">
-                      <Slider
-                        fill={true}
-                        min={0}
-                        max={10}
-                        stepSize={1}
-                        onChange={deposit => this.setState({ deposit })}
-                        value={this.state.deposit}
-                      />
-                    </FormGroup>
+                  <FormGroup label="Deposit" labelInfo="(OGN)">
+                    <Slider
+                      fill={true}
+                      min={0}
+                      max={10}
+                      stepSize={1}
+                      onChange={deposit => this.setState({ deposit })}
+                      value={this.state.deposit}
+                    />
+                  </FormGroup>
                 </div>
               </div>
             </div>
@@ -147,10 +148,12 @@ class CreateListing extends Component {
       variables: {
         deposit: String(this.state.deposit),
         arbitrator: this.state.arbitrator,
+        from: '0xf6Be8c79643f1937b4D63A1230e3195236F5EEe5',
         data: {
           title: this.state.title,
           price: this.state.price,
-          currencyId: this.state.currencyId
+          currencyId: this.state.currencyId,
+          category: this.state.category
         }
       }
     }

@@ -3,15 +3,18 @@ import { Mutation } from 'react-apollo'
 import gql from 'graphql-tag'
 import { Button } from '@blueprintjs/core'
 import { DateInput } from '@blueprintjs/datetime'
-import fragments from '../../fragments'
+import fragments from '../../../fragments'
 
 import {
   Dialog,
   FormGroup,
   InputGroup,
   HTMLSelect,
-  Tag
+  Tag,
+  Callout
 } from '@blueprintjs/core'
+
+import query from '../queries/_offers'
 
 const jsDateFormatter = {
   formatDate: date => date.toLocaleDateString(),
@@ -29,7 +32,6 @@ const jsDateFormatter = {
 //  "to": "0x25A7ACe6bD49f1dB57B11ae005EF40ae30195Ef6",
 //  "value": "1"}
 
-import query from './_offersQuery'
 
 const MakeOfferMutation = gql`
   mutation MakeOffer(
@@ -41,6 +43,7 @@ const MakeOfferMutation = gql`
     $currencyAddr: String
     $arbitrator: String
     $data: MakeOfferInput
+    $from: String
   ) {
     makeOffer(
       listingID: $listingID
@@ -51,6 +54,7 @@ const MakeOfferMutation = gql`
       currencyAddr: $currencyAddr
       arbitrator: $arbitrator
       data: $data
+      from: $from
     ) {
       ...basicOfferFields
     }
@@ -79,13 +83,22 @@ class CreateOffer extends Component {
         update={this.onUpdate}
         onCompleted={this.props.onCompleted}
       >
-        {(makeOffer, { loading }) => (
+        {(makeOffer, { loading, error }) => (
           <Dialog
             title="Make Offer"
             isOpen={this.props.isOpen}
             onClose={this.props.onCompleted}
           >
             <div className="bp3-dialog-body">
+              {error && (
+                <Callout
+                  style={{ marginBottom: 15 }}
+                  intent="danger"
+                  icon="error"
+                >
+                  {error.toString()}
+                </Callout>
+              )}
               <div style={{ display: 'flex' }}>
                 <div style={{ flex: 1, marginRight: 20 }}>
                   <FormGroup label="Amount">

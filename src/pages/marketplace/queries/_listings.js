@@ -1,5 +1,5 @@
 import gql from 'graphql-tag'
-import fragments from '../../fragments'
+import fragments from '../../../fragments'
 
 export default gql`
   query AllListings {

@@ -2,12 +2,12 @@ import React, { Component } from 'react'
 import { Query } from 'react-apollo'
 import { Link } from 'react-router-dom'
 
-import { Button } from '@blueprintjs/core'
+import { Button, NonIdealState, AnchorButton } from '@blueprintjs/core'
 
-import MakeOffer from './_MakeOffer'
+import MakeOffer from './mutations/_MakeOffer'
 import Offers from './_Offers'
 
-import query from './_offersQuery'
+import query from './queries/_offers'
 
 class Listing extends Component {
   state = {}
@@ -18,19 +18,39 @@ class Listing extends Component {
         {({ loading, error, data }) => {
           if (loading) return <p className="mt-3">Loading...</p>
           if (error) {
+            console.log(error)
+            console.log(query.loc.source.body)
             return <p className="mt-3">Error :(</p>
+          }
+
+          const listing = data.marketplace.getListing
+          const listingData = listing.ipfs || {}
+
+          if (!listing) {
+            return (
+              <div style={{ maxWidth: 500, marginTop: 50 }}>
+                <NonIdealState
+                  icon="help"
+                  title="Listing not found"
+                  action={
+                    <AnchorButton href="#/marketplace" icon="arrow-left">
+                      Back to Listings
+                    </AnchorButton>
+                  }
+                />
+              </div>
+            )
           }
 
           return (
             <>
-              {this.renderBreadcrumbs(data.marketplace.getListing)}
-              {data.marketplace.getListing && (
-                <Offers
-                  listingId={listingId}
-                  offers={data.marketplace.getListing.offers}
-                />
-              )}
-              <pre>{JSON.stringify(data, null, 4)}</pre>
+              {this.renderBreadcrumbs(listing)}
+              <h3 className="bp3-heading mt-3">{listingData.title}</h3>
+              <Offers
+                listingId={listingId}
+                offers={data.marketplace.getListing.offers}
+              />
+              {/* <pre>{JSON.stringify(data, null, 4)}</pre> */}
               <MakeOffer
                 {...this.state}
                 listingId={listingId}

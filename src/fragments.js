@@ -22,6 +22,7 @@ export default {
         }
         deposit
         ipfs {
+          category
           title
           currencyId
           price
@@ -37,6 +38,7 @@ export default {
         value
         currency
         commission
+        status
         affiliate {
           id
         }

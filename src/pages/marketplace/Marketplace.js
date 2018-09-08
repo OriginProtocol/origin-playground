@@ -4,9 +4,9 @@ import { Query } from 'react-apollo'
 import { Button } from '@blueprintjs/core'
 
 import Listings from './_Listings'
-import CreateListing from './_CreateListing'
+import CreateListing from './mutations/_CreateListing'
 
-import query from './_query'
+import query from './queries/_listings'
 
 class Marketplace extends Component {
   state = {}

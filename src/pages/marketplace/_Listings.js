@@ -11,6 +11,7 @@ const Listings = ({ data, history }) => {
       <thead>
         <tr>
           <th>ID</th>
+          <th>Category</th>
           <th>Title</th>
           <th>Price</th>
           <th>Deposit</th>
@@ -24,11 +25,12 @@ const Listings = ({ data, history }) => {
             onClick={() => history.push(`/marketplace/listings/${a.id}`)}
           >
             <td>{a.id}</td>
+            <td>{a.ipfs ? a.ipfs.category : ''}</td>
             <td>{a.ipfs ? a.ipfs.title : ''}</td>
             <td>
               {a.ipfs ? `${a.ipfs.price} ${a.ipfs.currencyId || ''}` : ''}
             </td>
-            <td>{a.deposit}</td>
+            <td>{`${a.deposit} OGN`}</td>
             <td>{a.seller.id.substr(0, 6)}</td>
           </tr>
         ))}

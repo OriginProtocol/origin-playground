@@ -20,7 +20,10 @@ import sendFromNode from './mutations/sendFromNode'
 import deployToken from './mutations/deployToken'
 import createListing from './mutations/createListing'
 import makeOffer from './mutations/makeOffer'
+import acceptOffer from './mutations/acceptOffer'
+import finalizeOffer from './mutations/finalizeOffer'
 import deployMarketplace from './mutations/deployMarketplace'
+import setActiveWallet from './mutations/setActiveWallet'
 
 import getListing from './resolvers/getListing'
 
@@ -53,10 +56,18 @@ const typeDefs = `
   type Mutation {
     deployToken(name: String!, symbol: String!, decimals: String!, supply: String!): String
     deployMarketplace(token: String!): String
+
     sendFromNode(from: String!, to: String!, value: String!): SendFromNodeOutput
+    setActiveWallet(address: String!): Account
     createWallet: Account
     removeWallet(address: String!): String
-    createListing(deposit: String!, arbitrator: String, data: NewListingInput): Listing
+
+    createListing(
+      deposit: String!,
+      arbitrator: String,
+      from: String,
+      data: NewListingInput
+    ): Listing
     makeOffer(
       listingID: String,
       finalizes: String,
@@ -64,8 +75,12 @@ const typeDefs = `
       commission: String,
       value: String,
       currencyAddr: String,
-      arbitrator: String
+      arbitrator: String,
+      from: String
     ): Offer
+    acceptOffer(listingID: String!, offerID: String!): Offer
+    withdrawOffer(listingID: String!, offerID: String!): Offer
+    finalizeOffer(listingID: String!, offerID: String!): Offer
   }
 
   type Web3 {
@@ -114,6 +129,7 @@ const typeDefs = `
     title: String
     currencyId: String
     price: String
+    category: String
   }
   type Offer {
     id: Int!
@@ -134,6 +150,7 @@ const typeDefs = `
   input NewListingInput {
     title: String!
     currencyId: String
+    category: String
     price: String
   }
   input MakeOfferInput {
@@ -165,12 +182,14 @@ const resolvers = {
     deployToken,
     deployMarketplace,
     createListing,
-    makeOffer
+    makeOffer,
+    acceptOffer,
+    finalizeOffer,
+    setActiveWallet
   },
   Web3: web3Resolvers,
   Account: {
     balance: async (account, args, context) => {
-      console.log('GB')
       const wei = await web3.eth.getBalance(account.id)
       return balancesFromWei(wei, context)
     }

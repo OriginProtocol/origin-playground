@@ -54,3 +54,12 @@ const App = () => (
 )
 
 export default App
+
+require('react-styl')(`
+  .text-center
+    text-align: center
+  .mt-3
+    margin-top: 1rem
+  .mt-2
+    margin-top: 0.5rem
+`)

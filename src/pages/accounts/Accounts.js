@@ -6,7 +6,6 @@ import WalletAccounts from './_WalletAccounts'
 import CreateWallet from './_CreateWallet'
 
 import query from './_query'
-window.q = query
 
 class Accounts extends Component {
   render() {

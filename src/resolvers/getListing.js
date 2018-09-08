@@ -1,6 +1,11 @@
 
 export default async (contract, args) => {
-  const listing = await contract.methods.listings(args.idx).call()
+  let listing
+  try {
+    listing = await contract.methods.listings(args.idx).call()
+  } catch(e) {
+    return null
+  }
   let ipfsHash
   const events = await contract.getPastEvents('ListingCreated', {
     fromBlock: 0,
