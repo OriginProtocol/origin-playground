@@ -59,7 +59,7 @@ const typeDefs = `
 
     sendFromNode(from: String!, to: String!, value: String!): SendFromNodeOutput
     setActiveWallet(address: String!): Account
-    createWallet: Account
+    createWallet(role: String): Account
     removeWallet(address: String!): String
 
     createListing(
@@ -96,6 +96,7 @@ const typeDefs = `
   type Account {
     id: String!
     balance: Balance
+    role: String
   }
   type Balance {
     wei: String
@@ -192,6 +193,13 @@ const resolvers = {
     balance: async (account, args, context) => {
       const wei = await web3.eth.getBalance(account.id)
       return balancesFromWei(wei, context)
+    },
+    role: (account) => {
+      let roles = {}
+      try {
+        roles = JSON.parse(window.localStorage.accountRoles)
+      } catch(e) { /* Ignore */ }
+      return roles[account.id]
     }
   },
   Marketplace: MarketplaceResolvers,

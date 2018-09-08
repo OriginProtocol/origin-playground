@@ -31,13 +31,18 @@ const CreateListingMutation = gql`
 `
 
 class CreateListing extends Component {
-  state = {
-    title: 'Cool Bike',
-    currencyId: 'DAI',
-    price: '100',
-    arbitrator: '0xBECf244F615D69AaE9648E4bB3f32161A87caFF1',
-    deposit: 0,
-    category: 'For Sale'
+
+  constructor(props) {
+    super()
+    this.state = {
+      title: 'Cool Bike',
+      currencyId: 'DAI',
+      price: '100',
+      arbitrator: props.arbitrator ? props.arbitrator.id : '',
+      from: props.seller ? props.seller.id : '',
+      deposit: 0,
+      category: 'For Sale'
+    }
   }
 
   render() {
@@ -148,7 +153,7 @@ class CreateListing extends Component {
       variables: {
         deposit: String(this.state.deposit),
         arbitrator: this.state.arbitrator,
-        from: '0xf6Be8c79643f1937b4D63A1230e3195236F5EEe5',
+        from: this.state.from,
         data: {
           title: this.state.title,
           price: this.state.price,

@@ -11,9 +11,14 @@ export default (_, args, context) => {
     .map(idx => web3.eth.accounts.wallet[idx].address)
     .find(id => existing.indexOf(id) < 0)
 
-  let privateKeys = []
+  let privateKeys = [], roles = {}
   try {
     privateKeys = JSON.parse(window.localStorage.privateKeys)
+  } catch (e) {
+    /* Ignore */
+  }
+  try {
+    roles = JSON.parse(window.localStorage.accountRoles)
   } catch (e) {
     /* Ignore */
   }
@@ -21,9 +26,13 @@ export default (_, args, context) => {
     ...privateKeys,
     wallet[id].privateKey
   ])
+  window.localStorage.accountRoles = JSON.stringify({
+    ...roles, [id]: args.role
+  })
   web3.eth.defaultAccount = window.localStorage.defaultAccount = id
   return {
     id,
+    role: args.role,
     balance: balancesFromWei(id, context)
   }
 }

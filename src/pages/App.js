@@ -7,10 +7,10 @@ import Marketplace from './marketplace/Marketplace'
 import Listing from './marketplace/Listing'
 import Contracts from './contracts/Contracts'
 
-import AccountChooser from './_AccountChooser'
+import AccountChooser from './accounts/_Chooser'
 
 const App = () => (
-  <div className="mt-3">
+  <>
     <Navbar>
       <Navbar.Group>
         <Navbar.Heading>Origin GraphQL Playground</Navbar.Heading>
@@ -41,7 +41,7 @@ const App = () => (
         <AccountChooser />
       </Navbar.Group>
     </Navbar>
-    <div style={{ padding: '1rem' }}>
+    <div className="p-3">
       <Switch>
         <Route path="/accounts" component={Accounts} />
         <Route path="/marketplace/listings/:listingID" component={Listing} />
@@ -50,7 +50,7 @@ const App = () => (
         <Redirect from="/" to="/accounts" />
       </Switch>
     </div>
-  </div>
+  </>
 )
 
 export default App
@@ -58,8 +58,12 @@ export default App
 require('react-styl')(`
   .text-center
     text-align: center
+  .p-3
+    padding: 1rem
   .mt-3
     margin-top: 1rem
   .mt-2
     margin-top: 0.5rem
+  .mb-3
+    margin-bottom: 1rem
 `)

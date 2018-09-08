@@ -19,9 +19,9 @@ class Accounts extends Component {
 
           return (
             <>
-              <NodeAccounts data={data.web3.nodeAccounts} />
+            <CreateWallet />
               <WalletAccounts data={data.web3} />
-              <CreateWallet />
+              <NodeAccounts data={data.web3.nodeAccounts} />
             </>
           )
         }}

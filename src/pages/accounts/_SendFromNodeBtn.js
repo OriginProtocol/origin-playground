@@ -32,9 +32,9 @@ const SendFromNode = gql`
 const SendFromNodeBtn = ({ from, to, value }) => (
   <Mutation mutation={SendFromNode}>
     {(sendFromNode, { loading }) => (
-      <Tooltip content="Fund with 0.5 ETH" hoverOpenDelay={1000}>
+      <Tooltip content="Fund with 0.5 ETH">
         <Button
-          icon="bank-account"
+          icon="dollar"
           loading={loading}
           onClick={() => sendFromNode({ variables: { from, to, value } })}
         />

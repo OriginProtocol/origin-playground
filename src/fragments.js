@@ -5,6 +5,7 @@ export default {
     balance: gql`
       fragment balanceFields on Account {
         id
+        role
         balance {
           eth
           usd
