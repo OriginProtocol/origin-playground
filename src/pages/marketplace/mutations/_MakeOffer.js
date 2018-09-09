@@ -40,7 +40,7 @@ const MakeOfferMutation = gql`
     $affiliate: String
     $commission: String
     $value: String
-    $currencyAddr: String
+    $currency: String
     $arbitrator: String
     $data: MakeOfferInput
     $from: String
@@ -51,7 +51,7 @@ const MakeOfferMutation = gql`
       affiliate: $affiliate
       commission: $commission
       value: $value
-      currencyAddr: $currencyAddr
+      currency: $currency
       arbitrator: $arbitrator
       data: $data
       from: $from
@@ -68,7 +68,7 @@ class CreateOffer extends Component {
     affiliate: '0x7c38A2934323aAa8dAda876Cfc147C8af40F8D0e',
     commission: '0',
     value: '0.1',
-    currencyAddr: '0x0000000000000000000000000000000000000000',
+    currency: '0x0000000000000000000000000000000000000000',
     arbitrator: '0x7c38A2934323aAa8dAda876Cfc147C8af40F8D0e'
   }
 
@@ -172,7 +172,7 @@ class CreateOffer extends Component {
         affiliate: '0x7c38A2934323aAa8dAda876Cfc147C8af40F8D0e',
         commission: this.state.commission,
         value: web3.utils.toWei(this.state.value, 'ether'),
-        currencyAddr: '0x0000000000000000000000000000000000000000',
+        currency: '0x0000000000000000000000000000000000000000',
         arbitrator: '0x7c38A2934323aAa8dAda876Cfc147C8af40F8D0e'
       }
     }

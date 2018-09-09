@@ -27,6 +27,7 @@ export default async (contract, args) => {
 
   return {
     id: args.idx,
+    listingId: args.listingId,
     ipfsHash,
     contract,
     value: offer.value,

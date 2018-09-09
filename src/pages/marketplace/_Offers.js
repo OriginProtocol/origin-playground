@@ -1,21 +1,22 @@
 import React, { Component } from 'react'
 import { withRouter } from 'react-router'
 
-import { Button, Tooltip, Tag } from '@blueprintjs/core'
+import { Button, Tooltip, Tag, Icon } from '@blueprintjs/core'
 
 import AcceptOffer from './mutations/_AcceptOffer'
 import FinalizeOffer from './mutations/_FinalizeOffer'
+import { AccountButton } from '../accounts/_SetWalletMutation'
 
 const Offers = ({ listingId, offers }) => (
-  <table className="bp3-html-table bp3-small bp3-interactive mt-3">
+  <table className="bp3-html-table bp3-small mt-3">
     <thead>
       <tr>
         <th>ID</th>
+        <th>Status</th>
         <th>Offer</th>
         <th>Buyer</th>
-        <th>C&apos;mn</th>
-        <th>Affiliate</th>
-        <th>Status</th>
+        <th>Commission</th>
+        <th>Arbitrator</th>
         <th style={{ borderLeft: '1px solid rgba(16, 22, 26, 0.15)' }}>
           Buyer
         </th>
@@ -37,15 +38,29 @@ class OfferRow extends Component {
 
   render() {
     const { offer, listingId } = this.props
+    if (offer.status === 4) {
+      return this.renderInactiveRow()
+    }
     return (
       <>
-        <tr>
+        <tr className="vm">
           <td>{offer.id}</td>
-          <td>{price(offer)}</td>
-          <td>{offer.buyer ? offer.buyer.id.substr(0, 6) : null}</td>
-          <td>{offer.commission} OGN</td>
-          <td>{offer.affiliate ? offer.affiliate.id.substr(0, 6) : null}</td>
           <td>{status(offer)}</td>
+          <td>{price(offer)}</td>
+          <td>
+            <AccountButton account={offer.buyer} />
+          </td>
+          <td>
+            {offer.commission} OGN{' '}
+            <Icon
+              style={{ verticalAlign: '-0.2rem', margin: '0 0.1rem' }}
+              icon="arrow-right"
+            />{' '}
+            <AccountButton account={offer.affiliate} />
+          </td>
+          <td>
+            <AccountButton account={offer.arbitrator} />
+          </td>
           <td style={{ borderLeft: '1px solid rgba(16, 22, 26, 0.15)' }}>
             {this.renderBuyerActions(offer)}
           </td>
@@ -72,6 +87,35 @@ class OfferRow extends Component {
           onCompleted={() => this.setState({ finalizeOffer: false })}
         />
       </>
+    )
+  }
+
+  renderInactiveRow() {
+    const { offer } = this.props
+    const offerData = offer.ipfs || {}
+    return (
+      <tr className="vm">
+        <td>{offer.id}</td>
+        <td>{status(offer)}</td>
+        <td>{price(offerData)}</td>
+        <td><AccountButton account={offerData.buyer} /></td>
+        <td>
+          {offerData.commission} OGN{' '}
+          <Icon
+            style={{ verticalAlign: '-0.2rem', margin: '0 0.1rem' }}
+            icon="arrow-right"
+          /><AccountButton account={offerData.affiliate} />
+        </td>
+        <td><AccountButton account={offerData.arbitrator} /></td>
+        <td style={{ borderLeft: '1px solid rgba(16, 22, 26, 0.15)' }}/>
+        <td />
+        <td />
+        <td>
+          <Tooltip content="Add Data">
+            <Button icon="comment" />
+          </Tooltip>
+        </td>
+      </tr>
     )
   }
 

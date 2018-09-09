@@ -13,6 +13,7 @@ import Marketplace from './contracts/Marketplace'
 import web3Resolvers from './resolvers/Web3'
 import MarketplaceResolvers from './resolvers/Marketplace'
 import ListingResolvers from './resolvers/Listing'
+import OfferResolvers from './resolvers/Offer'
 
 import createWallet from './mutations/createWallet'
 import removeWallet from './mutations/removeWallet'
@@ -24,8 +25,6 @@ import acceptOffer from './mutations/acceptOffer'
 import finalizeOffer from './mutations/finalizeOffer'
 import deployMarketplace from './mutations/deployMarketplace'
 import setActiveWallet from './mutations/setActiveWallet'
-
-import getListing from './resolvers/getListing'
 
 const HOST = process.env.HOST || 'localhost'
 let provider = 'https://eth-node.dapptix.com'
@@ -74,7 +73,7 @@ const typeDefs = `
       affiliate: String,
       commission: String,
       value: String,
-      currencyAddr: String,
+      currency: String,
       arbitrator: String,
       from: String
     ): Offer
@@ -146,6 +145,16 @@ const typeDefs = `
     finalizes: Int
     status: Int
     ipfsHash: String
+    ipfs: OfferData
+  }
+  type OfferData {
+    buyer: String
+    finalizes: String
+    affiliate: String
+    commission: String
+    value: String
+    currency: String
+    arbitrator: String
   }
 
   input NewListingInput {
@@ -155,7 +164,7 @@ const typeDefs = `
     price: String
   }
   input MakeOfferInput {
-    currencyId: String
+    currency: String
   }
 `
 
@@ -204,9 +213,7 @@ const resolvers = {
   },
   Marketplace: MarketplaceResolvers,
   Listing: ListingResolvers,
-  Offer: {
-    listing: offer => getListing(offer.contract, { idx: offer.listingId })
-  }
+  Offer: OfferResolvers
 }
 
 const schema = makeExecutableSchema({

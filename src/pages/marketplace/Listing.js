@@ -6,6 +6,7 @@ import { Button, NonIdealState, AnchorButton } from '@blueprintjs/core'
 
 import MakeOffer from './mutations/_MakeOffer'
 import Offers from './_Offers'
+import { AccountButton } from '../accounts/_SetWalletMutation'
 
 import query from './queries/_offers'
 
@@ -46,6 +47,12 @@ class Listing extends Component {
             <>
               {this.renderBreadcrumbs(listing)}
               <h3 className="bp3-heading mt-3">{listingData.title}</h3>
+              <div>
+                <div>
+                  {`${listingData.category} by `}
+                  <AccountButton account={listing.seller} />
+                </div>
+              </div>
               <Offers
                 listingId={listingId}
                 offers={data.marketplace.getListing.offers}

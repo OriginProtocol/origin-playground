@@ -35,16 +35,30 @@ export default {
     basic: gql`
       fragment basicOfferFields on Offer {
         id
+        listingId
         ipfsHash
         value
         currency
         commission
         status
+        arbitrator {
+          id
+        }
         affiliate {
           id
         }
         buyer {
           id
+        }
+
+        ipfs {
+          buyer
+          finalizes
+          affiliate
+          commission
+          value
+          currency
+          arbitrator
         }
       }
     `

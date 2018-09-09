@@ -12,7 +12,7 @@ const NodeAccounts = ({ data }) =>
     <tbody>
       {data.map(a => (
         <tr key={a.id}>
-          <td>{a.id}</td>
+          <td>{a.id.substr(0, 6)}</td>
           <td>{a.balance.eth}</td>
           <td>{a.balance.usd}</td>
         </tr>
