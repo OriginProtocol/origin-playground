@@ -25,6 +25,7 @@ export default {
   },
   token: async (account, args, context) => {
     if (args.symbol === 'OGN') {
+      if (!context.contracts.ogn) return null
       const balance = await context.contracts.ogn.methods
         .balanceOf(account.id)
         .call()

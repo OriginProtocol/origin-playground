@@ -22,12 +22,15 @@ class AccountButton extends Component {
       <span>
         <Query query={query}>
           {({ loading, error, data }) =>
-            !loading && !error && data.web3.defaultAccount ? (
+            !loading && !error ? (
               <SetWalletMutation>
                 {setActiveWallet => (
                   <Button
                     small={true}
-                    active={data.web3.defaultAccount.id === accountId}
+                    active={
+                      data.web3.defaultAccount &&
+                      data.web3.defaultAccount.id === accountId
+                    }
                     disabled={!data.web3.accounts.find(a => a.id === accountId)}
                     onClick={() =>
                       setActiveWallet({ variables: { address: accountId } })
@@ -37,7 +40,9 @@ class AccountButton extends Component {
                   </Button>
                 )}
               </SetWalletMutation>
-            ) : null
+            ) : (
+              accountId.substr(0, 6)
+            )
           }
         </Query>
       </span>

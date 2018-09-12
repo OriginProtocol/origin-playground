@@ -1,19 +1,10 @@
 import React, { Component } from 'react'
 import { Mutation } from 'react-apollo'
-import gql from 'graphql-tag'
 import { Button, ControlGroup, HTMLSelect, InputGroup } from '@blueprintjs/core'
 
-import fragments from '../../fragments'
 import query from './_query'
 
-const CreateWallet = gql`
-  mutation CreateWallet($role: String, $name: String) {
-    createWallet(role: $role, name: $name) {
-      ...balanceFields
-    }
-  }
-  ${fragments.Account.balance}
-`
+import { CreateWalletMutation } from '../../mutations/_queries'
 
 class CreateWalletBtn extends Component {
   state = {
@@ -27,15 +18,17 @@ class CreateWalletBtn extends Component {
     })
     return (
       <Mutation
-        mutation={CreateWallet}
+        mutation={CreateWalletMutation}
         update={(cache, { data }) => {
           const res = cache.readQuery({ query })
+          const accounts = res.web3.accounts || []
+          console.log(data.createWallet)
           cache.writeQuery({
             query,
             data: {
               web3: {
                 ...res.web3,
-                accounts: res.web3.accounts.concat([data.createWallet])
+                accounts: [...accounts, data.createWallet]
               }
             }
           })

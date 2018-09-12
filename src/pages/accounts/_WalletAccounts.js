@@ -103,8 +103,8 @@ const WalletAccounts = ({
       <thead>
         <tr>
           <th>Wallet</th>
-          <th>Name</th>
           <th>Role</th>
+          <th>Name</th>
           <th>Eth</th>
           <th>USD</th>
           <th>OGN</th>
@@ -117,8 +117,8 @@ const WalletAccounts = ({
             <td>
               <AccountButton account={a} />
             </td>
-            <td>{a.name}</td>
             <td>{a.role}</td>
+            <td>{a.name}</td>
             <td>{a.balance.eth}</td>
             <td>{a.balance.usd}</td>
             <td>
@@ -135,7 +135,7 @@ const WalletAccounts = ({
             <td>
               <SendFromNodeBtn from={randomAccount} to={a.id} value="0.5" />
               <RemoveWalletBtn address={a.id} />
-              {defaultAccount.id === a.id ? (
+              {defaultAccount && defaultAccount.id === a.id ? (
                 <Icon
                   icon="tick-circle"
                   intent="success"

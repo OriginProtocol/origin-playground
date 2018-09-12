@@ -1,9 +1,8 @@
 import React from 'react'
 import { Mutation } from 'react-apollo'
-import gql from 'graphql-tag'
 import { Button, Tooltip } from '@blueprintjs/core'
 
-import fragments from '../../fragments'
+import { SendFromNodeMutation } from '../../mutations/_queries'
 
 // mutation sendFromNode($from: String, $to: String, $value: String) {
 //   sendFromNode(from: $from, to: $to, value: $value) {
@@ -15,22 +14,8 @@ import fragments from '../../fragments'
 //  "to": "0x25A7ACe6bD49f1dB57B11ae005EF40ae30195Ef6",
 //  "value": "1"}
 
-const SendFromNode = gql`
-  mutation SendFromNode($from: String, $to: String, $value: String) {
-    sendFromNode(from: $from, to: $to, value: $value) {
-      toAccount {
-        ...balanceFields
-      }
-      fromAccount {
-        ...balanceFields
-      }
-    }
-  }
-  ${fragments.Account.balance}
-`
-
 const SendFromNodeBtn = ({ from, to, value }) => (
-  <Mutation mutation={SendFromNode}>
+  <Mutation mutation={SendFromNodeMutation}>
     {(sendFromNode, { loading }) => (
       <Tooltip content="Fund with 0.5 ETH">
         <Button

@@ -29,18 +29,6 @@ import addFunds from './mutations/addFunds'
 import deployMarketplace from './mutations/deployMarketplace'
 import setActiveWallet from './mutations/setActiveWallet'
 
-const HOST = process.env.HOST || 'localhost'
-let provider = 'https://eth-node.dapptix.com'
-
-if (process.env.NODE_ENV !== 'production') {
-  provider = `http://${HOST}:8545`
-}
-
-if (typeof window !== 'undefined') {
-  provider = window.sessionStorage.provider || provider
-  window.web3 = new Web3(provider)
-}
-
 const contracts = require('./_contracts').default
 
 if (window.sessionStorage.privateKeys) {
@@ -252,6 +240,7 @@ const resolvers = {
         if (contract === 'marketplace') {
           contract = localStorage.marketplaceContract
         }
+        if (!context.contracts.ogn) return null
         const balance = await context.contracts.ogn.methods
           .allowance(token.account, contract)
           .call()

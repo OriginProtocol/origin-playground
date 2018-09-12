@@ -1,6 +1,5 @@
 import React, { Component } from 'react'
 import { Mutation } from 'react-apollo'
-import gql from 'graphql-tag'
 import { Button } from '@blueprintjs/core'
 
 import { Dialog, FormGroup, InputGroup } from '@blueprintjs/core'
@@ -17,21 +16,7 @@ import { Dialog, FormGroup, InputGroup } from '@blueprintjs/core'
 
 // import query from './_query'
 
-const DeployTokenMutation = gql`
-  mutation DeployToken(
-    $name: String
-    $symbol: String
-    $decimals: String
-    $supply: String
-  ) {
-    deployToken(
-      name: $name
-      symbol: $symbol
-      decimals: $decimals
-      supply: $supply
-    )
-  }
-`
+import { DeployTokenMutation } from '../../mutations/_queries'
 
 class DeployToken extends Component {
   state = {

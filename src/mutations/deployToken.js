@@ -1,5 +1,5 @@
 import Token from '../contracts/Token'
-
+import { resetContracts } from '../_contracts'
 /*
 mutation deployToken($name: String, $symbol: String, $decimals: Int, $supply: String) {
   deployToken(name: $name, symbol: $symbol, decimals: $decimals, supply: $supply)
@@ -25,6 +25,7 @@ async function deployToken(_, { name, symbol, decimals, supply }) {
     .on('confirmation', (confirmations, receipt) => {
       if (confirmations === 1) {
         window.localStorage[`${symbol}Contract`] = receipt.contractAddress
+        resetContracts()
         resolve(receipt.contractAddress)
       }
     })
