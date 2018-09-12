@@ -28,16 +28,16 @@ export default async (contract, args) => {
   return {
     id: args.idx,
     listingId: args.listingId,
-    ipfsHash,
+    status,
     contract,
     value: offer.value,
     commission: offer.commission,
-    refund: offer.refunt,
+    refund: offer.refund,
     currency: offer.currency,
+    finalizes: offer.finalizes,
+    ipfs: { id: ipfsHash },
     buyer: { id: offer.buyer },
     affiliate: { id: offer.affiliate },
     arbitrator: { id: offer.arbitrator },
-    finalizes: offer.finalizes,
-    status
   }
 }

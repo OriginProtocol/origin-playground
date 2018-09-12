@@ -7,7 +7,7 @@ import SetWalletMutation from './_SetWalletMutation'
 import query from './_query'
 
 function accountTxt(acct) {
-  return `${acct.id.substr(0, 6)}: ${acct.balance.eth} ETH${
+  return `${acct.name ? `${acct.name} ` : ''}${acct.id.substr(0, 6)} ${acct.balance.eth} ETH${
     acct.role ? ` (${acct.role})` : ''
   }`
 }
@@ -17,7 +17,7 @@ const AccountChooser = () => (
     {setActiveWallet => (
       <Query query={query}>
         {({ loading, error, data }) => {
-          if (loading || error || !data.web3.defaultAccount) return null
+          if (loading || error || !data.web3 || !data.web3.defaultAccount) return null
 
           const acct = data.web3.defaultAccount
 

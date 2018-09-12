@@ -66,7 +66,7 @@ class CreateOffer extends Component {
   state = {
     finalizes: new Date(+new Date() + 1000 * 60 * 60 * 24 * 3),
     affiliate: '0x7c38A2934323aAa8dAda876Cfc147C8af40F8D0e',
-    commission: '0',
+    commission: '2',
     value: '0.1',
     currency: '0x0000000000000000000000000000000000000000',
     arbitrator: '0x7c38A2934323aAa8dAda876Cfc147C8af40F8D0e'
@@ -141,8 +141,6 @@ class CreateOffer extends Component {
                         value: this.state.finalizes,
                         onChange: finalizes => this.setState({ finalizes })
                       }}
-                      // onChange={this.handleDateChange}
-                      // popoverProps={{ position: Position.BOTTOM }}
                     />
                   </FormGroup>
                 </div>

@@ -9,12 +9,6 @@ export default gql`
         ...basicListingFields
       }
     }
-    web3 {
-      accounts {
-        ...balanceFields
-      }
-    }
   }
   ${fragments.Listing.basic}
-  ${fragments.Account.balance}
 `

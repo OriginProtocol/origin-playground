@@ -3,15 +3,6 @@ import { get } from 'utils/ipfsHash'
 import getOffer from './getOffer'
 
 export default {
-  ipfsHash: async listing => {
-    const events = await listing.contract.getPastEvents('ListingCreated', {
-      // fromBlock: 0,
-      filter: { listingID: listing.id }
-    })
-    if (events.length) {
-      return events[0].returnValues.ipfsHash
-    }
-  },
   ipfs: async listing => {
     const events = await listing.contract.getPastEvents('ListingCreated', {
       fromBlock: 0,
@@ -25,7 +16,7 @@ export default {
       } catch (e) {
         return null
       }
-      return data
+      return { ...data, id: hash }
     }
   },
   totalOffers: listing => {

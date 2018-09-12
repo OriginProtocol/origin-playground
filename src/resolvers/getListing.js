@@ -17,7 +17,7 @@ export default async (contract, args) => {
 
   return {
     id: args.idx,
-    ipfsHash,
+    ipfs: { id: ipfsHash },
     deposit: listing.deposit,
     arbitrator: { id: listing.arbitrator },
     seller: { id: listing.seller },

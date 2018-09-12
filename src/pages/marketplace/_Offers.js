@@ -5,7 +5,9 @@ import { Button, Tooltip, Tag, Icon } from '@blueprintjs/core'
 
 import AcceptOffer from './mutations/_AcceptOffer'
 import FinalizeOffer from './mutations/_FinalizeOffer'
-import { AccountButton } from '../accounts/_SetWalletMutation'
+import WithdrawOffer from './mutations/_WithdrawOffer'
+import AddFunds from './mutations/_AddFunds'
+import AccountButton from '../accounts/AccountButton'
 
 const Offers = ({ listingId, offers }) => (
   <table className="bp3-html-table bp3-small mt-3">
@@ -38,7 +40,7 @@ class OfferRow extends Component {
 
   render() {
     const { offer, listingId } = this.props
-    if (offer.status === 4) {
+    if (offer.status === 4 || offer.status === 0) {
       return this.renderInactiveRow()
     }
     return (
@@ -51,12 +53,16 @@ class OfferRow extends Component {
             <AccountButton account={offer.buyer} />
           </td>
           <td>
-            {offer.commission} OGN{' '}
-            <Icon
-              style={{ verticalAlign: '-0.2rem', margin: '0 0.1rem' }}
-              icon="arrow-right"
-            />{' '}
-            <AccountButton account={offer.affiliate} />
+            {offer.commission && offer.commission !== '0' ? (
+              <>
+                {`${offer.commission} OGN`}
+                <Icon
+                  style={{ verticalAlign: '-0.2rem', margin: '0 0.2rem' }}
+                  icon="arrow-right"
+                />
+                <AccountButton account={offer.affiliate} />
+              </>
+            ) : null}
           </td>
           <td>
             <AccountButton account={offer.arbitrator} />
@@ -73,18 +79,33 @@ class OfferRow extends Component {
           </td>
         </tr>
 
-        <AcceptOffer
-          isOpen={this.state.acceptOffer}
-          listingId={listingId}
-          offerId={offer.id}
-          onCompleted={() => this.setState({ acceptOffer: false })}
-        />
+        {this.state.acceptOffer && (
+          <AcceptOffer
+            listingId={listingId}
+            offerId={offer.id}
+            onCompleted={() => this.setState({ acceptOffer: false })}
+          />
+        )}
 
         <FinalizeOffer
           isOpen={this.state.finalizeOffer}
           listingId={listingId}
           offerId={offer.id}
           onCompleted={() => this.setState({ finalizeOffer: false })}
+        />
+
+        <WithdrawOffer
+          isOpen={this.state.withdrawOffer}
+          listingId={listingId}
+          offerId={offer.id}
+          onCompleted={() => this.setState({ withdrawOffer: false })}
+        />
+
+        <AddFunds
+          isOpen={this.state.addFunds}
+          listingId={listingId}
+          offerId={offer.id}
+          onCompleted={() => this.setState({ addFunds: false })}
         />
       </>
     )
@@ -98,16 +119,25 @@ class OfferRow extends Component {
         <td>{offer.id}</td>
         <td>{status(offer)}</td>
         <td>{price(offerData)}</td>
-        <td><AccountButton account={offerData.buyer} /></td>
         <td>
-          {offerData.commission} OGN{' '}
-          <Icon
-            style={{ verticalAlign: '-0.2rem', margin: '0 0.1rem' }}
-            icon="arrow-right"
-          /><AccountButton account={offerData.affiliate} />
+          <AccountButton account={offerData.buyer} />
         </td>
-        <td><AccountButton account={offerData.arbitrator} /></td>
-        <td style={{ borderLeft: '1px solid rgba(16, 22, 26, 0.15)' }}/>
+        <td>
+          {offer.commission && offer.commission !== '0' ? (
+            <>
+              {`${offer.commission} OGN`}
+              <Icon
+                style={{ verticalAlign: '-0.2rem', margin: '0 0.2rem' }}
+                icon="arrow-right"
+              />
+              <AccountButton account={offerData.affiliate} />
+            </>
+          ) : null}
+        </td>
+        <td>
+          <AccountButton account={offerData.arbitrator} />
+        </td>
+        <td style={{ borderLeft: '1px solid rgba(16, 22, 26, 0.15)' }} />
         <td />
         <td />
         <td>
@@ -127,7 +157,11 @@ class OfferRow extends Component {
             <Button icon="edit" style={{ marginRight: 5 }} />
           </Tooltip>
           <Tooltip content="Withdraw">
-            <Button intent="danger" icon="trash" />
+            <Button
+              intent="danger"
+              icon="trash"
+              onClick={() => this.setState({ withdrawOffer: true })}
+            />
           </Tooltip>
         </>
       )
@@ -144,7 +178,11 @@ class OfferRow extends Component {
             />
           </Tooltip>
           <Tooltip content="Add Funds">
-            <Button icon="dollar" style={{ marginRight: 5 }} />
+            <Button
+              style={{ marginRight: 5 }}
+              icon="dollar"
+              onClick={() => this.setState({ addFunds: true })}
+            />
           </Tooltip>
           <Tooltip content="Dispute">
             <Button intent="danger" icon="issue" />
@@ -195,8 +233,11 @@ function price(offer) {
 }
 
 function status(offer) {
+  if (offer.status === 0) {
+    return <Tag>Withdrawn</Tag>
+  }
   if (offer.status === 1) {
-    return <Tag>New</Tag>
+    return <Tag intent="warning">New</Tag>
   }
   if (offer.status === 2) {
     return <Tag intent="primary">Accepted</Tag>

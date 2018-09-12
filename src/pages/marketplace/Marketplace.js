@@ -8,11 +8,6 @@ import CreateListing from './mutations/_CreateListing'
 
 import query from './queries/_listings'
 
-function rnd(objs) {
-  if (!objs) return null
-  return objs[Math.floor(Math.random() * objs.length)]
-}
-
 class Marketplace extends Component {
   state = {}
   render() {
@@ -24,19 +19,12 @@ class Marketplace extends Component {
             return <p className="mt-3">Error :(</p>
           }
 
-          const sellers = data.web3.accounts.filter(a => a.role === 'Seller')
-          const arbitrators = data.web3.accounts.filter(
-            a => a.role === 'Arbitrator'
-          )
-
           return (
             <>
               {this.renderBreadcrumbs()}
               <Listings data={data} />
               <CreateListing
                 {...this.state}
-                seller={rnd(sellers)}
-                arbitrator={rnd(arbitrators)}
                 isOpen={this.state.createListing}
                 onCompleted={() => {
                   this.setState({ createListing: false })

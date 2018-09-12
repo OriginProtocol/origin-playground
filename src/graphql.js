@@ -1,16 +1,14 @@
 import { makeExecutableSchema } from 'graphql-tools'
 import { SchemaLink } from 'apollo-link-schema'
-import { withClientState } from 'apollo-link-state'
 import { ApolloLink } from 'apollo-link'
 import { InMemoryCache } from 'apollo-cache-inmemory'
+import { persistCache } from 'apollo-cache-persist'
 import ApolloClient from 'apollo-client'
-import gql from 'graphql-tag'
 
-import { post } from 'utils/ipfsHash'
-import balancesFromWei from 'utils/balancesFromWei'
 import Marketplace from './contracts/Marketplace'
 
 import web3Resolvers from './resolvers/Web3'
+import AccountResolvers from './resolvers/Account'
 import MarketplaceResolvers from './resolvers/Marketplace'
 import ListingResolvers from './resolvers/Listing'
 import OfferResolvers from './resolvers/Offer'
@@ -19,10 +17,15 @@ import createWallet from './mutations/createWallet'
 import removeWallet from './mutations/removeWallet'
 import sendFromNode from './mutations/sendFromNode'
 import deployToken from './mutations/deployToken'
+import transferToken from './mutations/transferToken'
+import updateTokenAllowance from './mutations/updateTokenAllowance'
+
 import createListing from './mutations/createListing'
 import makeOffer from './mutations/makeOffer'
 import acceptOffer from './mutations/acceptOffer'
+import withdrawOffer from './mutations/withdrawOffer'
 import finalizeOffer from './mutations/finalizeOffer'
+import addFunds from './mutations/addFunds'
 import deployMarketplace from './mutations/deployMarketplace'
 import setActiveWallet from './mutations/setActiveWallet'
 
@@ -48,17 +51,21 @@ if (window.sessionStorage.privateKeys) {
 
 const typeDefs = `
   type Query {
-    web3: Web3,
+    web3: Web3
     marketplace: Marketplace
+    contracts: [Contract]
+    contract(id: String!): Contract
   }
 
   type Mutation {
     deployToken(name: String!, symbol: String!, decimals: String!, supply: String!): String
+    transferToken(token: String!, from: String!, to: String!, value: String!): TransferTokenOutput
+    updateTokenAllowance(token: String!, from: String!, to: String!, value: String!): Boolean
     deployMarketplace(token: String!): String
 
     sendFromNode(from: String!, to: String!, value: String!): SendFromNodeOutput
     setActiveWallet(address: String!): Account
-    createWallet(role: String): Account
+    createWallet(role: String, name: String): Account
     removeWallet(address: String!): String
 
     createListing(
@@ -80,6 +87,7 @@ const typeDefs = `
     acceptOffer(listingID: String!, offerID: String!): Offer
     withdrawOffer(listingID: String!, offerID: String!): Offer
     finalizeOffer(listingID: String!, offerID: String!): Offer
+    addFunds(listingID: String!, offerID: String!, amount: String!): Offer
   }
 
   type Web3 {
@@ -96,15 +104,35 @@ const typeDefs = `
     id: String!
     balance: Balance
     role: String
+    name: String
+    token(symbol: String!): TokenHolder
   }
   type Balance {
     wei: String
     eth: String
     usd: String
   }
+  type TokenHolder {
+    id: String!
+    account: String
+    symbol: String
+    balance: String
+    allowance(contract: String!): String
+  }
+  type Contract {
+    id: String!
+    balance: Balance
+    type: String
+    name: String
+    token(symbol: String!): TokenHolder
+  }
   type SendFromNodeOutput {
     toAccount: Account
     fromAccount: Account
+  }
+  type TransferTokenOutput {
+    to: TokenHolder
+    from: TokenHolder
   }
   type Marketplace {
     address: String
@@ -118,14 +146,13 @@ const typeDefs = `
     seller: Account
     deposit: Int
     arbitrator: Account
-    ipfsHash: String
     ipfs: ListingData
     totalOffers: Int
     offers: [Offer]
     getOffer(idx: Int!): Offer
   }
   type ListingData {
-    hash: String
+    id: ID!
     title: String
     currencyId: String
     price: String
@@ -144,10 +171,10 @@ const typeDefs = `
     arbitrator: Account
     finalizes: Int
     status: Int
-    ipfsHash: String
     ipfs: OfferData
   }
   type OfferData {
+    id: ID!
     buyer: String
     finalizes: String
     affiliate: String
@@ -179,10 +206,22 @@ const resolvers = {
   Query: {
     web3: () => ({}),
     marketplace: () => {
-      return localStorage.marketplaceContract ? new web3.eth.Contract(
-        Marketplace.abi,
-        localStorage.marketplaceContract
-      ) : null
+      return localStorage.marketplaceContract
+        ? new web3.eth.Contract(
+            Marketplace.abi,
+            localStorage.marketplaceContract
+          )
+        : null
+    },
+    contracts: () => {
+      let contracts = []
+      try {
+        contracts = JSON.parse(window.localStorage.contracts2)
+      } catch (e) {
+        /* Ignore  */
+      }
+      console.log(contracts)
+      return contracts
     }
   },
   Mutation: {
@@ -190,30 +229,37 @@ const resolvers = {
     removeWallet,
     sendFromNode,
     deployToken,
+    transferToken,
+    updateTokenAllowance,
     deployMarketplace,
     createListing,
     makeOffer,
     acceptOffer,
     finalizeOffer,
-    setActiveWallet
+    withdrawOffer,
+    setActiveWallet,
+    addFunds
   },
   Web3: web3Resolvers,
-  Account: {
-    balance: async (account, args, context) => {
-      const wei = await web3.eth.getBalance(account.id)
-      return balancesFromWei(wei, context)
-    },
-    role: (account) => {
-      let roles = {}
-      try {
-        roles = JSON.parse(window.localStorage.accountRoles)
-      } catch(e) { /* Ignore */ }
-      return roles[account.id]
-    }
-  },
+  Account: AccountResolvers,
   Marketplace: MarketplaceResolvers,
   Listing: ListingResolvers,
-  Offer: OfferResolvers
+  Offer: OfferResolvers,
+  TokenHolder: {
+    allowance: async (token, args, context) => {
+      if (token.symbol === 'OGN') {
+        let contract = args.contract
+        if (contract === 'marketplace') {
+          contract = localStorage.marketplaceContract
+        }
+        const balance = await context.contracts.ogn.methods
+          .allowance(token.account, contract)
+          .call()
+        return balance
+      }
+      return null
+    }
+  }
 }
 
 const schema = makeExecutableSchema({
@@ -230,82 +276,9 @@ const cache = new InMemoryCache({
   }
 })
 
-const stateLink = withClientState({
+persistCache({
   cache,
-  typeDefs: `
-    type Transaction {
-      id: String!
-      status: String
-      confirmations: Int
-    }
-    type Query {
-      transactions: [Transaction]
-      transaction(id: String!): Transaction
-      activeWallet: String
-    }
-  `,
-  resolvers: {
-    Mutation: {
-      createListing: async (_, { obj, transactionId, from }, { cache }) => {
-        const contract = new web3.eth.Contract(
-          Marketplace.abi,
-          localStorage.marketplaceContract
-        )
-        const ipfsHash = await post('http://localhost:5002', obj.ipfs)
-        // const from = web3.eth.defaultAccount // accounts[3]
-
-        const query = gql`
-          query AllTransactions {
-            transactions @client {
-              id
-              status
-              confirmations
-            }
-          }
-        `
-
-        const data = client.readQuery({ query })
-        data.transactions.push({
-          __typename: 'Transaction',
-          id: transactionId,
-          status: 'submitted',
-          confirmations: 0
-        })
-        client.writeQuery({ query, data })
-
-        return new Promise((resolve, reject) => {
-          contract.methods
-            .createListing(ipfsHash, obj.deposit, obj.arbitrator)
-            .send({ gas: 4612388, from })
-            .on('confirmation', confirmations => {
-              const id = `Transaction:${transactionId}`
-              const fragment = gql`
-                fragment transactionConfirmations on Transaction {
-                  confirmations
-                  status
-                }
-              `
-              const transaction = cache.readFragment({ fragment, id })
-              const data = { ...transaction, confirmations, status: 'success' }
-              client.writeFragment({ fragment, id, data })
-
-              if (confirmations === 1) {
-                resolve(null)
-              }
-            })
-            .on('error', reject)
-            .then(() => {
-              // data.marketplace.allListings[listingIdx].status = 'pending'
-              // client.writeQuery({ query, data })
-            })
-        })
-      }
-    }
-  },
-  defaults: {
-    transactions: [],
-    activeWallet: 'abc' //web3.eth.accounts.wallet[0].address
-  }
+  storage: window.localStorage
 })
 
 const client = new ApolloClient({
@@ -314,14 +287,13 @@ const client = new ApolloClient({
     new SchemaLink({
       schema,
       context: () => ({
-        usd: 400, contracts
+        usd: 400,
+        contracts
       })
     })
   ]),
   cache
 })
-
-client.onResetStore(stateLink.writeDefaults)
 
 window.gql = client
 

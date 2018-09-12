@@ -25,7 +25,7 @@ async function sendFromNode(_, { from, to, value }, context) {
           })
         }
       })
-      .on('error', reject)
+      .catch(reject)
       .then(() => {
         // data.marketplace.allListings[listingIdx].status = 'pending'
         // client.writeQuery({ query, data })

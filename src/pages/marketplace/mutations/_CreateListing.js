@@ -4,6 +4,8 @@ import gql from 'graphql-tag'
 import { Button } from '@blueprintjs/core'
 import fragments from '../../../fragments'
 
+import withAccounts from '../hoc/withAccounts'
+
 import {
   Dialog,
   FormGroup,
@@ -23,23 +25,41 @@ const CreateListingMutation = gql`
     $from: String
     $data: NewListingInput
   ) {
-    createListing(deposit: $deposit, arbitrator: $arbitrator, from: $from, data: $data) {
+    createListing(
+      deposit: $deposit
+      arbitrator: $arbitrator
+      from: $from
+      data: $data
+    ) {
       ...basicListingFields
     }
   }
   ${fragments.Listing.basic}
 `
 
-class CreateListing extends Component {
+function rnd(objs) {
+  if (!objs) return null
+  return objs[Math.floor(Math.random() * objs.length)]
+}
 
+function showOGN(account) {
+  if (!account.ogn) return ''
+  return ` (${account.ogn.balance} OGN available, ${account.ogn.allowance} allowed)`
+}
+
+class CreateListing extends Component {
   constructor(props) {
     super()
+
+    const seller = rnd(props.accounts.filter(a => a.role === 'Seller'))
+    const arbitrator = rnd(props.accounts.filter(a => a.role === 'Arbitrator'))
+
     this.state = {
       title: 'Cool Bike',
       currencyId: 'DAI',
       price: '100',
-      arbitrator: props.arbitrator ? props.arbitrator.id : '',
-      from: props.seller ? props.seller.id : '',
+      arbitrator: arbitrator ? arbitrator.id : '',
+      from: seller ? seller.id : '',
       deposit: 0,
       category: 'For Sale'
     }
@@ -72,6 +92,17 @@ class CreateListing extends Component {
                   {error.toString()}
                 </Callout>
               )}
+              <FormGroup label="Seller">
+                <HTMLSelect
+                  {...input('from')}
+                  options={this.props.accounts
+                    .filter(a => a.role === 'Seller')
+                    .map(a => ({
+                      label: `${(a.name || a.id).substr(0, 24)} ${showOGN(a)}`,
+                      value: a.id
+                    }))}
+                />
+              </FormGroup>
               <div style={{ display: 'flex' }}>
                 <div style={{ flex: 1, marginRight: 20 }}>
                   <FormGroup label="Category">
@@ -132,15 +163,16 @@ class CreateListing extends Component {
                 </div>
               </div>
             </div>
-            <div className="bp3-dialog-footer">
-              <div className="bp3-dialog-footer-actions">
-                <Button
-                  text="Create Listing"
-                  intent="primary"
-                  loading={loading}
-                  onClick={() => createListing(this.getVars())}
-                />
-              </div>
+            <div
+              className="bp3-dialog-footer"
+              style={{ display: 'flex', justifyContent: 'flex-end' }}
+            >
+              <Button
+                text="Create Listing"
+                intent="primary"
+                loading={loading}
+                onClick={() => createListing(this.getVars())}
+              />
             </div>
           </Dialog>
         )}
@@ -178,4 +210,4 @@ class CreateListing extends Component {
   }
 }
 
-export default CreateListing
+export default withAccounts(CreateListing, 'marketplace')

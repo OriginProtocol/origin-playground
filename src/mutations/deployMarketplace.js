@@ -23,7 +23,7 @@ async function deployMarketplace(_, { token }) {
         resolve(receipt.contractAddress)
       }
     })
-    .on('error', reject)
+    .catch(reject)
     .then(() => {})
   })
 }

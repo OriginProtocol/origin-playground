@@ -4,7 +4,7 @@ import getOffer from '../resolvers/getOffer'
 
 async function withdrawOffer(_, data, context) {
   return new Promise(async (resolve, reject) => {
-    const ipfsHash = await post(context.contracts.ipfsRPC, {})
+    const ipfsHash = await post(context.contracts.ipfsRPC, data)
 
     context.contracts.marketplace.methods
       .withdrawOffer(data.listingID, data.offerID, ipfsHash)
@@ -20,7 +20,7 @@ async function withdrawOffer(_, data, context) {
           }))
         }
       })
-      .on('error', reject)
+      .catch(reject)
       .then(() => {})
   })
 }

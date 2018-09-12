@@ -16,6 +16,7 @@ class Accounts extends Component {
           if (error) {
             return <p className="mt-3">Error :(</p>
           }
+          if (!data || !data.web3) { return null }
 
           return (
             <>

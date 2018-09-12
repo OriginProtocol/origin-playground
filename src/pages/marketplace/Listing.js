@@ -6,7 +6,7 @@ import { Button, NonIdealState, AnchorButton } from '@blueprintjs/core'
 
 import MakeOffer from './mutations/_MakeOffer'
 import Offers from './_Offers'
-import { AccountButton } from '../accounts/_SetWalletMutation'
+import AccountButton from '../accounts/AccountButton'
 
 import query from './queries/_offers'
 
@@ -51,6 +51,7 @@ class Listing extends Component {
                 <div>
                   {`${listingData.category} by `}
                   <AccountButton account={listing.seller} />
+                  {` for ${listingData.price} ${listingData.currencyId || ''}`}
                 </div>
               </div>
               <Offers

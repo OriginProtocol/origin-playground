@@ -28,7 +28,6 @@ class WithdrawOffer extends Component {
     return (
       <Mutation
         mutation={WithdrawOfferMutation}
-        update={this.onUpdate}
         onCompleted={this.props.onCompleted}
       >
         {(withdrawOffer, { loading, error }) => (
@@ -46,7 +45,7 @@ class WithdrawOffer extends Component {
                 {error.toString()}
               </Callout>
             )}
-              <FormGroup label="Message to Buyer">
+              <FormGroup label="Reason">
                 <InputGroup {...input('message')} />
               </FormGroup>
             </div>

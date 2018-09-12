@@ -6,10 +6,15 @@ export default {
       fragment balanceFields on Account {
         id
         role
+        name
         balance {
           eth
           usd
           wei
+        }
+        ogn: token(symbol: "OGN") {
+          id
+          balance
         }
       }
     `
@@ -36,7 +41,6 @@ export default {
       fragment basicOfferFields on Offer {
         id
         listingId
-        ipfsHash
         value
         currency
         commission
@@ -52,6 +56,7 @@ export default {
         }
 
         ipfs {
+          id
           buyer
           finalizes
           affiliate

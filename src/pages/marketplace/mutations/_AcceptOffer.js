@@ -34,7 +34,7 @@ class AcceptOffer extends Component {
         {(acceptOffer, { loading, error }) => (
           <Dialog
             title="Accept Offer"
-            isOpen={this.props.isOpen}
+            isOpen={true}
             onClose={this.props.onCompleted}
           >
             <div className="bp3-dialog-body">{error && (

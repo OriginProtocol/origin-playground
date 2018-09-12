@@ -68,7 +68,7 @@ async function makeOffer(_, data, context) {
           )
         }
       })
-      .on('error', reject)
+      .catch(reject)
       .then(() => {})
   })
 }

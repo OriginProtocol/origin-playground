@@ -28,7 +28,7 @@ async function deployToken(_, { name, symbol, decimals, supply }) {
         resolve(receipt.contractAddress)
       }
     })
-    .on('error', reject)
+    .catch(reject)
     .then(() => {})
   })
 }

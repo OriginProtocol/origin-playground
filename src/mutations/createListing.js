@@ -26,7 +26,7 @@ async function createListing(_, { deposit, arbitrator, data, from }, context) {
           )
         }
       })
-      .on('error', reject)
+      .catch(reject)
       .then(() => {})
   })
 }

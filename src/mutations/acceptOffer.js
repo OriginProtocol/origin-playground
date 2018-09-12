@@ -15,7 +15,6 @@ mutation makeOffer($listingID: String, $offerID: String) {
 async function acceptOffer(_, data, context) {
   return new Promise(async (resolve, reject) => {
     const ipfsHash = await post(context.contracts.ipfsRPC, {})
-
     context.contracts.marketplace.methods
       .acceptOffer(data.listingID, data.offerID, ipfsHash)
       .send({
@@ -30,8 +29,8 @@ async function acceptOffer(_, data, context) {
           }))
         }
       })
-      .on('error', reject)
       .then(() => {})
+      .catch(reject)
   })
 }
 

@@ -4,7 +4,7 @@ import gql from 'graphql-tag'
 import { Button } from '@blueprintjs/core'
 import fragments from '../../../fragments'
 
-import { Dialog, FormGroup, InputGroup } from '@blueprintjs/core'
+import { Dialog, FormGroup, InputGroup, Callout } from '@blueprintjs/core'
 
 const FinalizeOfferMutation = gql`
   mutation FinalizeOffer($listingID: String, $offerID: String) {
@@ -38,13 +38,17 @@ class FinalizeOffer extends Component {
             onClose={this.props.onCompleted}
           >
             <div className="bp3-dialog-body">
-              <div style={{ display: 'flex' }}>
-                <div style={{ flex: 1, marginRight: 20 }}>
-                  <FormGroup label="Review">
-                    <InputGroup {...input('review')} />
-                  </FormGroup>
-                </div>
-              </div>
+              <Callout
+                className="mb-3"
+                intent="warning"
+                icon="warning-sign"
+                title="Warning"
+              >
+                You cannot dispute a transaction after finalizing.
+              </Callout>
+              <FormGroup label="Review">
+                <InputGroup {...input('review')} />
+              </FormGroup>
             </div>
             <div className="bp3-dialog-footer">
               <div className="bp3-dialog-footer-actions">
