@@ -2,7 +2,7 @@ import React from 'react'
 import { Mutation } from 'react-apollo'
 import { Button, Tooltip } from '@blueprintjs/core'
 
-import { SendFromNodeMutation } from '../../mutations/_queries'
+import { SendFromNodeMutation } from '../../mutations'
 
 // mutation sendFromNode($from: String, $to: String, $value: String) {
 //   sendFromNode(from: $from, to: $to, value: $value) {

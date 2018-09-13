@@ -1,6 +1,6 @@
 import { get } from 'utils/ipfsHash'
 
-import getListing from './getListing'
+import getListing from './helpers/getListing'
 
 export default {
   listing: offer => getListing(offer.contract, { idx: offer.listingId }),

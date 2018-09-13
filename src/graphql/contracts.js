@@ -1,5 +1,5 @@
-import MarketplaceContract from './contracts/Marketplace'
-import TokenContract from './contracts/Token'
+import MarketplaceContract from '../contracts/Marketplace'
+import TokenContract from '../contracts/Token'
 
 const HOST = process.env.HOST || 'localhost'
 let provider = 'https://eth-node.dapptix.com'
@@ -11,6 +11,13 @@ if (process.env.NODE_ENV !== 'production') {
 if (typeof window !== 'undefined') {
   provider = window.sessionStorage.provider || provider
   window.web3 = new Web3(provider)
+}
+
+if (window.localStorage.privateKeys) {
+  JSON.parse(window.localStorage.privateKeys).forEach(key =>
+    web3.eth.accounts.wallet.add(key)
+  )
+  web3.eth.defaultAccount = window.localStorage.defaultAccount
 }
 
 const contracts = {

@@ -12,8 +12,8 @@ import {
 
 import SendFromNodeBtn from './_SendFromNodeBtn'
 import RemoveWalletBtn from './_RemoveWalletBtn'
-
 import AccountButton from '../accounts/AccountButton'
+import Toaster from '../Toaster'
 
 import numberFormat from 'utils/numberFormat'
 
@@ -42,7 +42,16 @@ class TokenButton extends Component {
   render() {
     const { balance, accounts, current } = this.props
     return (
-      <Mutation mutation={TransferToken}>
+      <Mutation
+        mutation={TransferToken}
+        onError={error => {
+          Toaster.show({
+            message: `${error}`,
+            intent: 'danger',
+            icon: 'warning-sign'
+          })
+        }}
+      >
         {(transferToken, { loading }) => (
           <Popover
             lazy={true}
@@ -55,7 +64,7 @@ class TokenButton extends Component {
                       current && a.id !== current.id ? (
                         <Menu.Item
                           key={a.id}
-                          text={a.name || `${a.id.substr(0, 8)}`}
+                          text={`${a.name || `${a.id.substr(0, 8)}`}${a.role ? ` (${a.role})` : ''}`}
                           onClick={() => {
                             transferToken({
                               variables: {

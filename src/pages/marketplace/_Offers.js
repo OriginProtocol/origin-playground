@@ -1,7 +1,9 @@
 import React, { Component } from 'react'
 import { withRouter } from 'react-router'
 
-import { Button, Tooltip, Tag, Icon } from '@blueprintjs/core'
+import { AnchorButton, Tooltip, Tag, Icon } from '@blueprintjs/core'
+
+import withAccounts from './hoc/withAccounts'
 
 import AcceptOffer from './mutations/_AcceptOffer'
 import FinalizeOffer from './mutations/_FinalizeOffer'
@@ -9,7 +11,7 @@ import WithdrawOffer from './mutations/_WithdrawOffer'
 import AddFunds from './mutations/_AddFunds'
 import AccountButton from '../accounts/AccountButton'
 
-const Offers = ({ listingId, offers }) => (
+const Offers = ({ listing, offers, accounts }) => (
   <table className="bp3-html-table bp3-small mt-3">
     <thead>
       <tr>
@@ -29,7 +31,7 @@ const Offers = ({ listingId, offers }) => (
     </thead>
     <tbody>
       {offers.map(a => (
-        <OfferRow key={a.id} offer={a} listingId={listingId} />
+        <OfferRow key={a.id} offer={a} listing={listing} accounts={accounts} />
       ))}
     </tbody>
   </table>
@@ -39,10 +41,16 @@ class OfferRow extends Component {
   state = {}
 
   render() {
-    const { offer, listingId } = this.props
+    const { offer, listing, accounts } = this.props
     if (offer.status === 4 || offer.status === 0) {
       return this.renderInactiveRow()
     }
+    const buyerPresent = accounts.find(
+      a => offer.buyer && a.id === offer.buyer.id
+    )
+    const sellerPresent = accounts.find(
+      a => listing.seller && a.id === listing.seller.id
+    )
     return (
       <>
         <tr className="vm">
@@ -68,43 +76,46 @@ class OfferRow extends Component {
             <AccountButton account={offer.arbitrator} />
           </td>
           <td style={{ borderLeft: '1px solid rgba(16, 22, 26, 0.15)' }}>
-            {this.renderBuyerActions(offer)}
+            {this.renderBuyerActions(offer, buyerPresent)}
           </td>
-          <td>{this.renderSellerActions(offer)}</td>
+          <td>{this.renderSellerActions(offer, sellerPresent)}</td>
           <td />
           <td>
             <Tooltip content="Add Data">
-              <Button icon="comment" />
+              <AnchorButton icon="comment" />
             </Tooltip>
           </td>
         </tr>
 
-        {this.state.acceptOffer && (
-          <AcceptOffer
-            listingId={listingId}
-            offerId={offer.id}
-            onCompleted={() => this.setState({ acceptOffer: false })}
-          />
-        )}
+        <AcceptOffer
+          isOpen={this.state.acceptOffer}
+          listing={listing}
+          listingId={listing.id}
+          offerId={offer.id}
+          onCompleted={() => this.setState({ acceptOffer: false })}
+        />
 
         <FinalizeOffer
           isOpen={this.state.finalizeOffer}
-          listingId={listingId}
+          listingId={listing.id}
           offerId={offer.id}
+          offer={offer}
           onCompleted={() => this.setState({ finalizeOffer: false })}
         />
 
         <WithdrawOffer
           isOpen={this.state.withdrawOffer}
-          listingId={listingId}
+          offer={offer}
+          listingId={listing.id}
           offerId={offer.id}
           onCompleted={() => this.setState({ withdrawOffer: false })}
         />
 
         <AddFunds
           isOpen={this.state.addFunds}
-          listingId={listingId}
+          listingId={listing.id}
           offerId={offer.id}
+          offer={offer}
           onCompleted={() => this.setState({ addFunds: false })}
         />
       </>
@@ -123,9 +134,9 @@ class OfferRow extends Component {
           <AccountButton account={offerData.buyer} />
         </td>
         <td>
-          {offer.commission && offer.commission !== '0' ? (
+          {offerData.commission && offerData.commission !== '0' ? (
             <>
-              {`${offer.commission} OGN`}
+              {`${offerData.commission} OGN`}
               <Icon
                 style={{ verticalAlign: '-0.2rem', margin: '0 0.2rem' }}
                 icon="arrow-right"
@@ -142,24 +153,29 @@ class OfferRow extends Component {
         <td />
         <td>
           <Tooltip content="Add Data">
-            <Button icon="comment" />
+            <AnchorButton icon="comment" />
           </Tooltip>
         </td>
       </tr>
     )
   }
 
-  renderBuyerActions(offer) {
+  renderBuyerActions(offer, buyerPresent) {
     if (offer.status === 1) {
       return (
         <>
           <Tooltip content="Update">
-            <Button icon="edit" style={{ marginRight: 5 }} />
+            <AnchorButton
+              icon="edit"
+              disabled={!buyerPresent}
+              style={{ marginRight: 5 }}
+            />
           </Tooltip>
           <Tooltip content="Withdraw">
-            <Button
+            <AnchorButton
               intent="danger"
               icon="trash"
+              disabled={!buyerPresent}
               onClick={() => this.setState({ withdrawOffer: true })}
             />
           </Tooltip>
@@ -170,37 +186,48 @@ class OfferRow extends Component {
       return (
         <>
           <Tooltip content="Finalize">
-            <Button
+            <AnchorButton
               intent="success"
+              disabled={!buyerPresent}
               style={{ marginRight: 5 }}
               icon="tick"
               onClick={() => this.setState({ finalizeOffer: true })}
             />
           </Tooltip>
           <Tooltip content="Add Funds">
-            <Button
+            <AnchorButton
               style={{ marginRight: 5 }}
+              disabled={!buyerPresent}
               icon="dollar"
               onClick={() => this.setState({ addFunds: true })}
             />
           </Tooltip>
           <Tooltip content="Dispute">
-            <Button intent="danger" icon="issue" />
+            <AnchorButton
+              intent="danger"
+              icon="issue"
+              disabled={!buyerPresent}
+            />
           </Tooltip>
         </>
       )
     }
   }
 
-  renderSellerActions(offer) {
+  renderSellerActions(offer, sellerPresent) {
     if (offer.status === 2) {
       return (
         <>
           <Tooltip content="Set Refund">
-            <Button icon="dollar" />
+            <AnchorButton icon="dollar" disabled={!sellerPresent} />
           </Tooltip>
           <Tooltip content="Dispute">
-            <Button intent="danger" style={{ marginLeft: 5 }} icon="issue" />
+            <AnchorButton
+              intent="danger"
+              style={{ marginLeft: 5 }}
+              icon="issue"
+              disabled={!sellerPresent}
+            />
           </Tooltip>
         </>
       )
@@ -209,14 +236,20 @@ class OfferRow extends Component {
       return (
         <>
           <Tooltip content="Accept">
-            <Button
+            <AnchorButton
               intent="success"
               icon="tick"
               onClick={() => this.setState({ acceptOffer: true })}
+              disabled={!sellerPresent}
             />
           </Tooltip>
           <Tooltip content="Decline">
-            <Button intent="danger" style={{ marginLeft: 5 }} icon="cross" />
+            <AnchorButton
+              disabled={!sellerPresent}
+              intent="danger"
+              style={{ marginLeft: 5 }}
+              icon="cross"
+            />
           </Tooltip>
         </>
       )
@@ -248,4 +281,4 @@ function status(offer) {
   return offer.status
 }
 
-export default withRouter(Offers)
+export default withRouter(withAccounts(Offers, 'marketplace'))

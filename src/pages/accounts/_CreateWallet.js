@@ -4,7 +4,7 @@ import { Button, ControlGroup, HTMLSelect, InputGroup } from '@blueprintjs/core'
 
 import query from './_query'
 
-import { CreateWalletMutation } from '../../mutations/_queries'
+import { CreateWalletMutation } from '../../mutations'
 
 class CreateWalletBtn extends Component {
   state = {

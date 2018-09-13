@@ -1,10 +1,10 @@
 import { post } from 'utils/ipfsHash'
 
-import getOffer from '../resolvers/getOffer'
+import getOffer from '../resolvers/helpers/getOffer'
 
 /*
-mutation makeOffer($listingID: String, $offerID: String) {
-  acceptOffer(listingID: $listingID, offerID: $offerID)
+mutation finalizeOffer($listingID: String, $offerID: String) {
+  finalizeOffer(listingID: $listingID, offerID: $offerID)
 }
 {
   "listingID": "0",
@@ -12,14 +12,15 @@ mutation makeOffer($listingID: String, $offerID: String) {
 }
 */
 
-async function acceptOffer(_, data, context) {
+async function finalizeOffer(_, data, context) {
   return new Promise(async (resolve, reject) => {
-    const ipfsHash = await post(context.contracts.ipfsRPC, {})
+    const ipfsHash = await post(context.contracts.ipfsRPC, data)
+
     context.contracts.marketplace.methods
-      .acceptOffer(data.listingID, data.offerID, ipfsHash)
+      .finalize(data.listingID, data.offerID, ipfsHash)
       .send({
         gas: 4612388,
-        from: web3.eth.defaultAccount
+        from: data.from || web3.eth.defaultAccount
       })
       .on('confirmation', async (confirmations) => {
         if (confirmations === 1) {
@@ -29,9 +30,9 @@ async function acceptOffer(_, data, context) {
           }))
         }
       })
-      .then(() => {})
       .catch(reject)
+      .then(() => {})
   })
 }
 
-export default acceptOffer
+export default finalizeOffer

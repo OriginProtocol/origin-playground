@@ -14,14 +14,14 @@ async function updateTokenAllowance(_, { token, from, to, value }, context) {
     if (!context.contracts[token]) {
       return
     }
-    context.contracts[token].methods.approve(to, value).send({
-      gas: 4612388,
-      from
-    })
-      .on('confirmation', async confirmations => {
-        if (confirmations === 1) {
-          resolve(true)
-        }
+    context.contracts[token].methods
+      .approve(to, value)
+      .send({
+        gas: 4612388,
+        from
+      })
+      .on('receipt', async () => {
+        resolve(true)
       })
       .catch(reject)
       .then(() => {

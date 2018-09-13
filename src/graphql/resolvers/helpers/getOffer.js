@@ -27,7 +27,7 @@ export default async (contract, args) => {
 
   return {
     id: args.idx,
-    listingId: args.listingId,
+    listingId: String(args.listingId),
     status,
     contract,
     value: offer.value,

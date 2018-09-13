@@ -16,7 +16,7 @@ import { Dialog, FormGroup, InputGroup } from '@blueprintjs/core'
 
 // import query from './_query'
 
-import { DeployTokenMutation } from '../../mutations/_queries'
+import { DeployTokenMutation } from '../../mutations'
 
 class DeployToken extends Component {
   state = {

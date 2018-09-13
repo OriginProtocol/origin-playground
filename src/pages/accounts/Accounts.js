@@ -14,7 +14,7 @@ import {
   TransferTokenMutation,
   DeployMarketplaceMutation,
   UpdateTokenAllowanceMutation
-} from '../../mutations/_queries'
+} from '../../mutations'
 
 import query from './_query'
 
@@ -91,6 +91,18 @@ async function populate() {
   await gql.mutate({
     mutation: SendFromNodeMutation,
     variables: { to: Arbitrator, from: NodeAccount, value: '0.5' }
+  })
+
+  await gql.resetStore()
+
+  const Affiliate = (await gql.mutate({
+    mutation: CreateWalletMutation,
+    variables: { role: 'Affiliate', name: 'Origin' }
+  })).data.createWallet.id
+
+  await gql.mutate({
+    mutation: SendFromNodeMutation,
+    variables: { to: Affiliate, from: NodeAccount, value: '0.1' }
   })
 
   await gql.resetStore()

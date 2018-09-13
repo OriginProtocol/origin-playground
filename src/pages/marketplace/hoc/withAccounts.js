@@ -26,7 +26,6 @@ function withAccounts(WrappedComponent, marketplace) {
       return (
         <Query query={AccountsWithAllowance} variables={{ marketplace }}>
           {({ loading, error, data }) => {
-            console.log(loading, error, data)
             if (loading || error) {
               return null; //<WrappedComponent {...this.props} accounts={[]} />
             }

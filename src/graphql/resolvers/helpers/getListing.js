@@ -1,4 +1,3 @@
-
 export default async (contract, args) => {
   let listing
   try {
@@ -16,7 +15,7 @@ export default async (contract, args) => {
   }
 
   return {
-    id: args.idx,
+    id: String(args.idx),
     ipfs: { id: ipfsHash },
     deposit: listing.deposit,
     arbitrator: { id: listing.arbitrator },

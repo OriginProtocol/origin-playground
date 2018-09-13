@@ -7,8 +7,8 @@ import fragments from '../../../fragments'
 import { Dialog, FormGroup, InputGroup, Callout } from '@blueprintjs/core'
 
 const AcceptOfferMutation = gql`
-  mutation AcceptOffer($listingID: String, $offerID: String) {
-    acceptOffer(listingID: $listingID, offerID: $offerID) {
+  mutation AcceptOffer($listingID: String!, $offerID: String!, $from: String) {
+    acceptOffer(listingID: $listingID, offerID: $offerID, from: $from) {
       ...basicOfferFields
     }
   }
@@ -34,7 +34,7 @@ class AcceptOffer extends Component {
         {(acceptOffer, { loading, error }) => (
           <Dialog
             title="Accept Offer"
-            isOpen={true}
+            isOpen={this.props.isOpen}
             onClose={this.props.onCompleted}
           >
             <div className="bp3-dialog-body">{error && (
@@ -69,8 +69,9 @@ class AcceptOffer extends Component {
   getVars() {
     return {
       variables: {
-        listingID: this.props.listingId,
-        offerID: String(this.props.offerId)
+        listingID: String(this.props.listingId),
+        offerID: String(this.props.offerId),
+        from: this.props.listing.seller.id
       }
     }
   }

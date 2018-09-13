@@ -1,6 +1,6 @@
 import gql from 'graphql-tag'
 
-import fragments from '../fragments'
+import fragments from './fragments'
 
 export const CreateWalletMutation = gql`
   mutation CreateWallet($role: String, $name: String) {
@@ -67,4 +67,52 @@ export const DeployMarketplaceMutation = gql`
   mutation DeployMarketplace($token: String) {
     deployMarketplace(token: $token)
   }
+`
+
+export const CreateListingMutation = gql`
+  mutation CreateListing(
+    $deposit: String
+    $arbitrator: String
+    $from: String
+    $data: NewListingInput
+  ) {
+    createListing(
+      deposit: $deposit
+      arbitrator: $arbitrator
+      from: $from
+      data: $data
+    ) {
+      ...basicListingFields
+    }
+  }
+  ${fragments.Listing.basic}
+`
+
+export const MakeOfferMutation = gql`
+  mutation MakeOffer(
+    $listingID: String
+    $finalizes: String
+    $affiliate: String
+    $commission: String
+    $value: String
+    $currency: String
+    $arbitrator: String
+    $data: MakeOfferInput
+    $from: String
+  ) {
+    makeOffer(
+      listingID: $listingID
+      finalizes: $finalizes
+      affiliate: $affiliate
+      commission: $commission
+      value: $value
+      currency: $currency
+      arbitrator: $arbitrator
+      data: $data
+      from: $from
+    ) {
+      ...basicOfferFields
+    }
+  }
+  ${fragments.Offer.basic}
 `

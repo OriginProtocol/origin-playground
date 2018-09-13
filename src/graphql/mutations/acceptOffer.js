@@ -1,10 +1,10 @@
 import { post } from 'utils/ipfsHash'
 
-import getOffer from '../resolvers/getOffer'
+import getOffer from '../resolvers/helpers/getOffer'
 
 /*
-mutation addFunds($listingID: String, $offerID: String) {
-  addFunds(listingID: $listingID, offerID: $offerID)
+mutation makeOffer($listingID: String, $offerID: String) {
+  acceptOffer(listingID: $listingID, offerID: $offerID)
 }
 {
   "listingID": "0",
@@ -12,16 +12,14 @@ mutation addFunds($listingID: String, $offerID: String) {
 }
 */
 
-function addFunds(_, data, context) {
+async function acceptOffer(_, data, context) {
   return new Promise(async (resolve, reject) => {
     const ipfsHash = await post(context.contracts.ipfsRPC, data)
-
     context.contracts.marketplace.methods
-      .addFunds(data.listingID, data.offerID, ipfsHash, data.amount)
+      .acceptOffer(data.listingID, data.offerID, ipfsHash)
       .send({
         gas: 4612388,
-        from: web3.eth.defaultAccount,
-        value: data.amount
+        from: data.from || web3.eth.defaultAccount
       })
       .on('confirmation', async (confirmations) => {
         if (confirmations === 1) {
@@ -31,9 +29,9 @@ function addFunds(_, data, context) {
           }))
         }
       })
-      .catch(reject)
       .then(() => {})
+      .catch(reject)
   })
 }
 
-export default addFunds
+export default acceptOffer

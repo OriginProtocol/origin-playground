@@ -1,6 +1,6 @@
 import { post } from 'utils/ipfsHash'
 
-import getListing from '../resolvers/getListing'
+import getListing from '../resolvers/helpers/getListing'
 
 /*
 mutation createListing($deposit: String, $arbitrator: String) {
@@ -16,15 +16,13 @@ async function createListing(_, { deposit, arbitrator, data, from }, context) {
     context.contracts.marketplace.methods
       .createListing(ipfsHash, deposit, arbitrator)
       .send({ gas: 4612388, from: from || web3.eth.defaultAccount })
-      .on('confirmation', (confirmations, receipt) => {
-        if (confirmations === 1) {
-          resolve(
-            getListing(
-              context.contracts.marketplace,
-              { idx: receipt.events.ListingCreated.returnValues.listingID }
-            )
+      .on('receipt', receipt => {
+        resolve(
+          getListing(
+            context.contracts.marketplace,
+            { idx: receipt.events.ListingCreated.returnValues.listingID }
           )
-        }
+        )
       })
       .catch(reject)
       .then(() => {})

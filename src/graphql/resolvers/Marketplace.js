@@ -1,5 +1,5 @@
-import getListing from './getListing'
-import offerFields from './offerFields'
+import getListing from './helpers/getListing'
+import offerFields from './helpers/offerFields'
 
 export default {
   address: contract => contract._address,

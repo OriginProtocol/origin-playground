@@ -7,8 +7,8 @@ import fragments from '../../../fragments'
 import { Dialog, FormGroup, InputGroup, Callout, Tag } from '@blueprintjs/core'
 
 const AddFundsMutation = gql`
-  mutation AddFunds($listingID: String!, $offerID: String!, $amount: String!) {
-    addFunds(listingID: $listingID, offerID: $offerID, amount: $amount) {
+  mutation AddFunds($listingID: String!, $offerID: String!, $amount: String!, $from: String) {
+    addFunds(listingID: $listingID, offerID: $offerID, amount: $amount, from: $from) {
       ...basicOfferFields
     }
   }
@@ -82,8 +82,9 @@ class AddFunds extends Component {
   getVars() {
     return {
       variables: {
-        listingID: this.props.listingId,
+        listingID: String(this.props.listingId),
         offerID: String(this.props.offerId),
+        from: this.props.offer.buyer.id,
         amount: web3.utils.toWei(this.state.amount, 'ether')
       }
     }

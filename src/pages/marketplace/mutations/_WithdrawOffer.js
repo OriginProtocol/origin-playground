@@ -7,8 +7,8 @@ import fragments from '../../../fragments'
 import { Dialog, FormGroup, InputGroup, Callout } from '@blueprintjs/core'
 
 const WithdrawOfferMutation = gql`
-  mutation WithdrawOffer($listingID: String, $offerID: String) {
-    withdrawOffer(listingID: $listingID, offerID: $offerID) {
+  mutation WithdrawOffer($listingID: String, $offerID: String, $from: String) {
+    withdrawOffer(listingID: $listingID, offerID: $offerID, from: $from) {
       ...basicOfferFields
     }
   }
@@ -68,8 +68,9 @@ class WithdrawOffer extends Component {
   getVars() {
     return {
       variables: {
-        listingID: this.props.listingId,
-        offerID: String(this.props.offerId)
+        listingID: String(this.props.listingId),
+        offerID: String(this.props.offerId),
+        from: this.props.offer.buyer.id
       }
     }
   }

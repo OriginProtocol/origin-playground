@@ -1,6 +1,6 @@
 import { post } from 'utils/ipfsHash'
 
-import getOffer from '../resolvers/getOffer'
+import getOffer from '../resolvers/helpers/getOffer'
 
 async function withdrawOffer(_, data, context) {
   return new Promise(async (resolve, reject) => {
@@ -10,7 +10,7 @@ async function withdrawOffer(_, data, context) {
       .withdrawOffer(data.listingID, data.offerID, ipfsHash)
       .send({
         gas: 4612388,
-        from: web3.eth.defaultAccount
+        from: data.from || web3.eth.defaultAccount
       })
       .on('confirmation', async (confirmations) => {
         if (confirmations === 1) {

@@ -1,5 +1,5 @@
-import Marketplace from '../contracts/Marketplace'
-import { resetContracts } from '../_contracts'
+import Marketplace from '../../contracts/Marketplace'
+import { resetContracts } from '../contracts'
 
 /*
 mutation deployMarketplace($token: String) {
@@ -18,12 +18,10 @@ async function deployMarketplace(_, { token }) {
       gas: 4612388,
       from: web3.eth.defaultAccount
     })
-    .on('confirmation', (confirmations, receipt) => {
-      if (confirmations === 1) {
-        window.localStorage.marketplaceContract = receipt.contractAddress
-        resetContracts()
-        resolve(receipt.contractAddress)
-      }
+    .on('receipt', (receipt) => {
+      window.localStorage.marketplaceContract = receipt.contractAddress
+      resetContracts()
+      resolve(receipt.contractAddress)
     })
     .catch(reject)
     .then(() => {})

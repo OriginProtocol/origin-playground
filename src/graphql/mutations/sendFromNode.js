@@ -9,21 +9,19 @@ async function sendFromNode(_, { from, to, value }, context) {
         value: web3.utils.toWei(value, 'ether'),
         gas: 4612388
       })
-      .on('confirmation', async confirmations => {
-        if (confirmations === 1) {
-          const toBalance = await web3.eth.getBalance(to),
-            fromBalance = await web3.eth.getBalance(from)
-          resolve({
-            toAccount: {
-              id: to,
-              balance: balancesFromWei(toBalance, context)
-            },
-            fromAccount: {
-              id: from,
-              balance: balancesFromWei(fromBalance, context)
-            }
-          })
-        }
+      .on('receipt', async () => {
+        const toBalance = await web3.eth.getBalance(to),
+          fromBalance = await web3.eth.getBalance(from)
+        resolve({
+          toAccount: {
+            id: to,
+            balance: balancesFromWei(toBalance, context)
+          },
+          fromAccount: {
+            id: from,
+            balance: balancesFromWei(fromBalance, context)
+          }
+        })
       })
       .catch(reject)
       .then(() => {

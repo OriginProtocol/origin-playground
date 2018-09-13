@@ -55,6 +55,7 @@ class Listing extends Component {
                 </div>
               </div>
               <Offers
+                listing={listing}
                 listingId={listingId}
                 offers={data.marketplace.getListing.offers}
               />

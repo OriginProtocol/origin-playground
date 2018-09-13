@@ -1,5 +1,5 @@
-import Token from '../contracts/Token'
-import { resetContracts } from '../_contracts'
+import Token from '../../contracts/Token'
+import { resetContracts } from '../contracts'
 /*
 mutation deployToken($name: String, $symbol: String, $decimals: Int, $supply: String) {
   deployToken(name: $name, symbol: $symbol, decimals: $decimals, supply: $supply)
@@ -18,19 +18,18 @@ async function deployToken(_, { name, symbol, decimals, supply }) {
     Contract.deploy({
       data: '0x' + Token.data,
       arguments: [name, symbol, decimals, supply]
-    }).send({
-      gas: 4612388,
-      from: web3.eth.defaultAccount
     })
-    .on('confirmation', (confirmations, receipt) => {
-      if (confirmations === 1) {
+      .send({
+        gas: 4612388,
+        from: web3.eth.defaultAccount
+      })
+      .on('receipt', receipt => {
         window.localStorage[`${symbol}Contract`] = receipt.contractAddress
         resetContracts()
         resolve(receipt.contractAddress)
-      }
-    })
-    .catch(reject)
-    .then(() => {})
+      })
+      .catch(reject)
+      .then(() => {})
   })
 }
 

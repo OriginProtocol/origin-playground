@@ -20,19 +20,17 @@ async function transferToken(_, { token, from, to, value }, context) {
       gas: 4612388,
       from
     })
-      .on('confirmation', async confirmations => {
-        if (confirmations === 1) {
-          resolve({
-            to: {
-              id: `${token.toUpperCase()}_${to}`,
-              balance: await contract.methods.balanceOf(to).call()
-            },
-            from: {
-              id: `${token.toUpperCase()}_${from}`,
-              balance: await contract.methods.balanceOf(from).call()
-            }
-          })
-        }
+      .on('receipt', async () => {
+        resolve({
+          to: {
+            id: `${token.toUpperCase()}_${to}`,
+            balance: await contract.methods.balanceOf(to).call()
+          },
+          from: {
+            id: `${token.toUpperCase()}_${from}`,
+            balance: await contract.methods.balanceOf(from).call()
+          }
+        })
       })
       .catch(reject)
       .then(() => {

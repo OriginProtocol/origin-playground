@@ -1,10 +1,6 @@
 import React, { Component } from 'react'
 import { Mutation } from 'react-apollo'
-import gql from 'graphql-tag'
 import { Button } from '@blueprintjs/core'
-import fragments from '../../../fragments'
-
-import withAccounts from '../hoc/withAccounts'
 
 import {
   Dialog,
@@ -16,31 +12,11 @@ import {
   Callout
 } from '@blueprintjs/core'
 
+import rnd from 'utils/rnd'
+import withAccounts from '../hoc/withAccounts'
 import query from '../queries/_listings'
 
-const CreateListingMutation = gql`
-  mutation CreateListing(
-    $deposit: String
-    $arbitrator: String
-    $from: String
-    $data: NewListingInput
-  ) {
-    createListing(
-      deposit: $deposit
-      arbitrator: $arbitrator
-      from: $from
-      data: $data
-    ) {
-      ...basicListingFields
-    }
-  }
-  ${fragments.Listing.basic}
-`
-
-function rnd(objs) {
-  if (!objs) return null
-  return objs[Math.floor(Math.random() * objs.length)]
-}
+import { CreateListingMutation } from '../../../mutations'
 
 function showOGN(account) {
   if (!account.ogn) return ''
@@ -56,11 +32,11 @@ class CreateListing extends Component {
 
     this.state = {
       title: 'Cool Bike',
-      currencyId: 'DAI',
-      price: '100',
+      currencyId: 'ETH',
+      price: '0.1',
       arbitrator: arbitrator ? arbitrator.id : '',
       from: seller ? seller.id : '',
-      deposit: 0,
+      deposit: 50,
       category: 'For Sale'
     }
   }
@@ -154,8 +130,9 @@ class CreateListing extends Component {
                     <Slider
                       fill={true}
                       min={0}
-                      max={10}
-                      stepSize={1}
+                      max={100}
+                      stepSize={5}
+                      labelStepSize={25}
                       onChange={deposit => this.setState({ deposit })}
                       value={this.state.deposit}
                     />

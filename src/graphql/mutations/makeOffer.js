@@ -1,6 +1,6 @@
 import { post } from 'utils/ipfsHash'
 
-import getOffer from '../resolvers/getOffer'
+import getOffer from '../resolvers/helpers/getOffer'
 
 /*
 mutation makeOffer(
@@ -53,13 +53,11 @@ async function makeOffer(_, data, context) {
       .makeOffer(...args)
       .send({
         gas: 4612388,
-        from: web3.eth.defaultAccount,
+        from: buyer,
         value: data.value
       })
       .on('confirmation', async (confirmations, receipt) => {
         if (confirmations === 1) {
-          // const offer = await
-          // console.log(offer)
           resolve(
             getOffer(context.contracts.marketplace, {
               listingId: data.listingID,

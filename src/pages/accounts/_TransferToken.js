@@ -2,7 +2,9 @@ import React from 'react'
 import { Mutation } from 'react-apollo'
 import { Button, Tooltip } from '@blueprintjs/core'
 
-import { TransferTokenMutation } from '../../mutations/_queries'
+import { TransferTokenMutation } from '../../mutations'
+
+import Toaster from '../../Toaster'
 
 // import fragments from '../../fragments'
 
@@ -17,7 +19,9 @@ import { TransferTokenMutation } from '../../mutations/_queries'
 //  "value": "1"}
 
 const SendFromNodeBtn = ({ token, from, to, value }) => (
-  <Mutation mutation={TransferTokenMutation}>
+  <Mutation mutation={TransferTokenMutation} onError={error => {
+    Toaster.show({ message: `Error ${error}`})
+  }}>
     {(transferToken, { loading }) => (
       <Tooltip content="Fund with 0.5 ETH">
         <Button

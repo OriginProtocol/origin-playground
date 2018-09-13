@@ -1,6 +1,6 @@
 import { get } from 'utils/ipfsHash'
 
-import getOffer from './getOffer'
+import getOffer from './helpers/getOffer'
 
 export default {
   ipfs: async listing => {

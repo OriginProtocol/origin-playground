@@ -7,8 +7,8 @@ import fragments from '../../../fragments'
 import { Dialog, FormGroup, InputGroup, Callout } from '@blueprintjs/core'
 
 const FinalizeOfferMutation = gql`
-  mutation FinalizeOffer($listingID: String, $offerID: String) {
-    finalizeOffer(listingID: $listingID, offerID: $offerID) {
+  mutation FinalizeOffer($listingID: String, $offerID: String, $from: String) {
+    finalizeOffer(listingID: $listingID, offerID: $offerID, from: $from) {
       ...basicOfferFields
     }
   }
@@ -69,8 +69,9 @@ class FinalizeOffer extends Component {
   getVars() {
     return {
       variables: {
-        listingID: this.props.listingId,
-        offerID: String(this.props.offerId)
+        listingID: String(this.props.listingId),
+        offerID: String(this.props.offerId),
+        from: this.props.offer.buyer.id
       }
     }
   }

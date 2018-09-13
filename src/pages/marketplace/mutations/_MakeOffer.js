@@ -1,9 +1,7 @@
 import React, { Component } from 'react'
 import { Mutation } from 'react-apollo'
-import gql from 'graphql-tag'
 import { Button } from '@blueprintjs/core'
 import { DateInput } from '@blueprintjs/datetime'
-import fragments from '../../../fragments'
 
 import {
   Dialog,
@@ -14,7 +12,10 @@ import {
   Callout
 } from '@blueprintjs/core'
 
+import rnd from 'utils/rnd'
+import withAccounts from '../hoc/withAccounts'
 import query from '../queries/_offers'
+import { MakeOfferMutation } from '../../../mutations'
 
 const jsDateFormatter = {
   formatDate: date => date.toLocaleDateString(),
@@ -22,54 +23,25 @@ const jsDateFormatter = {
   placeholder: 'M/D/YYYY'
 }
 
-// mutation sendFromNode($from: String, $to: String, $value: String) {
-//   sendFromNode(from: $from, to: $to, value: $value) {
-//     fromAccount
-//     toAccount
-//   }
-// }
-// { "from": "0xBECf244F615D69AaE9648E4bB3f32161A87caFF1",
-//  "to": "0x25A7ACe6bD49f1dB57B11ae005EF40ae30195Ef6",
-//  "value": "1"}
+class MakeOffer extends Component {
+  constructor(props) {
+    super()
 
+    const buyer = rnd(props.accounts.filter(a => a.role === 'Buyer'))
+    const arbitrator = rnd(props.accounts.filter(a => a.role === 'Arbitrator'))
+    const affiliate = rnd(props.accounts.filter(a => a.role === 'Affiliate'))
 
-const MakeOfferMutation = gql`
-  mutation MakeOffer(
-    $listingID: String
-    $finalizes: String
-    $affiliate: String
-    $commission: String
-    $value: String
-    $currency: String
-    $arbitrator: String
-    $data: MakeOfferInput
-    $from: String
-  ) {
-    makeOffer(
-      listingID: $listingID
-      finalizes: $finalizes
-      affiliate: $affiliate
-      commission: $commission
-      value: $value
-      currency: $currency
-      arbitrator: $arbitrator
-      data: $data
-      from: $from
-    ) {
-      ...basicOfferFields
+    this.state = {
+      finalizes: new Date(+new Date() + 1000 * 60 * 60 * 24 * 3),
+      affiliate: affiliate
+        ? affiliate.id
+        : '0x0000000000000000000000000000000000000000',
+      commission: '2',
+      value: '0.1',
+      currency: '0x0000000000000000000000000000000000000000',
+      arbitrator: arbitrator ? arbitrator.id : '',
+      from: buyer ? buyer.id : ''
     }
-  }
-  ${fragments.Offer.basic}
-`
-
-class CreateOffer extends Component {
-  state = {
-    finalizes: new Date(+new Date() + 1000 * 60 * 60 * 24 * 3),
-    affiliate: '0x7c38A2934323aAa8dAda876Cfc147C8af40F8D0e',
-    commission: '2',
-    value: '0.1',
-    currency: '0x0000000000000000000000000000000000000000',
-    arbitrator: '0x7c38A2934323aAa8dAda876Cfc147C8af40F8D0e'
   }
 
   render() {
@@ -101,29 +73,24 @@ class CreateOffer extends Component {
               )}
               <div style={{ display: 'flex' }}>
                 <div style={{ flex: 1, marginRight: 20 }}>
+                  <FormGroup label="Buyer">
+                    <HTMLSelect
+                      fill={true}
+                      {...input('from')}
+                      options={this.props.accounts
+                        .filter(a => a.role === 'Buyer')
+                        .map(a => ({
+                          label: `${(a.name || a.id).substr(0, 24)}`,
+                          value: a.id
+                        }))}
+                    />
+                  </FormGroup>
+                </div>
+                <div style={{ flex: 1, marginRight: 20 }}>
                   <FormGroup label="Amount">
                     <InputGroup
                       {...input('value')}
                       rightElement={<Tag minimal={true}>ETH</Tag>}
-                    />
-                  </FormGroup>
-                </div>
-                <div style={{ flex: 1, marginRight: 20 }}>
-                  <FormGroup label="Commission">
-                    <InputGroup
-                      {...input('commission')}
-                      rightElement={<Tag minimal={true}>OGN</Tag>}
-                    />
-                  </FormGroup>
-                </div>
-                <div style={{ flex: 1, marginRight: 20 }}>
-                  <FormGroup label="Arbitrator">
-                    <HTMLSelect
-                      fill={true}
-                      {...input('arbitrator')}
-                      options={[
-                        { label: 'Origin', value: web3.eth.defaultAccount }
-                      ]}
                     />
                   </FormGroup>
                 </div>
@@ -141,6 +108,41 @@ class CreateOffer extends Component {
                         value: this.state.finalizes,
                         onChange: finalizes => this.setState({ finalizes })
                       }}
+                    />
+                  </FormGroup>
+                </div>
+              </div>
+              <div style={{ display: 'flex' }}>
+                <div style={{ flex: 1, marginRight: 20 }}>
+                  <FormGroup label="Affiliate">
+                    <HTMLSelect
+                      fill={true}
+                      {...input('affiliate')}
+                      options={this.props.accounts
+                        .filter(a => a.role === 'Affiliate')
+                        .map(a => ({
+                          label: `${(a.name || a.id).substr(0, 24)}`,
+                          value: a.id
+                        }))}
+                    />
+                  </FormGroup>
+                </div>
+                <div style={{ flex: 1, marginRight: 20 }}>
+                  <FormGroup label="Commission">
+                    <InputGroup
+                      {...input('commission')}
+                      rightElement={<Tag minimal={true}>OGN</Tag>}
+                    />
+                  </FormGroup>
+                </div>
+                <div style={{ flex: 1 }}>
+                  <FormGroup label="Arbitrator">
+                    <HTMLSelect
+                      fill={true}
+                      {...input('arbitrator')}
+                      options={[
+                        { label: 'Origin', value: web3.eth.defaultAccount }
+                      ]}
                     />
                   </FormGroup>
                 </div>
@@ -166,12 +168,13 @@ class CreateOffer extends Component {
     return {
       variables: {
         listingID: this.props.listingId,
-        finalizes: '1536300000',
-        affiliate: '0x7c38A2934323aAa8dAda876Cfc147C8af40F8D0e',
+        from: this.state.from,
+        finalizes: String(Math.floor(Number(this.state.finalizes) / 1000)),
+        affiliate: this.state.affiliate,
         commission: this.state.commission,
         value: web3.utils.toWei(this.state.value, 'ether'),
         currency: '0x0000000000000000000000000000000000000000',
-        arbitrator: '0x7c38A2934323aAa8dAda876Cfc147C8af40F8D0e'
+        arbitrator: this.state.arbitrator
       }
     }
   }
@@ -197,4 +200,4 @@ class CreateOffer extends Component {
   }
 }
 
-export default CreateOffer
+export default withAccounts(MakeOffer, 'marketplace')
