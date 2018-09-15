@@ -5,13 +5,17 @@ import { AnchorButton, Tooltip, Tag, Icon } from '@blueprintjs/core'
 
 import withAccounts from './hoc/withAccounts'
 
-import AcceptOffer from './mutations/AcceptOffer'
-import FinalizeOffer from './mutations/FinalizeOffer'
-import DisputeOffer from './mutations/DisputeOffer'
-import WithdrawOffer from './mutations/WithdrawOffer'
-import AddFunds from './mutations/AddFunds'
-import UpdateRefund from './mutations/UpdateRefund'
-import ExecuteRuling from './mutations/ExecuteRuling'
+import {
+  AcceptOffer,
+  FinalizeOffer,
+  DisputeOffer,
+  WithdrawOffer,
+  AddFunds,
+  UpdateRefund,
+  ExecuteRuling,
+  MakeOffer
+} from './mutations'
+
 import AccountButton from '../accounts/AccountButton'
 
 const Offers = ({ listing, offers, accounts }) => (
@@ -46,7 +50,7 @@ class OfferRow extends Component {
 
   render() {
     const { offer, listing, accounts } = this.props
-    if (offer.status === 0 || offer.status === 4 || offer.status === 5) {
+    if (offer.status === 0 || offer.status >= 4) {
       return this.renderInactiveRow()
     }
     const buyerPresent = accounts.find(
@@ -119,9 +123,9 @@ class OfferRow extends Component {
 
         <WithdrawOffer
           isOpen={this.state.withdrawOffer}
+          listing={listing}
           offer={offer}
-          listingId={listing.id}
-          offerId={offer.id}
+          party={this.state.withdrawParty}
           onCompleted={() => this.setState({ withdrawOffer: false })}
         />
 
@@ -145,6 +149,13 @@ class OfferRow extends Component {
           listing={listing}
           offer={offer}
           onCompleted={() => this.setState({ executeRuling: false })}
+        />
+
+        <MakeOffer
+          isOpen={this.state.updateOffer}
+          listing={listing}
+          offer={offer}
+          onCompleted={() => this.setState({ updateOffer: false })}
         />
       </>
     )
@@ -197,6 +208,7 @@ class OfferRow extends Component {
             <AnchorButton
               icon="edit"
               disabled={!buyerPresent}
+              onClick={() => this.setState({ updateOffer: true })}
               style={{ marginRight: 5 }}
             />
           </Tooltip>
@@ -205,7 +217,9 @@ class OfferRow extends Component {
               intent="danger"
               icon="trash"
               disabled={!buyerPresent}
-              onClick={() => this.setState({ withdrawOffer: true })}
+              onClick={() =>
+                this.setState({ withdrawOffer: true, withdrawParty: 'buyer' })
+              }
             />
           </Tooltip>
         </>
@@ -280,14 +294,17 @@ class OfferRow extends Component {
               icon="tick"
               onClick={() => this.setState({ acceptOffer: true })}
               disabled={!sellerPresent}
+              style={{ marginRight: 5 }}
             />
           </Tooltip>
           <Tooltip content="Decline">
             <AnchorButton
-              disabled={!sellerPresent}
               intent="danger"
-              style={{ marginLeft: 5 }}
               icon="cross"
+              disabled={!sellerPresent}
+              onClick={() =>
+                this.setState({ withdrawOffer: true, withdrawParty: 'seller' })
+              }
             />
           </Tooltip>
         </>
@@ -323,6 +340,9 @@ function price(offer, field = 'value') {
 
 function status(offer) {
   if (offer.status === 0) {
+    if (offer.withdrawnBy.id !== offer.ipfs.buyer) {
+      return <Tag>Declined</Tag>
+    }
     return <Tag>Withdrawn</Tag>
   }
   if (offer.status === 1) {

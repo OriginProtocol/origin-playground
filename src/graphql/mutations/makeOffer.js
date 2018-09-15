@@ -48,6 +48,9 @@ async function makeOffer(_, data, context) {
       data.currency,
       data.arbitrator
     ]
+    if (data.withdraw) {
+      args.push(data.withdraw)
+    }
 
     context.contracts.marketplace.methods
       .makeOffer(...args)
@@ -57,7 +60,9 @@ async function makeOffer(_, data, context) {
         value: data.value
       })
       .on('receipt', receipt => {
-        context.contracts.marketplace.eventCache.updateBlock(receipt.blockNumber)
+        context.contracts.marketplace.eventCache.updateBlock(
+          receipt.blockNumber
+        )
         resolve(
           getOffer(context.contracts.marketplace, {
             listingId: data.listingID,

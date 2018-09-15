@@ -16,6 +16,8 @@ class WithdrawOffer extends Component {
       value: this.state[field],
       onChange: e => this.setState({ [field]: e.currentTarget.value })
     })
+    const title = this.props.party === 'seller' ? 'Decline' : 'Withdraw'
+
     return (
       <Mutation
         mutation={WithdrawOfferMutation}
@@ -23,7 +25,7 @@ class WithdrawOffer extends Component {
       >
         {(withdrawOffer, { loading, error }) => (
           <Dialog
-            title="Withdraw Offer"
+            title={`${title} Offer`}
             isOpen={this.props.isOpen}
             onClose={this.props.onCompleted}
           >
@@ -36,7 +38,7 @@ class WithdrawOffer extends Component {
             <div className="bp3-dialog-footer">
               <div className="bp3-dialog-footer-actions">
                 <Button
-                  text="Withdraw Offer"
+                  text={`${title} Offer`}
                   intent="primary"
                   loading={loading}
                   onClick={() => withdrawOffer(this.getVars())}
@@ -50,11 +52,15 @@ class WithdrawOffer extends Component {
   }
 
   getVars() {
+    const from =
+      this.props.party === 'seller'
+        ? this.props.listing.seller.id
+        : this.props.offer.buyer.id
     return {
       variables: {
-        listingID: String(this.props.listingId),
-        offerID: String(this.props.offerId),
-        from: this.props.offer.buyer.id
+        listingID: String(this.props.listing.id),
+        offerID: String(this.props.offer.id),
+        from
       }
     }
   }

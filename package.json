@@ -90,6 +90,7 @@
           "legacy": true
         }
       ],
+      "@babel/plugin-proposal-export-default-from",
       "@babel/plugin-transform-runtime",
       "@babel/plugin-transform-destructuring",
       "@babel/plugin-transform-object-assign",

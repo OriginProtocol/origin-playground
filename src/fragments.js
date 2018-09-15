@@ -56,6 +56,9 @@ export default {
         buyer {
           id
         }
+        withdrawnBy {
+          id
+        }
 
         ipfs {
           id

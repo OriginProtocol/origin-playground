@@ -32,7 +32,8 @@ export default `
       value: String,
       currency: String,
       arbitrator: String,
-      from: String
+      from: String,
+      withdraw: String
     ): Offer
 
     executeRuling(
@@ -146,6 +147,7 @@ export default `
     arbitrator: Account
     finalizes: Int
     status: Int
+    withdrawnBy: Account
     ipfs: OfferData
   }
 

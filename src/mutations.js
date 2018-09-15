@@ -1,4 +1,5 @@
 import gql from 'graphql-tag'
+import gqlClient from './graphqlClient'
 
 import fragments from './fragments'
 
@@ -99,6 +100,7 @@ export const MakeOfferMutation = gql`
     $arbitrator: String
     $data: MakeOfferInput
     $from: String
+    $withdraw: String
   ) {
     makeOffer(
       listingID: $listingID
@@ -110,6 +112,7 @@ export const MakeOfferMutation = gql`
       arbitrator: $arbitrator
       data: $data
       from: $from
+      withdraw: $withdraw
     ) {
       ...basicOfferFields
     }
@@ -216,3 +219,25 @@ export const WithdrawOfferMutation = gql`
   }
   ${fragments.Offer.basic}
 `
+
+// await originJS.createListing({
+//   deposit: '2',
+//   arbitrator: '0x9d42726D0Aa33984c55a1076DBc68a42f2509684',
+//   from: '0x2d935875CDe9f60EE8E48e5403aD716A0A4D8e62',
+//   data: {
+//     title: 'Niiiice2',
+//     category: 'For Sale',
+//     currencyId: 'ETH',
+//     price: '0.1'
+//   }
+// })
+
+window.originJS = {
+  createListing: async function(variables) {
+    return await gqlClient.mutate({
+      mutation: CreateListingMutation,
+      variables,
+      refetchQueries: ['AllListings']
+    })
+  }
+}

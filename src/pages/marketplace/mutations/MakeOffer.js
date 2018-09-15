@@ -13,7 +13,6 @@ import {
 
 import rnd from 'utils/rnd'
 import withAccounts from '../hoc/withAccounts'
-import query from '../queries/_offers'
 import { MakeOfferMutation } from '../../../mutations'
 import ErrorCallout from './_ErrorCallout'
 
@@ -49,16 +48,16 @@ class MakeOffer extends Component {
       value: this.state[field],
       onChange: e => this.setState({ [field]: e.currentTarget.value })
     })
+    const title = this.props.offer ? 'Update Offer' : 'Make Offer'
     return (
       <Mutation
         mutation={MakeOfferMutation}
-        update={this.onUpdate}
         onCompleted={this.props.onCompleted}
-        refetchQueries={['AllAccounts']}
+        refetchQueries={['AllAccounts', 'Listing']}
       >
         {(makeOffer, { loading, error }) => (
           <Dialog
-            title="Make Offer"
+            title={title}
             isOpen={this.props.isOpen}
             onClose={this.props.onCompleted}
           >
@@ -144,7 +143,7 @@ class MakeOffer extends Component {
             <div className="bp3-dialog-footer">
               <div className="bp3-dialog-footer-actions">
                 <Button
-                  text="Make Offer"
+                  text={title}
                   intent="primary"
                   loading={loading}
                   onClick={() => makeOffer(this.getVars())}
@@ -158,38 +157,20 @@ class MakeOffer extends Component {
   }
 
   getVars() {
-    return {
-      variables: {
-        listingID: this.props.listingId,
-        from: this.state.from,
-        finalizes: String(Math.floor(Number(this.state.finalizes) / 1000)),
-        affiliate: this.state.affiliate,
-        commission: this.state.commission,
-        value: web3.utils.toWei(this.state.value, 'ether'),
-        currency: '0x0000000000000000000000000000000000000000',
-        arbitrator: this.state.arbitrator
-      }
+    const variables = {
+      listingID: String(this.props.listing.id),
+      from: this.state.from,
+      finalizes: String(Math.floor(Number(this.state.finalizes) / 1000)),
+      affiliate: this.state.affiliate,
+      commission: this.state.commission,
+      value: web3.utils.toWei(this.state.value, 'ether'),
+      currency: '0x0000000000000000000000000000000000000000',
+      arbitrator: this.state.arbitrator
     }
-  }
-
-  onUpdate = (cache, { data }) => {
-    const res = cache.readQuery({
-      query,
-      variables: { listingId: this.props.listingId }
-    })
-    // console.log(res)
-    cache.writeQuery({
-      query,
-      data: {
-        marketplace: {
-          ...res.marketplace,
-          getListing: {
-            ...res.marketplace.getListing,
-            offers: [...res.marketplace.getListing.offers, data.makeOffer]
-          }
-        }
-      }
-    })
+    if (this.props.offer) {
+      variables.withdraw = String(this.props.offer.id)
+    }
+    return { variables }
   }
 }
 

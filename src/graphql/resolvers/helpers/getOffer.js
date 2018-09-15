@@ -2,7 +2,8 @@ export default async (contract, args) => {
   const offer = await contract.methods.offers(args.listingId, args.idx).call()
   let ipfsHash,
     status = offer.status,
-    lastEvent
+    lastEvent,
+    withdrawnBy
 
   const events = await contract.eventCache.offers(args.listingId, args.idx)
 
@@ -12,14 +13,15 @@ export default async (contract, args) => {
     } else if (e.event === 'OfferUpdated') {
       ipfsHash = e.returnValues.ipfsHash
     }
-    lastEvent = e.event
+    lastEvent = e
   })
 
-  if (lastEvent === 'OfferFinalized') {
+  if (lastEvent.event === 'OfferFinalized') {
     status = 4
-  } else if (lastEvent === 'OfferWithdrawn') {
+  } else if (lastEvent.event === 'OfferWithdrawn') {
     status = 0
-  } else if (lastEvent === 'OfferRuling') {
+    withdrawnBy = { id: lastEvent.returnValues.party }
+  } else if (lastEvent.event === 'OfferRuling') {
     status = 5
   }
 
@@ -28,6 +30,7 @@ export default async (contract, args) => {
     listingId: String(args.listingId),
     status,
     contract,
+    withdrawnBy,
     value: offer.value,
     commission: offer.commission,
     refund: offer.refund,
@@ -36,6 +39,6 @@ export default async (contract, args) => {
     ipfs: { id: ipfsHash },
     buyer: { id: offer.buyer },
     affiliate: { id: offer.affiliate },
-    arbitrator: { id: offer.arbitrator },
+    arbitrator: { id: offer.arbitrator }
   }
 }

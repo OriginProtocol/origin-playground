@@ -21,6 +21,8 @@ import query from './_query'
 import gql from '../../graphqlClient'
 
 async function populate(NodeAccount) {
+  const refetchQueries = ['AllAccounts']
+
   const Admin = (await gql.mutate({
     mutation: CreateWalletMutation,
     variables: { role: 'Admin', name: 'Admin' }
@@ -28,10 +30,9 @@ async function populate(NodeAccount) {
 
   await gql.mutate({
     mutation: SendFromNodeMutation,
-    variables: { to: Admin, from: NodeAccount, value: '0.5' }
+    variables: { to: Admin, from: NodeAccount, value: '0.5' },
+    refetchQueries
   })
-
-  await gql.resetStore()
 
   const OGN = (await gql.mutate({
     mutation: DeployTokenMutation,
@@ -45,10 +46,9 @@ async function populate(NodeAccount) {
 
   const Marketplace = (await gql.mutate({
     mutation: DeployMarketplaceMutation,
-    variables: { token: OGN }
+    variables: { token: OGN },
+    refetchQueries
   })).data.deployMarketplace
-
-  await gql.resetStore()
 
   const Seller = (await gql.mutate({
     mutation: CreateWalletMutation,
@@ -57,10 +57,9 @@ async function populate(NodeAccount) {
 
   await gql.mutate({
     mutation: SendFromNodeMutation,
-    variables: { to: Seller, from: NodeAccount, value: '0.5' }
+    variables: { to: Seller, from: NodeAccount, value: '0.5' },
+    refetchQueries
   })
-
-  await gql.resetStore()
 
   await gql.mutate({
     mutation: TransferTokenMutation,
@@ -69,10 +68,9 @@ async function populate(NodeAccount) {
 
   await gql.mutate({
     mutation: UpdateTokenAllowanceMutation,
-    variables: { token: 'ogn', to: Marketplace, from: Seller, value: '500' }
+    variables: { token: 'ogn', to: Marketplace, from: Seller, value: '500' },
+    refetchQueries
   })
-
-  await gql.resetStore()
 
   const Buyer = (await gql.mutate({
     mutation: CreateWalletMutation,
@@ -81,10 +79,9 @@ async function populate(NodeAccount) {
 
   await gql.mutate({
     mutation: SendFromNodeMutation,
-    variables: { to: Buyer, from: NodeAccount, value: '0.5' }
+    variables: { to: Buyer, from: NodeAccount, value: '0.5' },
+    refetchQueries
   })
-
-  await gql.resetStore()
 
   const Arbitrator = (await gql.mutate({
     mutation: CreateWalletMutation,
@@ -93,10 +90,9 @@ async function populate(NodeAccount) {
 
   await gql.mutate({
     mutation: SendFromNodeMutation,
-    variables: { to: Arbitrator, from: NodeAccount, value: '0.5' }
+    variables: { to: Arbitrator, from: NodeAccount, value: '0.5' },
+    refetchQueries
   })
-
-  await gql.resetStore()
 
   const Affiliate = (await gql.mutate({
     mutation: CreateWalletMutation,
@@ -105,10 +101,9 @@ async function populate(NodeAccount) {
 
   await gql.mutate({
     mutation: SendFromNodeMutation,
-    variables: { to: Affiliate, from: NodeAccount, value: '0.1' }
+    variables: { to: Affiliate, from: NodeAccount, value: '0.1' },
+    refetchQueries
   })
-
-  await gql.resetStore()
 }
 
 class Accounts extends Component {

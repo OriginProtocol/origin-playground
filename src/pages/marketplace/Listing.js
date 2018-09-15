@@ -62,7 +62,7 @@ class Listing extends Component {
               {/* <pre>{JSON.stringify(data, null, 4)}</pre> */}
               <MakeOffer
                 {...this.state}
-                listingId={listingId}
+                listing={listing}
                 isOpen={this.state.makeOffer}
                 onCompleted={() => {
                   this.setState({ makeOffer: false })
