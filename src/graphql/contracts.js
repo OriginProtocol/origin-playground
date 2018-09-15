@@ -6,7 +6,8 @@ const HOST = process.env.HOST || 'localhost'
 let provider = 'https://eth-node.dapptix.com'
 
 if (process.env.NODE_ENV !== 'production') {
-  provider = `ws://${HOST}:8545`
+  // provider = `ws://${HOST}:8545`
+  provider = `http://${HOST}:8545`
 }
 
 if (typeof window !== 'undefined') {

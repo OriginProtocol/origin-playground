@@ -8,8 +8,7 @@ import {
   InputGroup,
   ControlGroup,
   HTMLSelect,
-  Slider,
-  Callout
+  Slider
 } from '@blueprintjs/core'
 
 import rnd from 'utils/rnd'
@@ -17,10 +16,13 @@ import withAccounts from '../hoc/withAccounts'
 import query from '../queries/_listings'
 
 import { CreateListingMutation } from '../../../mutations'
+import ErrorCallout from './_ErrorCallout'
 
 function showOGN(account) {
   if (!account.ogn) return ''
-  return ` (${account.ogn.balance} OGN available, ${account.ogn.allowance} allowed)`
+  return ` (${account.ogn.balance} OGN available, ${
+    account.ogn.allowance
+  } allowed)`
 }
 
 class CreateListing extends Component {
@@ -59,15 +61,7 @@ class CreateListing extends Component {
             onClose={this.props.onCompleted}
           >
             <div className="bp3-dialog-body">
-              {error && (
-                <Callout
-                  style={{ marginBottom: 15 }}
-                  intent="danger"
-                  icon="error"
-                >
-                  {error.toString()}
-                </Callout>
-              )}
+              <ErrorCallout error={error} />
               <FormGroup label="Seller">
                 <HTMLSelect
                   {...input('from')}

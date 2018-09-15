@@ -44,6 +44,7 @@ export default {
         listingId
         value
         currency
+        refund
         commission
         status
         arbitrator {
@@ -63,6 +64,7 @@ export default {
           affiliate
           commission
           value
+          refund
           currency
           arbitrator
         }

@@ -8,14 +8,14 @@ import {
   FormGroup,
   InputGroup,
   HTMLSelect,
-  Tag,
-  Callout
+  Tag
 } from '@blueprintjs/core'
 
 import rnd from 'utils/rnd'
 import withAccounts from '../hoc/withAccounts'
 import query from '../queries/_offers'
 import { MakeOfferMutation } from '../../../mutations'
+import ErrorCallout from './_ErrorCallout'
 
 const jsDateFormatter = {
   formatDate: date => date.toLocaleDateString(),
@@ -62,15 +62,7 @@ class MakeOffer extends Component {
             onClose={this.props.onCompleted}
           >
             <div className="bp3-dialog-body">
-              {error && (
-                <Callout
-                  style={{ marginBottom: 15 }}
-                  intent="danger"
-                  icon="error"
-                >
-                  {error.toString()}
-                </Callout>
-              )}
+              <ErrorCallout error={error} />
               <div style={{ display: 'flex' }}>
                 <div style={{ flex: 1, marginRight: 20 }}>
                   <FormGroup label="Buyer">

@@ -1,19 +1,10 @@
 import React, { Component } from 'react'
 import { Mutation } from 'react-apollo'
-import gql from 'graphql-tag'
-import { Button } from '@blueprintjs/core'
-import fragments from '../../../fragments'
 
-import { Dialog, FormGroup, InputGroup, Callout } from '@blueprintjs/core'
+import { Button, Dialog, FormGroup, InputGroup } from '@blueprintjs/core'
 
-const FinalizeOfferMutation = gql`
-  mutation FinalizeOffer($listingID: String, $offerID: String, $from: String) {
-    finalizeOffer(listingID: $listingID, offerID: $offerID, from: $from) {
-      ...basicOfferFields
-    }
-  }
-  ${fragments.Offer.basic}
-`
+import { FinalizeOfferMutation } from '../../../mutations'
+import ErrorCallout from './_ErrorCallout'
 
 class FinalizeOffer extends Component {
   state = {
@@ -25,27 +16,21 @@ class FinalizeOffer extends Component {
       value: this.state[field],
       onChange: e => this.setState({ [field]: e.currentTarget.value })
     })
+
     return (
       <Mutation
         mutation={FinalizeOfferMutation}
         update={this.onUpdate}
         onCompleted={this.props.onCompleted}
       >
-        {(finalizeOffer, { loading }) => (
+        {(finalizeOffer, { loading, error }) => (
           <Dialog
             title="Finalize Offer"
             isOpen={this.props.isOpen}
             onClose={this.props.onCompleted}
           >
             <div className="bp3-dialog-body">
-              <Callout
-                className="mb-3"
-                intent="warning"
-                icon="warning-sign"
-                title="Warning"
-              >
-                You cannot dispute a transaction after finalizing.
-              </Callout>
+              <ErrorCallout error={error} />
               <FormGroup label="Review">
                 <InputGroup {...input('review')} />
               </FormGroup>
@@ -69,8 +54,8 @@ class FinalizeOffer extends Component {
   getVars() {
     return {
       variables: {
-        listingID: String(this.props.listingId),
-        offerID: String(this.props.offerId),
+        listingID: String(this.props.listing.id),
+        offerID: String(this.props.offer.id),
         from: this.props.offer.buyer.id
       }
     }

@@ -116,3 +116,77 @@ export const MakeOfferMutation = gql`
   }
   ${fragments.Offer.basic}
 `
+
+export const AcceptOfferMutation = gql`
+  mutation AcceptOffer($listingID: String!, $offerID: String!, $from: String) {
+    acceptOffer(listingID: $listingID, offerID: $offerID, from: $from) {
+      ...basicOfferFields
+    }
+  }
+  ${fragments.Offer.basic}
+`
+
+export const AddFundsMutation = gql`
+  mutation AddFunds(
+    $listingID: String!
+    $offerID: String!
+    $amount: String!
+    $from: String
+  ) {
+    addFunds(
+      listingID: $listingID
+      offerID: $offerID
+      amount: $amount
+      from: $from
+    ) {
+      ...basicOfferFields
+    }
+  }
+  ${fragments.Offer.basic}
+`
+
+export const UpdateRefundMutation = gql`
+  mutation UpdateRefundMutation(
+    $listingID: String!
+    $offerID: String!
+    $amount: String!
+    $from: String
+  ) {
+    updateRefund(
+      listingID: $listingID
+      offerID: $offerID
+      amount: $amount
+      from: $from
+    ) {
+      ...basicOfferFields
+    }
+  }
+  ${fragments.Offer.basic}
+`
+
+export const FinalizeOfferMutation = gql`
+  mutation FinalizeOffer($listingID: String, $offerID: String, $from: String) {
+    finalizeOffer(listingID: $listingID, offerID: $offerID, from: $from) {
+      ...basicOfferFields
+    }
+  }
+  ${fragments.Offer.basic}
+`
+
+export const DisputeOfferMutation = gql`
+  mutation DisputeOffer($listingID: String, $offerID: String, $from: String) {
+    disputeOffer(listingID: $listingID, offerID: $offerID, from: $from) {
+      ...basicOfferFields
+    }
+  }
+  ${fragments.Offer.basic}
+`
+
+export const WithdrawOfferMutation = gql`
+  mutation WithdrawOffer($listingID: String, $offerID: String, $from: String) {
+    withdrawOffer(listingID: $listingID, offerID: $offerID, from: $from) {
+      ...basicOfferFields
+    }
+  }
+  ${fragments.Offer.basic}
+`

@@ -1,7 +1,7 @@
 const offerFields = offer => ({
   value: offer.value,
   commission: offer.commission,
-  refund: offer.refunt,
+  refund: offer.refund,
   currency: offer.currency,
   buyer: { id: offer.buyer },
   affiliate: { id: offer.affiliate },

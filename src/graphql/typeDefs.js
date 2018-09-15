@@ -23,6 +23,7 @@ export default `
       from: String,
       data: NewListingInput
     ): Listing
+
     makeOffer(
       listingID: String,
       finalizes: String,
@@ -33,10 +34,13 @@ export default `
       arbitrator: String,
       from: String
     ): Offer
+
     acceptOffer(listingID: String!, offerID: String!, from: String): Offer
     withdrawOffer(listingID: String!, offerID: String!, from: String): Offer
     finalizeOffer(listingID: String!, offerID: String!, from: String): Offer
+    disputeOffer(listingID: String!, offerID: String!, from: String): Offer
     addFunds(listingID: String!, offerID: String!, amount: String!, from: String): Offer
+    updateRefund(listingID: String!, offerID: String!, amount: String!, from: String): Offer
   }
 
   type Web3 {
@@ -142,6 +146,7 @@ export default `
     affiliate: String
     commission: String
     value: String
+    refund: String
     currency: String
     arbitrator: String
   }

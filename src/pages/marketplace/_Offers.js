@@ -5,10 +5,12 @@ import { AnchorButton, Tooltip, Tag, Icon } from '@blueprintjs/core'
 
 import withAccounts from './hoc/withAccounts'
 
-import AcceptOffer from './mutations/_AcceptOffer'
-import FinalizeOffer from './mutations/_FinalizeOffer'
-import WithdrawOffer from './mutations/_WithdrawOffer'
-import AddFunds from './mutations/_AddFunds'
+import AcceptOffer from './mutations/AcceptOffer'
+import FinalizeOffer from './mutations/FinalizeOffer'
+import DisputeOffer from './mutations/DisputeOffer'
+import WithdrawOffer from './mutations/WithdrawOffer'
+import AddFunds from './mutations/AddFunds'
+import UpdateRefund from './mutations/UpdateRefund'
 import AccountButton from '../accounts/AccountButton'
 
 const Offers = ({ listing, offers, accounts }) => (
@@ -18,6 +20,7 @@ const Offers = ({ listing, offers, accounts }) => (
         <th>ID</th>
         <th>Status</th>
         <th>Offer</th>
+        <th>Refund</th>
         <th>Buyer</th>
         <th>Commission</th>
         <th>Arbitrator</th>
@@ -51,12 +54,16 @@ class OfferRow extends Component {
     const sellerPresent = accounts.find(
       a => listing.seller && a.id === listing.seller.id
     )
+    const arbitratorPresent = accounts.find(
+      a => offer.arbitrator && a.id === offer.arbitrator.id
+    )
     return (
       <>
         <tr className="vm">
           <td>{offer.id}</td>
           <td>{status(offer)}</td>
           <td>{price(offer)}</td>
+          <td>{price(offer, 'refund')}</td>
           <td>
             <AccountButton account={offer.buyer} />
           </td>
@@ -79,7 +86,7 @@ class OfferRow extends Component {
             {this.renderBuyerActions(offer, buyerPresent)}
           </td>
           <td>{this.renderSellerActions(offer, sellerPresent)}</td>
-          <td />
+          <td>{this.renderArbitratorActions(offer, arbitratorPresent)}</td>
           <td>
             <Tooltip content="Add Data">
               <AnchorButton icon="comment" />
@@ -90,17 +97,22 @@ class OfferRow extends Component {
         <AcceptOffer
           isOpen={this.state.acceptOffer}
           listing={listing}
-          listingId={listing.id}
-          offerId={offer.id}
+          offer={offer}
           onCompleted={() => this.setState({ acceptOffer: false })}
         />
 
         <FinalizeOffer
           isOpen={this.state.finalizeOffer}
-          listingId={listing.id}
-          offerId={offer.id}
+          listing={listing}
           offer={offer}
           onCompleted={() => this.setState({ finalizeOffer: false })}
+        />
+
+        <DisputeOffer
+          isOpen={this.state.disputeOffer}
+          listing={listing}
+          offer={offer}
+          onCompleted={() => this.setState({ disputeOffer: false })}
         />
 
         <WithdrawOffer
@@ -117,6 +129,13 @@ class OfferRow extends Component {
           offerId={offer.id}
           offer={offer}
           onCompleted={() => this.setState({ addFunds: false })}
+        />
+
+        <UpdateRefund
+          isOpen={this.state.updateRefund}
+          listing={listing}
+          offer={offer}
+          onCompleted={() => this.setState({ updateRefund: false })}
         />
       </>
     )
@@ -207,6 +226,7 @@ class OfferRow extends Component {
               intent="danger"
               icon="issue"
               disabled={!buyerPresent}
+              onClick={() => this.setState({ disputeOffer: true })}
             />
           </Tooltip>
         </>
@@ -218,8 +238,12 @@ class OfferRow extends Component {
     if (offer.status === 2) {
       return (
         <>
-          <Tooltip content="Set Refund">
-            <AnchorButton icon="dollar" disabled={!sellerPresent} />
+          <Tooltip content="Update Refund">
+            <AnchorButton
+              disabled={!sellerPresent}
+              icon="dollar"
+              onClick={() => this.setState({ updateRefund: true })}
+            />
           </Tooltip>
           <Tooltip content="Dispute">
             <AnchorButton
@@ -255,13 +279,30 @@ class OfferRow extends Component {
       )
     }
   }
+
+  renderArbitratorActions(offer, arbitratorPresent) {
+    if (offer.status === 3) {
+      return (
+        <>
+          <Tooltip content="Give Ruling">
+            <AnchorButton
+              disabled={!arbitratorPresent}
+              icon="take-action"
+              onClick={() => this.setState({ giveRuling: true })}
+            />
+          </Tooltip>
+        </>
+      )
+    }
+  }
 }
 
-function price(offer) {
+function price(offer, field = 'value') {
+  const value = String(offer[field] || '0')
   if (offer.currency !== '0x0000000000000000000000000000000000000000') {
-    return offer.value
+    return value
   } else {
-    return web3.utils.fromWei(offer.value, 'ether') + ' ETH'
+    return web3.utils.fromWei(value, 'ether') + ' ETH'
   }
 }
 
@@ -274,6 +315,9 @@ function status(offer) {
   }
   if (offer.status === 2) {
     return <Tag intent="primary">Accepted</Tag>
+  }
+  if (offer.status === 3) {
+    return <Tag intent="danger">Disputed</Tag>
   }
   if (offer.status === 4) {
     return <Tag intent="success">Finalized</Tag>

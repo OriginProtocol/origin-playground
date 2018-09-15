@@ -1,19 +1,10 @@
 import React, { Component } from 'react'
 import { Mutation } from 'react-apollo'
-import gql from 'graphql-tag'
-import { Button } from '@blueprintjs/core'
-import fragments from '../../../fragments'
 
-import { Dialog, FormGroup, InputGroup, Callout } from '@blueprintjs/core'
+import { Button, Dialog, FormGroup, InputGroup } from '@blueprintjs/core'
 
-const WithdrawOfferMutation = gql`
-  mutation WithdrawOffer($listingID: String, $offerID: String, $from: String) {
-    withdrawOffer(listingID: $listingID, offerID: $offerID, from: $from) {
-      ...basicOfferFields
-    }
-  }
-  ${fragments.Offer.basic}
-`
+import { WithdrawOfferMutation } from '../../../mutations'
+import ErrorCallout from './_ErrorCallout'
 
 class WithdrawOffer extends Component {
   state = {
@@ -36,15 +27,8 @@ class WithdrawOffer extends Component {
             isOpen={this.props.isOpen}
             onClose={this.props.onCompleted}
           >
-            <div className="bp3-dialog-body">{error && (
-              <Callout
-                style={{ marginBottom: 15 }}
-                intent="danger"
-                icon="error"
-              >
-                {error.toString()}
-              </Callout>
-            )}
+            <div className="bp3-dialog-body">
+              <ErrorCallout error={error} />
               <FormGroup label="Reason">
                 <InputGroup {...input('message')} />
               </FormGroup>

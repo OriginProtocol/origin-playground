@@ -1,19 +1,10 @@
 import React, { Component } from 'react'
 import { Mutation } from 'react-apollo'
-import gql from 'graphql-tag'
-import { Button } from '@blueprintjs/core'
-import fragments from '../../../fragments'
 
-import { Dialog, FormGroup, InputGroup, Callout, Tag } from '@blueprintjs/core'
+import { Button, Dialog, FormGroup, InputGroup, Tag } from '@blueprintjs/core'
 
-const AddFundsMutation = gql`
-  mutation AddFunds($listingID: String!, $offerID: String!, $amount: String!, $from: String) {
-    addFunds(listingID: $listingID, offerID: $offerID, amount: $amount, from: $from) {
-      ...basicOfferFields
-    }
-  }
-  ${fragments.Offer.basic}
-`
+import { AddFundsMutation } from '../../../mutations'
+import ErrorCallout from './_ErrorCallout'
 
 class AddFunds extends Component {
   state = {
@@ -38,15 +29,7 @@ class AddFunds extends Component {
             onClose={this.props.onCompleted}
           >
             <div className="bp3-dialog-body">
-              {error && (
-                <Callout
-                  style={{ marginBottom: 15 }}
-                  intent="danger"
-                  icon="error"
-                >
-                  {error.toString()}
-                </Callout>
-              )}
+              <ErrorCallout error={error} />
               <div style={{ display: 'flex' }}>
                 <div style={{ flex: 1, marginRight: 20 }}>
                   <FormGroup label="Amount">

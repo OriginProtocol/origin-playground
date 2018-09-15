@@ -1,19 +1,11 @@
 import React, { Component } from 'react'
 import { Mutation } from 'react-apollo'
-import gql from 'graphql-tag'
 import { Button } from '@blueprintjs/core'
-import fragments from '../../../fragments'
 
-import { Dialog, FormGroup, InputGroup, Callout } from '@blueprintjs/core'
+import { Dialog, FormGroup, InputGroup } from '@blueprintjs/core'
 
-const AcceptOfferMutation = gql`
-  mutation AcceptOffer($listingID: String!, $offerID: String!, $from: String) {
-    acceptOffer(listingID: $listingID, offerID: $offerID, from: $from) {
-      ...basicOfferFields
-    }
-  }
-  ${fragments.Offer.basic}
-`
+import { AcceptOfferMutation } from '../../../mutations'
+import ErrorCallout from './_ErrorCallout'
 
 class AcceptOffer extends Component {
   state = {
@@ -37,15 +29,8 @@ class AcceptOffer extends Component {
             isOpen={this.props.isOpen}
             onClose={this.props.onCompleted}
           >
-            <div className="bp3-dialog-body">{error && (
-              <Callout
-                style={{ marginBottom: 15 }}
-                intent="danger"
-                icon="error"
-              >
-                {error.toString()}
-              </Callout>
-            )}
+            <div className="bp3-dialog-body">
+              <ErrorCallout error={error} />
               <FormGroup label="Message to Buyer">
                 <InputGroup {...input('message')} />
               </FormGroup>
@@ -69,8 +54,8 @@ class AcceptOffer extends Component {
   getVars() {
     return {
       variables: {
-        listingID: String(this.props.listingId),
-        offerID: String(this.props.offerId),
+        listingID: String(this.props.listing.id),
+        offerID: String(this.props.offer.id),
         from: this.props.listing.seller.id
       }
     }

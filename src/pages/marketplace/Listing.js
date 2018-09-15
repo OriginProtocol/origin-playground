@@ -4,7 +4,7 @@ import { Link } from 'react-router-dom'
 
 import { Button, NonIdealState, AnchorButton } from '@blueprintjs/core'
 
-import MakeOffer from './mutations/_MakeOffer'
+import MakeOffer from './mutations/MakeOffer'
 import Offers from './_Offers'
 import AccountButton from '../accounts/AccountButton'
 
