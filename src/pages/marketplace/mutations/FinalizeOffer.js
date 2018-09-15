@@ -22,6 +22,7 @@ class FinalizeOffer extends Component {
         mutation={FinalizeOfferMutation}
         update={this.onUpdate}
         onCompleted={this.props.onCompleted}
+        refetchQueries={['AllAccounts']}
       >
         {(finalizeOffer, { loading, error }) => (
           <Dialog

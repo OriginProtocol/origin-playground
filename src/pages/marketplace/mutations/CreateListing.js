@@ -53,6 +53,7 @@ class CreateListing extends Component {
         mutation={CreateListingMutation}
         update={this.onUpdate}
         onCompleted={this.props.onCompleted}
+        refetchQueries={['AllAccounts']}
       >
         {(createListing, { loading, error }) => (
           <Dialog

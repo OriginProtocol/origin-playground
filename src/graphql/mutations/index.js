@@ -5,6 +5,7 @@ import createListing from './createListing'
 import createWallet from './createWallet'
 import deployMarketplace from './deployMarketplace'
 import deployToken from './deployToken'
+import executeRuling from './executeRuling'
 import finalizeOffer from './finalizeOffer'
 import disputeOffer from './disputeOffer'
 import makeOffer from './makeOffer'
@@ -23,6 +24,7 @@ export default {
   createWallet,
   deployMarketplace,
   deployToken,
+  executeRuling,
   finalizeOffer,
   disputeOffer,
   makeOffer,

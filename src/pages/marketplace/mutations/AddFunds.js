@@ -27,6 +27,7 @@ class AddFunds extends Component {
             title="Add Funds"
             isOpen={this.props.isOpen}
             onClose={this.props.onCompleted}
+            refetchQueries={['AllAccounts']}
           >
             <div className="bp3-dialog-body">
               <ErrorCallout error={error} />

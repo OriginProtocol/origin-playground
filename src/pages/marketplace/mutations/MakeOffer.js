@@ -54,6 +54,7 @@ class MakeOffer extends Component {
         mutation={MakeOfferMutation}
         update={this.onUpdate}
         onCompleted={this.props.onCompleted}
+        refetchQueries={['AllAccounts']}
       >
         {(makeOffer, { loading, error }) => (
           <Dialog

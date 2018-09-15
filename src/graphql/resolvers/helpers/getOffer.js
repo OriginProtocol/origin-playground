@@ -14,10 +14,13 @@ export default async (contract, args) => {
     }
     lastEvent = e.event
   })
+
   if (lastEvent === 'OfferFinalized') {
     status = 4
   } else if (lastEvent === 'OfferWithdrawn') {
     status = 0
+  } else if (lastEvent === 'OfferRuling') {
+    status = 5
   }
 
   return {

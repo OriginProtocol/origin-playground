@@ -164,6 +164,32 @@ export const UpdateRefundMutation = gql`
   ${fragments.Offer.basic}
 `
 
+export const ExecuteRulingMutation = gql`
+  mutation ExecuteRulingMutation(
+    $listingID: String!
+    $offerID: String!
+    $ruling: String!
+    $commission: String!
+    $message: String
+    $refund: String
+    $from: String
+  ) {
+    executeRuling(
+      listingID: $listingID
+      offerID: $offerID
+      amount: $amount
+      ruling: $ruling
+      commission: $commission
+      message: $message
+      refund: $refund
+      from: $from
+    ) {
+      ...basicOfferFields
+    }
+  }
+  ${fragments.Offer.basic}
+`
+
 export const FinalizeOfferMutation = gql`
   mutation FinalizeOffer($listingID: String, $offerID: String, $from: String) {
     finalizeOffer(listingID: $listingID, offerID: $offerID, from: $from) {

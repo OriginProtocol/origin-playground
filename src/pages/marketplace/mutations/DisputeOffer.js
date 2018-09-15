@@ -52,11 +52,15 @@ class DisputeOffer extends Component {
   }
 
   getVars() {
+    const from =
+      this.props.party === 'seller'
+        ? this.props.listing.seller.id
+        : this.props.offer.buyer.id
     return {
       variables: {
         listingID: String(this.props.listing.id),
         offerID: String(this.props.offer.id),
-        from: this.props.offer.buyer.id
+        from
       }
     }
   }

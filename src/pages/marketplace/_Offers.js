@@ -11,6 +11,7 @@ import DisputeOffer from './mutations/DisputeOffer'
 import WithdrawOffer from './mutations/WithdrawOffer'
 import AddFunds from './mutations/AddFunds'
 import UpdateRefund from './mutations/UpdateRefund'
+import ExecuteRuling from './mutations/ExecuteRuling'
 import AccountButton from '../accounts/AccountButton'
 
 const Offers = ({ listing, offers, accounts }) => (
@@ -45,7 +46,7 @@ class OfferRow extends Component {
 
   render() {
     const { offer, listing, accounts } = this.props
-    if (offer.status === 4 || offer.status === 0) {
+    if (offer.status === 0 || offer.status === 4 || offer.status === 5) {
       return this.renderInactiveRow()
     }
     const buyerPresent = accounts.find(
@@ -112,6 +113,7 @@ class OfferRow extends Component {
           isOpen={this.state.disputeOffer}
           listing={listing}
           offer={offer}
+          party={this.state.disputeParty}
           onCompleted={() => this.setState({ disputeOffer: false })}
         />
 
@@ -137,6 +139,13 @@ class OfferRow extends Component {
           offer={offer}
           onCompleted={() => this.setState({ updateRefund: false })}
         />
+
+        <ExecuteRuling
+          isOpen={this.state.executeRuling}
+          listing={listing}
+          offer={offer}
+          onCompleted={() => this.setState({ executeRuling: false })}
+        />
       </>
     )
   }
@@ -149,6 +158,7 @@ class OfferRow extends Component {
         <td>{offer.id}</td>
         <td>{status(offer)}</td>
         <td>{price(offerData)}</td>
+        <td>{price(offerData, 'refund')}</td>
         <td>
           <AccountButton account={offerData.buyer} />
         </td>
@@ -226,7 +236,9 @@ class OfferRow extends Component {
               intent="danger"
               icon="issue"
               disabled={!buyerPresent}
-              onClick={() => this.setState({ disputeOffer: true })}
+              onClick={() =>
+                this.setState({ disputeOffer: true, disputeParty: 'buyer' })
+              }
             />
           </Tooltip>
         </>
@@ -243,14 +255,17 @@ class OfferRow extends Component {
               disabled={!sellerPresent}
               icon="dollar"
               onClick={() => this.setState({ updateRefund: true })}
+              style={{ marginRight: 5 }}
             />
           </Tooltip>
           <Tooltip content="Dispute">
             <AnchorButton
               intent="danger"
-              style={{ marginLeft: 5 }}
               icon="issue"
               disabled={!sellerPresent}
+              onClick={() =>
+                this.setState({ disputeOffer: true, disputeParty: 'seller' })
+              }
             />
           </Tooltip>
         </>
@@ -284,11 +299,11 @@ class OfferRow extends Component {
     if (offer.status === 3) {
       return (
         <>
-          <Tooltip content="Give Ruling">
+          <Tooltip content="Execute Ruling">
             <AnchorButton
               disabled={!arbitratorPresent}
               icon="take-action"
-              onClick={() => this.setState({ giveRuling: true })}
+              onClick={() => this.setState({ executeRuling: true })}
             />
           </Tooltip>
         </>
@@ -321,6 +336,9 @@ function status(offer) {
   }
   if (offer.status === 4) {
     return <Tag intent="success">Finalized</Tag>
+  }
+  if (offer.status === 5) {
+    return <Tag intent="success">Dispute Resolved</Tag>
   }
   return offer.status
 }

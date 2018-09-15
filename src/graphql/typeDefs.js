@@ -35,6 +35,16 @@ export default `
       from: String
     ): Offer
 
+    executeRuling(
+      listingID: String!
+      offerID: String!
+      ruling: String!
+      commission: String!
+      message: String
+      refund: String
+      from: String
+    ): Offer
+
     acceptOffer(listingID: String!, offerID: String!, from: String): Offer
     withdrawOffer(listingID: String!, offerID: String!, from: String): Offer
     finalizeOffer(listingID: String!, offerID: String!, from: String): Offer
