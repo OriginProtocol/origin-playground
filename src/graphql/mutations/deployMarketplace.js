@@ -8,7 +8,7 @@ mutation deployMarketplace($token: String) {
 { "token": "0x7c38A2934323aAa8dAda876Cfc147C8af40F8D0e"}
 */
 
-async function deployMarketplace(_, { token }) {
+async function deployMarketplace(_, { token }, context) {
   return new Promise((resolve, reject) => {
     const Contract = new web3.eth.Contract(Marketplace.abi)
     Contract.deploy({
@@ -21,6 +21,7 @@ async function deployMarketplace(_, { token }) {
     .on('receipt', (receipt) => {
       window.localStorage.marketplaceContract = receipt.contractAddress
       resetContracts()
+      context.contracts.marketplace.eventCache.updateBlock(receipt.blockNumber)
       resolve(receipt.contractAddress)
     })
     .catch(reject)

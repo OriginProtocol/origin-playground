@@ -23,6 +23,9 @@ function addFunds(_, data, context) {
         from: data.from || web3.eth.defaultAccount,
         value: data.amount
       })
+      .on('receipt', receipt => {
+        context.contracts.marketplace.eventCache.updateBlock(receipt.blockNumber)
+      })
       .on('confirmation', async (confirmations) => {
         if (confirmations === 1) {
           resolve(getOffer(context.contracts.marketplace, {

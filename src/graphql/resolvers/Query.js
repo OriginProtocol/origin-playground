@@ -1,15 +1,6 @@
-import Marketplace from '../../contracts/Marketplace'
-
 export default {
   web3: () => ({}),
-  marketplace: () => {
-    return localStorage.marketplaceContract
-      ? new web3.eth.Contract(
-          Marketplace.abi,
-          localStorage.marketplaceContract
-        )
-      : null
-  },
+  marketplace: (_, args, context) => context.contracts.marketplace,
   contracts: () => {
     let contracts = []
     try {

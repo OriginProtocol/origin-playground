@@ -1,11 +1,12 @@
 import MarketplaceContract from '../contracts/Marketplace'
 import TokenContract from '../contracts/Token'
+import eventCache from './eventCache'
 
 const HOST = process.env.HOST || 'localhost'
 let provider = 'https://eth-node.dapptix.com'
 
 if (process.env.NODE_ENV !== 'production') {
-  provider = `http://${HOST}:8545`
+  provider = `ws://${HOST}:8545`
 }
 
 if (typeof window !== 'undefined') {
@@ -31,6 +32,12 @@ export function resetContracts() {
       MarketplaceContract.abi,
       window.localStorage.marketplaceContract
     )
+    contracts.marketplace.eventCache = eventCache(contracts.marketplace)
+    // contracts.marketplace.events.allEvents(async () => {
+    //   const block = await web3.eth.getBlockNumber()
+    //   contracts.marketplace.eventCache.updateBlock(block)
+    //   gql.resetStore()
+    // })
   }
   if (window.localStorage.OGNContract) {
     contracts.ogn = new web3.eth.Contract(
@@ -38,6 +45,7 @@ export function resetContracts() {
       window.localStorage.OGNContract
     )
   }
+  window.contracts = contracts
 }
 
 resetContracts()

@@ -39,7 +39,7 @@ const startGanache = () =>
       db_path: 'data/db',
       network_id: 999,
       seed: 123,
-      // blocktime: 3
+      // blockTime: 3
     })
     server.listen(8545, err => {
       if (err) {

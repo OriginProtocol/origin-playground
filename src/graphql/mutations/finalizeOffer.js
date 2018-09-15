@@ -22,6 +22,9 @@ async function finalizeOffer(_, data, context) {
         gas: 4612388,
         from: data.from || web3.eth.defaultAccount
       })
+      .on('receipt', receipt => {
+        context.contracts.marketplace.eventCache.updateBlock(receipt.blockNumber)
+      })
       .on('confirmation', async (confirmations) => {
         if (confirmations === 1) {
           resolve(getOffer(context.contracts.marketplace, {

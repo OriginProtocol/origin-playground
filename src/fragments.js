@@ -28,6 +28,7 @@ export default {
         }
         deposit
         ipfs {
+          id
           category
           title
           currencyId

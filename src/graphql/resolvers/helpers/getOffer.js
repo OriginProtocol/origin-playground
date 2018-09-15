@@ -4,12 +4,7 @@ export default async (contract, args) => {
     status = offer.status,
     lastEvent
 
-  var listingTopic = web3.utils.padLeft(web3.utils.numberToHex(args.listingId), 64)
-  var offerTopic = web3.utils.padLeft(web3.utils.numberToHex(args.idx), 64)
-  var events = await contract.getPastEvents('allEvents', {
-    topics: [null, null, listingTopic, offerTopic],
-    fromBlock: 0
-  })
+  const events = await contract.eventCache.offers(args.listingId, args.idx)
 
   events.forEach(e => {
     if (e.event === 'OfferCreated') {

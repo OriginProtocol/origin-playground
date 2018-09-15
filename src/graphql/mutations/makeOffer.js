@@ -56,15 +56,24 @@ async function makeOffer(_, data, context) {
         from: buyer,
         value: data.value
       })
+      .on('receipt', receipt => {
+        context.contracts.marketplace.eventCache.updateBlock(receipt.blockNumber)
+        resolve(
+          getOffer(context.contracts.marketplace, {
+            listingId: data.listingID,
+            idx: receipt.events.OfferCreated.returnValues.offerID
+          })
+        )
+      })
       .on('confirmation', async (confirmations, receipt) => {
-        if (confirmations === 1) {
-          resolve(
-            getOffer(context.contracts.marketplace, {
-              listingId: data.listingID,
-              idx: receipt.events.OfferCreated.returnValues.offerID
-            })
-          )
-        }
+        // if (confirmations === 1) {
+        //   resolve(
+        //     getOffer(context.contracts.marketplace, {
+        //       listingId: data.listingID,
+        //       idx: receipt.events.OfferCreated.returnValues.offerID
+        //     })
+        //   )
+        // }
       })
       .catch(reject)
       .then(() => {})

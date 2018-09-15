@@ -18,11 +18,9 @@ import {
 
 import query from './_query'
 
-async function populate() {
-  const NodeAccounts = await web3.eth.getAccounts()
-  const rnd = Math.floor(Math.random() * NodeAccounts.length)
-  const NodeAccount = NodeAccounts[rnd]
+import gql from '../../graphqlClient'
 
+async function populate(NodeAccount) {
   const Admin = (await gql.mutate({
     mutation: CreateWalletMutation,
     variables: { role: 'Admin', name: 'Admin' }
@@ -37,7 +35,12 @@ async function populate() {
 
   const OGN = (await gql.mutate({
     mutation: DeployTokenMutation,
-    variables: { name: 'Origin Token', symbol: 'OGN', decimals: '18', supply: '1000000000' }
+    variables: {
+      name: 'Origin Token',
+      symbol: 'OGN',
+      decimals: '18',
+      supply: '1000000000'
+    }
   })).data.deployToken
 
   const Marketplace = (await gql.mutate({
@@ -122,6 +125,12 @@ class Accounts extends Component {
             return null
           }
 
+          const maxNodeAccount = [...data.web3.nodeAccounts].sort((a, b) => {
+            if (Number(a.balance.eth) > Number(b.balance.eth)) return -1
+            if (Number(a.balance.eth) < Number(b.balance.eth)) return 1
+            return 0
+          })
+
           return (
             <>
               <CreateWallet />
@@ -141,7 +150,7 @@ class Accounts extends Component {
               <Button
                 style={{ marginTop: '1rem', marginLeft: '0.5rem' }}
                 intent="success"
-                onClick={() => populate()}
+                onClick={() => populate(maxNodeAccount[0].id)}
                 text="Populate"
               />
             </>

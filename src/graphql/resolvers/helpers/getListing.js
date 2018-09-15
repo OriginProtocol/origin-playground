@@ -6,10 +6,7 @@ export default async (contract, args) => {
     return null
   }
   let ipfsHash
-  const events = await contract.getPastEvents('ListingCreated', {
-    fromBlock: 0,
-    filter: { listingID: args.idx }
-  })
+  const events = await contract.eventCache.listings(args.idx, 'ListingCreated')
   if (events.length) {
     ipfsHash = events[0].returnValues.ipfsHash
   }

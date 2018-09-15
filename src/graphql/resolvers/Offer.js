@@ -6,13 +6,11 @@ export default {
   listing: offer => getListing(offer.contract, { idx: offer.listingId }),
   ipfs: offer =>
     new Promise(async (resolve, reject) => {
-      const events = await offer.contract.getPastEvents('OfferCreated', {
-        fromBlock: 0,
-        filter: {
-          listingID: String(offer.listingId),
-          offerID: String(offer.id)
-        }
-      })
+      const events = await offer.contract.eventCache.offers(
+        offer.listingId,
+        offer.id,
+        'OfferCreated'
+      )
       if (!events.length) return resolve(null)
 
       const hash = events[0].returnValues.ipfsHash

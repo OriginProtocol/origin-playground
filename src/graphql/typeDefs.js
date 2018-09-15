@@ -48,7 +48,10 @@ export default `
     accountAt(idx: Int!): Account
     account(id: String!): Account
     defaultAccount: Account
+    transactions: [Transaction]
+    transaction(id: ID!): Transaction
   }
+
   type Account {
     id: String!
     balance: Balance
@@ -56,11 +59,13 @@ export default `
     name: String
     token(symbol: String!): TokenHolder
   }
+
   type Balance {
     wei: String
     eth: String
     usd: String
   }
+
   type TokenHolder {
     id: String!
     account: String
@@ -68,6 +73,7 @@ export default `
     balance: String
     allowance(contract: String!): String
   }
+
   type Contract {
     id: String!
     balance: Balance
@@ -75,14 +81,17 @@ export default `
     name: String
     token(symbol: String!): TokenHolder
   }
+
   type SendFromNodeOutput {
     toAccount: Account
     fromAccount: Account
   }
+
   type TransferTokenOutput {
     to: TokenHolder
     from: TokenHolder
   }
+
   type Marketplace {
     address: String
     totalListings: Int
@@ -90,6 +99,7 @@ export default `
     getOffer(idx: Int!, listingId: Int!): Offer
     allListings: [Listing]
   }
+
   type Listing {
     id: Int!
     seller: Account
@@ -100,6 +110,7 @@ export default `
     offers: [Offer]
     getOffer(idx: Int!): Offer
   }
+
   type ListingData {
     id: ID!
     title: String
@@ -107,6 +118,7 @@ export default `
     price: String
     category: String
   }
+
   type Offer {
     id: Int!
     listingId: Int!
@@ -122,6 +134,7 @@ export default `
     status: Int
     ipfs: OfferData
   }
+
   type OfferData {
     id: ID!
     buyer: String
@@ -131,6 +144,22 @@ export default `
     value: String
     currency: String
     arbitrator: String
+  }
+
+  type Transaction {
+    id: ID!
+    status: String
+    blockHash: String
+    blockNumber: Int
+    from: String
+    gas: Int
+    gasPrice: String
+    hash: String
+    input: String
+    nonce: Int
+    to: String
+    value: String
+    pct: Float
   }
 
   input NewListingInput {

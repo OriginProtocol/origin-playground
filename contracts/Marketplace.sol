@@ -73,26 +73,48 @@ contract Marketplace is Ownable {
   }
 
   // @dev Seller creates listing
-  function createListing(
+  function createListing(bytes32 _ipfsHash, uint _deposit, address _arbitrator)
+    public
+  {
+    _createListing(msg.sender, _ipfsHash, _deposit, _arbitrator);
+  }
+
+  // @dev Can only be called by token
+  function createListingWithSender(
+    address _seller,
+    bytes32 _ipfsHash,
+    uint _deposit,
+    address _arbitrator
+  )
+    public returns (bool)
+  {
+    require(msg.sender == address(tokenAddr));
+    _createListing(_seller, _ipfsHash, _deposit, _arbitrator);
+    return true;
+  }
+
+  // Private
+  function _createListing(
+    address _seller,
     bytes32 _ipfsHash,  // IPFS JSON with details, pricing, availability
     uint _deposit,      // Deposit in Origin Token
     address _arbitrator // Address of listing arbitrator
   )
-    public
+    private
   {
     /* require(_deposit > 0); // Listings must deposit some amount of Origin Token */
     require(_arbitrator != 0x0); // Must specify an arbitrator
 
     listings.push(Listing({
-      seller: msg.sender,
+      seller: _seller,
       deposit: _deposit,
       arbitrator: _arbitrator
     }));
 
     if (_deposit > 0) {
-      tokenAddr.transferFrom(msg.sender, this, _deposit); // Transfer Origin Token
+      tokenAddr.transferFrom(_seller, this, _deposit); // Transfer Origin Token
     }
-    emit ListingCreated(msg.sender, listings.length - 1, _ipfsHash);
+    emit ListingCreated(_seller, listings.length - 1, _ipfsHash);
   }
 
   // @dev Seller updates listing
@@ -243,10 +265,11 @@ contract Marketplace is Ownable {
     delete offers[listingID][offerID];
   }
 
-  // @dev Buyer can dispute transaction during finalization window
+  // @dev Buyer or seller can dispute transaction during finalization window
   function dispute(uint listingID, uint offerID, bytes32 _ipfsHash) public {
+    Listing storage listing = listings[listingID];
     Offer storage offer = offers[listingID][offerID];
-    require(msg.sender == offer.buyer);
+    require(msg.sender == offer.buyer || msg.sender == listing.seller);
     require(offer.status == 2); // Offer must be in 'Accepted' state
     require(now <= offer.finalizes); // Must be before agreed finalization window
     offer.status = 3; // Set status to "Disputed"

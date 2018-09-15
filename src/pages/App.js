@@ -8,9 +8,11 @@ import Listing from './marketplace/Listing'
 import Contracts from './contracts/Contracts'
 
 import AccountChooser from './accounts/_Chooser'
+import TransactionToasts from './accounts/TransactionToasts'
 
 const App = () => (
   <>
+    <TransactionToasts />
     <Navbar>
       <Navbar.Group>
         <Navbar.Heading className="logo"><img src="images/origin-logo-dark.png" /> ADMIN</Navbar.Heading>
@@ -71,6 +73,8 @@ require('react-styl')(`
     margin-top: 1rem
   .mt-2
     margin-top: 0.5rem
+  .mb-2
+    margin-bottom: 0.5rem
   .mb-3
     margin-bottom: 1rem
   .vm > td

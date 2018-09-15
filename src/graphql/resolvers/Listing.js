@@ -4,10 +4,10 @@ import getOffer from './helpers/getOffer'
 
 export default {
   ipfs: async listing => {
-    const events = await listing.contract.getPastEvents('ListingCreated', {
-      fromBlock: 0,
-      filter: { listingID: String(listing.id) }
-    })
+    const events = await listing.contract.eventCache.listings(
+      listing.id,
+      'ListingCreated'
+    )
     if (events.length) {
       const hash = events[0].returnValues.ipfsHash
       let data
