@@ -76,15 +76,15 @@ export const CreateListingMutation = gql`
     $arbitrator: String
     $from: String
     $data: NewListingInput
+    $autoApprove: Boolean
   ) {
     createListing(
       deposit: $deposit
       arbitrator: $arbitrator
       from: $from
       data: $data
-    ) {
-      ...basicListingFields
-    }
+      autoApprove: $autoApprove
+    )
   }
   ${fragments.Listing.basic}
 `

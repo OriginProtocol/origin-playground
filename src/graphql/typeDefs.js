@@ -18,11 +18,12 @@ export default `
     removeWallet(address: String!): String
 
     createListing(
-      deposit: String!,
-      arbitrator: String,
-      from: String,
+      deposit: String!
+      arbitrator: String
+      from: String
       data: NewListingInput
-    ): Listing
+      autoApprove: Boolean
+    ): Transaction
 
     updateListing(
       listingID: String!

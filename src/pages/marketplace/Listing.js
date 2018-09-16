@@ -64,9 +64,14 @@ class Listing extends Component {
                 <div>
                   {`${listingData.category} by `}
                   <AccountButton account={listing.seller} />
-                  <span style={{ marginRight: 10 }}>{` for ${
-                    listingData.price
-                  } ${listingData.currencyId || ''}`}</span>
+                  <span style={{ marginRight: 10 }}>
+                    {` for ${listingData.price} ${listingData.currencyId ||
+                      ''}. Abitrator `}
+                    <AccountButton account={listing.arbitrator} />
+                    <span style={{ marginLeft: 10 }}>
+                      {`${listing.deposit || '0'} OGN`}
+                    </span>
+                  </span>
                   {this.renderActions(sellerPresent, listing)}
                   {listing.status === 'active' ? (
                     <Tag style={{ marginLeft: 15 }} intent="success">
@@ -77,11 +82,13 @@ class Listing extends Component {
                   )}
                 </div>
               </div>
-              <Offers
-                listing={listing}
-                listingId={listingId}
-                offers={data.marketplace.getListing.offers}
-              />
+              {!data.marketplace.getListing.offers.length ? null : (
+                <Offers
+                  listing={listing}
+                  listingId={listingId}
+                  offers={data.marketplace.getListing.offers}
+                />
+              )}
               <MakeOffer
                 {...this.state}
                 listing={listing}

@@ -8,7 +8,8 @@ import {
   InputGroup,
   ControlGroup,
   HTMLSelect,
-  Slider
+  Slider,
+  Checkbox
 } from '@blueprintjs/core'
 
 import rnd from 'utils/rnd'
@@ -38,7 +39,8 @@ class CreateListing extends Component {
       arbitrator: arbitrator ? arbitrator.id : '',
       from: seller ? seller.id : '',
       deposit: 50,
-      category: 'For Sale'
+      category: 'For Sale',
+      autoApprove: true
     }
   }
 
@@ -61,17 +63,34 @@ class CreateListing extends Component {
           >
             <div className="bp3-dialog-body">
               <ErrorCallout error={error} />
-              <FormGroup label="Seller">
-                <HTMLSelect
-                  {...input('from')}
-                  options={this.props.accounts
-                    .filter(a => a.role === 'Seller')
-                    .map(a => ({
-                      label: `${(a.name || a.id).substr(0, 24)} ${showOGN(a)}`,
-                      value: a.id
-                    }))}
-                />
-              </FormGroup>
+              <div style={{ display: 'flex' }}>
+                <div style={{ flex: 3, marginRight: 20 }}>
+                  <FormGroup label="Seller">
+                    <HTMLSelect
+                      {...input('from')}
+                      fill={true}
+                      options={this.props.accounts
+                        .filter(a => a.role === 'Seller')
+                        .map(a => ({
+                          label: `${(a.name || a.id).substr(0, 24)} ${showOGN(
+                            a
+                          )}`,
+                          value: a.id
+                        }))}
+                    />
+                  </FormGroup>
+                </div>
+                <div style={{ flex: 1 }}>
+                  <FormGroup label="Auto-Approve">
+                    <Checkbox
+                      checked={this.state.autoApprove}
+                      onChange={e =>
+                        this.setState({ autoApprove: e.target.checked })
+                      }
+                    />
+                  </FormGroup>
+                </div>
+              </div>
               <div style={{ display: 'flex' }}>
                 <div style={{ flex: 1, marginRight: 20 }}>
                   <FormGroup label="Category">
@@ -156,6 +175,7 @@ class CreateListing extends Component {
         deposit: String(this.state.deposit),
         arbitrator: this.state.arbitrator,
         from: this.state.from,
+        autoApprove: this.state.autoApprove,
         data: {
           title: this.state.title,
           price: this.state.price,

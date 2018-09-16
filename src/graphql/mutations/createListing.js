@@ -1,6 +1,5 @@
 import { post } from 'utils/ipfsHash'
 
-import getListing from '../resolvers/helpers/getListing'
 import { addTransaction, updateTransactionStatus } from '../transactions'
 
 /*
@@ -10,25 +9,46 @@ mutation createListing($deposit: String, $arbitrator: String) {
 { "deposit": "0", "arbitrator": "0xBECf244F615D69AaE9648E4bB3f32161A87caFF1" }
 */
 
-async function createListing(_, { deposit, arbitrator, data, from }, context) {
+async function createListing(_, input, context) {
   return new Promise(async (resolve, reject) => {
+    const { deposit, arbitrator, data, from, autoApprove } = input
     const ipfsHash = await post(context.contracts.ipfsRPC, data)
 
-    context.contracts.marketplace.methods
-      .createListing(ipfsHash, deposit, arbitrator)
+    const fnSig = web3.eth.abi.encodeFunctionSignature(
+      'createListingWithSender(address,bytes32,uint256,address)'
+    )
+    const params = web3.eth.abi.encodeParameters(
+      ['bytes32', 'uint', 'address'],
+      [ipfsHash, deposit, arbitrator]
+    )
+
+    let createListingCall
+
+    if (autoApprove) {
+      createListingCall = context.contracts.ogn.methods.approveAndCallWithSender(
+        context.contracts.marketplace._address,
+        deposit,
+        fnSig,
+        params
+      )
+    } else {
+      createListingCall = context.contracts.marketplace.methods.createListing(
+        ipfsHash,
+        deposit,
+        arbitrator
+      )
+    }
+
+    createListingCall
       .send({ gas: 4612388, from: from || web3.eth.defaultAccount })
       .once('transactionHash', hash => {
         addTransaction(hash)
+        resolve({ id: hash })
       })
       .once('receipt', receipt => {
         updateTransactionStatus(receipt.transactionHash, 'Receipt')
         context.contracts.marketplace.eventCache.updateBlock(
           receipt.blockNumber
-        )
-        resolve(
-          getListing(context.contracts.marketplace, {
-            idx: receipt.events.ListingCreated.returnValues.listingID
-          })
         )
       })
       .on('confirmation', function(confNumber, receipt) {
