@@ -13,7 +13,8 @@ import {
   AddFunds,
   UpdateRefund,
   ExecuteRuling,
-  MakeOffer
+  MakeOffer,
+  AddData
 } from './mutations'
 
 import AccountButton from '../accounts/AccountButton'
@@ -94,7 +95,12 @@ class OfferRow extends Component {
           <td>{this.renderArbitratorActions(offer, arbitratorPresent)}</td>
           <td>
             <Tooltip content="Add Data">
-              <AnchorButton icon="comment" />
+              <AnchorButton
+                icon="comment"
+                onClick={() => {
+                  this.setState({ addData: true })
+                }}
+              />
             </Tooltip>
           </td>
         </tr>
@@ -157,6 +163,13 @@ class OfferRow extends Component {
           offer={offer}
           onCompleted={() => this.setState({ updateOffer: false })}
         />
+
+        <AddData
+          isOpen={this.state.addData}
+          listing={listing}
+          offer={offer}
+          onCompleted={() => this.setState({ addData: false })}
+        />
       </>
     )
   }
@@ -193,7 +206,12 @@ class OfferRow extends Component {
         <td />
         <td>
           <Tooltip content="Add Data">
-            <AnchorButton icon="comment" />
+            <AnchorButton
+              icon="comment"
+              onClick={() => {
+                this.setState({ addData: true })
+              }}
+            />
           </Tooltip>
         </td>
       </tr>

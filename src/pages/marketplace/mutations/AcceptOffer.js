@@ -20,7 +20,6 @@ class AcceptOffer extends Component {
     return (
       <Mutation
         mutation={AcceptOfferMutation}
-        update={this.onUpdate}
         onCompleted={this.props.onCompleted}
       >
         {(acceptOffer, { loading, error }) => (

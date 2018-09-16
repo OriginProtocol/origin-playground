@@ -15,6 +15,9 @@ import setActiveWallet from './setActiveWallet'
 import transferToken from './transferToken'
 import updateTokenAllowance from './updateTokenAllowance'
 import withdrawOffer from './withdrawOffer'
+import withdrawListing from './withdrawListing'
+import addData from './addData'
+import updateListing from './updateListing'
 
 export default {
   acceptOffer,
@@ -33,5 +36,8 @@ export default {
   setActiveWallet,
   transferToken,
   updateTokenAllowance,
-  withdrawOffer
+  withdrawOffer,
+  withdrawListing,
+  addData,
+  updateListing
 }

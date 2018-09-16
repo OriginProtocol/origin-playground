@@ -24,7 +24,6 @@ class DeployMarketplace extends Component {
     return (
       <Mutation
         mutation={DeployMarketplaceMutation}
-        // update={this.onUpdate}
         onCompleted={this.props.onCompleted}
       >
         {(deployMarketplace, { loading }) => (
@@ -53,19 +52,6 @@ class DeployMarketplace extends Component {
       </Mutation>
     )
   }
-
-  // onUpdate(cache, { data }) {
-  //   const res = cache.readQuery({ query })
-  //   cache.writeQuery({
-  //     query,
-  //     data: {
-  //       marketplace: {
-  //         ...res.marketplace,
-  //         allListings: [data.createListing, ...res.marketplace.allListings]
-  //       }
-  //     }
-  //   })
-  // }
 }
 
 export default DeployMarketplace

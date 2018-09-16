@@ -23,7 +23,11 @@ export default {
     basic: gql`
       fragment basicListingFields on Listing {
         id
+        status
         seller {
+          id
+        }
+        arbitrator {
           id
         }
         deposit

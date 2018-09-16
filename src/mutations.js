@@ -89,6 +89,41 @@ export const CreateListingMutation = gql`
   ${fragments.Listing.basic}
 `
 
+export const UpdateListingMutation = gql`
+  mutation UpdateListing(
+    $listingID: String!
+    $additionalDeposit: String
+    $from: String
+    $data: NewListingInput
+  ) {
+    updateListing(
+      listingID: $listingID
+      additionalDeposit: $additionalDeposit
+      from: $from
+      data: $data
+    ) {
+      ...basicListingFields
+    }
+  }
+  ${fragments.Listing.basic}
+`
+
+export const WithdrawListingMutation = gql`
+  mutation WithdrawListing(
+    $listingID: String!
+    $target: String!
+    $reason: String
+    $from: String
+  ) {
+    withdrawListing(
+      listingID: $listingID
+      target: $target
+      reason: $reason
+      from: $from
+    )
+  }
+`
+
 export const MakeOfferMutation = gql`
   mutation MakeOffer(
     $listingID: String
@@ -220,12 +255,22 @@ export const WithdrawOfferMutation = gql`
   ${fragments.Offer.basic}
 `
 
+export const AddDataMutation = gql`
+  mutation WithdrawListing(
+    $data: String!
+    $listingID: String
+    $offerID: String
+  ) {
+    addData(data: $data, listingID: $listingID, offerID: $offerID)
+  }
+`
+
 // await originJS.createListing({
 //   deposit: '2',
 //   arbitrator: '0x9d42726D0Aa33984c55a1076DBc68a42f2509684',
 //   from: '0x2d935875CDe9f60EE8E48e5403aD716A0A4D8e62',
 //   data: {
-//     title: 'Niiiice2',
+//     title: 'Cool Bike',
 //     category: 'For Sale',
 //     currencyId: 'ETH',
 //     price: '0.1'

@@ -20,7 +20,6 @@ class DisputeOffer extends Component {
     return (
       <Mutation
         mutation={DisputeOfferMutation}
-        update={this.onUpdate}
         onCompleted={this.props.onCompleted}
       >
         {(disputeOffer, { loading, error }) => (

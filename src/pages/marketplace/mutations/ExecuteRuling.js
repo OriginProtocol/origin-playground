@@ -29,7 +29,6 @@ class ExecuteRuling extends Component {
     return (
       <Mutation
         mutation={ExecuteRulingMutation}
-        update={this.onUpdate}
         onCompleted={this.props.onCompleted}
         refetchQueries={['AllAccounts']}
       >

@@ -14,7 +14,7 @@ import {
 import rnd from 'utils/rnd'
 import withAccounts from '../hoc/withAccounts'
 
-import { CreateListingMutation } from '../../../mutations'
+import { UpdateListingMutation } from '../../../mutations'
 import ErrorCallout from './_ErrorCallout'
 
 function showOGN(account) {
@@ -24,21 +24,19 @@ function showOGN(account) {
   } allowed)`
 }
 
-class CreateListing extends Component {
+class UpdateListing extends Component {
   constructor(props) {
     super()
 
     const seller = rnd(props.accounts.filter(a => a.role === 'Seller'))
-    const arbitrator = rnd(props.accounts.filter(a => a.role === 'Arbitrator'))
 
     this.state = {
-      title: 'Cool Bike',
-      currencyId: 'ETH',
-      price: '0.1',
-      arbitrator: arbitrator ? arbitrator.id : '',
+      title: props.listing.ipfs.title || '',
+      currencyId: props.listing.ipfs.currencyId || 'ETH',
+      price: props.listing.ipfs.price || '0.1',
       from: seller ? seller.id : '',
-      deposit: 50,
-      category: 'For Sale'
+      additionalDeposit: 0,
+      category: props.listing.ipfs.category || 'For Sale'
     }
   }
 
@@ -49,13 +47,18 @@ class CreateListing extends Component {
     })
     return (
       <Mutation
-        mutation={CreateListingMutation}
+        mutation={UpdateListingMutation}
         onCompleted={this.props.onCompleted}
-        refetchQueries={['AllAccounts', 'AccountsWithAllowance', 'AllListings']}
+        refetchQueries={[
+          'AllAccounts',
+          'AccountsWithAllowance',
+          'AllListings',
+          'Listing'
+        ]}
       >
-        {(createListing, { loading, error }) => (
+        {(updateListing, { loading, error }) => (
           <Dialog
-            title="Create Listing"
+            title="Update Listing"
             isOpen={this.props.isOpen}
             onClose={this.props.onCompleted}
           >
@@ -107,27 +110,18 @@ class CreateListing extends Component {
                     </ControlGroup>
                   </FormGroup>
                 </div>
-                <div style={{ flex: 1, marginRight: 20 }}>
-                  <FormGroup label="Arbitrator">
-                    <HTMLSelect
-                      fill={true}
-                      {...input('arbitrator')}
-                      options={[
-                        { label: 'Origin', value: web3.eth.defaultAccount }
-                      ]}
-                    />
-                  </FormGroup>
-                </div>
                 <div style={{ flex: 1, padding: '0 5px' }}>
-                  <FormGroup label="Deposit" labelInfo="(OGN)">
+                  <FormGroup label="Additional Deposit" labelInfo="(OGN)">
                     <Slider
                       fill={true}
                       min={0}
                       max={100}
                       stepSize={5}
                       labelStepSize={25}
-                      onChange={deposit => this.setState({ deposit })}
-                      value={this.state.deposit}
+                      onChange={additionalDeposit =>
+                        this.setState({ additionalDeposit })
+                      }
+                      value={this.state.additionalDeposit}
                     />
                   </FormGroup>
                 </div>
@@ -138,10 +132,10 @@ class CreateListing extends Component {
               style={{ display: 'flex', justifyContent: 'flex-end' }}
             >
               <Button
-                text="Create Listing"
+                text="Update Listing"
                 intent="primary"
                 loading={loading}
-                onClick={() => createListing(this.getVars())}
+                onClick={() => updateListing(this.getVars())}
               />
             </div>
           </Dialog>
@@ -153,8 +147,8 @@ class CreateListing extends Component {
   getVars() {
     return {
       variables: {
-        deposit: String(this.state.deposit),
-        arbitrator: this.state.arbitrator,
+        listingID: String(this.props.listing.id),
+        additionalDeposit: String(this.state.additionalDeposit),
         from: this.state.from,
         data: {
           title: this.state.title,
@@ -167,4 +161,4 @@ class CreateListing extends Component {
   }
 }
 
-export default withAccounts(CreateListing, 'marketplace')
+export default withAccounts(UpdateListing, 'marketplace')

@@ -4,19 +4,24 @@ import getOffer from './helpers/getOffer'
 
 export default {
   ipfs: async listing => {
-    const events = await listing.contract.eventCache.listings(
-      listing.id,
-      'ListingCreated'
-    )
+    const events = await listing.contract.eventCache.listings(listing.id)
     if (events.length) {
-      const hash = events[0].returnValues.ipfsHash
+      let ipfsHash
+      events.forEach(e => {
+        if (e.event === 'ListingCreated') {
+          ipfsHash = e.returnValues.ipfsHash
+        }
+        if (e.event === 'ListingUpdated') {
+          ipfsHash = e.returnValues.ipfsHash
+        }
+      })
       let data
       try {
-        data = await get('http://localhost:5002', hash)
+        data = await get('http://localhost:5002', ipfsHash)
       } catch (e) {
         return null
       }
-      return { ...data, id: hash }
+      return { ...data, id: ipfsHash }
     }
   },
   totalOffers: listing => {

@@ -3,12 +3,12 @@ import { Mutation } from 'react-apollo'
 
 import { Button, Dialog, FormGroup, InputGroup } from '@blueprintjs/core'
 
-import { FinalizeOfferMutation } from '../../../mutations'
+import { AddDataMutation } from '../../../mutations'
 import ErrorCallout from './_ErrorCallout'
 
-class FinalizeOffer extends Component {
+class AddData extends Component {
   state = {
-    review: ''
+    data: ''
   }
 
   render() {
@@ -16,32 +16,34 @@ class FinalizeOffer extends Component {
       value: this.state[field],
       onChange: e => this.setState({ [field]: e.currentTarget.value })
     })
+    let title = 'Add Data'
+    if (this.props.offer) {
+      title += ' to Offer'
+    } else if (this.props.listing) {
+      title += ' to Listing'
+    }
 
     return (
-      <Mutation
-        mutation={FinalizeOfferMutation}
-        onCompleted={this.props.onCompleted}
-        refetchQueries={['AllAccounts']}
-      >
-        {(finalizeOffer, { loading, error }) => (
+      <Mutation mutation={AddDataMutation} onCompleted={this.props.onCompleted}>
+        {(addData, { loading, error }) => (
           <Dialog
-            title="Finalize Offer"
+            title={title}
             isOpen={this.props.isOpen}
             onClose={this.props.onCompleted}
           >
             <div className="bp3-dialog-body">
               <ErrorCallout error={error} />
-              <FormGroup label="Review">
-                <InputGroup {...input('review')} />
+              <FormGroup label="Data">
+                <InputGroup {...input('data')} />
               </FormGroup>
             </div>
             <div className="bp3-dialog-footer">
               <div className="bp3-dialog-footer-actions">
                 <Button
-                  text="Finalize Offer"
+                  text="Add Data"
                   intent="primary"
                   loading={loading}
-                  onClick={() => finalizeOffer(this.getVars())}
+                  onClick={() => addData(this.getVars())}
                 />
               </div>
             </div>
@@ -52,14 +54,17 @@ class FinalizeOffer extends Component {
   }
 
   getVars() {
-    return {
-      variables: {
-        listingID: String(this.props.listing.id),
-        offerID: String(this.props.offer.id),
-        from: this.props.offer.buyer.id
-      }
+    const variables = {
+      data: this.state.data
     }
+    if (this.props.listing) {
+      variables.listingID = String(this.props.listing.id)
+    }
+    if (this.props.offer) {
+      variables.offerID = String(this.props.offer.id)
+    }
+    return { variables }
   }
 }
 
-export default FinalizeOffer
+export default AddData

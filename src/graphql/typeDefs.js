@@ -24,6 +24,20 @@ export default `
       data: NewListingInput
     ): Listing
 
+    updateListing(
+      listingID: String!
+      additionalDeposit: String
+      from: String,
+      data: NewListingInput
+    ): Listing
+
+    withdrawListing(
+      listingID: String!
+      target: String!
+      reason: String
+      from: String
+    ): Boolean
+
     makeOffer(
       listingID: String,
       finalizes: String,
@@ -45,6 +59,8 @@ export default `
       refund: String
       from: String
     ): Offer
+
+    addData(data: String!, listingID: String, offerID: String): Boolean
 
     acceptOffer(listingID: String!, offerID: String!, from: String): Offer
     withdrawOffer(listingID: String!, offerID: String!, from: String): Offer
@@ -117,6 +133,7 @@ export default `
 
   type Listing {
     id: Int!
+    status: String
     seller: Account
     deposit: Int
     arbitrator: Account
