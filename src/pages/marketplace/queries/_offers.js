@@ -6,6 +6,21 @@ export default gql`
     marketplace {
       getListing(idx: $listingId) {
         ...basicListingFields
+        events {
+          id
+          event
+          blockNumber
+          block {
+            id
+            timestamp
+          }
+          returnValues {
+            ipfsHash
+            party
+            offerID
+            listingID
+          }
+        }
         offers {
           ...basicOfferFields
         }

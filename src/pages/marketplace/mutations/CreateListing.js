@@ -16,7 +16,7 @@ import rnd from 'utils/rnd'
 import withAccounts from '../hoc/withAccounts'
 
 import { CreateListingMutation } from '../../../mutations'
-import ErrorCallout from './_ErrorCallout'
+import ErrorCallout from 'components/ErrorCallout'
 
 function showOGN(account) {
   if (!account.ogn) return ''

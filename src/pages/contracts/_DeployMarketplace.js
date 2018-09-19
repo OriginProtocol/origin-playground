@@ -3,17 +3,45 @@ import { Mutation } from 'react-apollo'
 import gql from 'graphql-tag'
 import { Button } from '@blueprintjs/core'
 
-import { Dialog, FormGroup, InputGroup } from '@blueprintjs/core'
+import {
+  Dialog,
+  FormGroup,
+  InputGroup,
+  HTMLSelect,
+  Checkbox
+} from '@blueprintjs/core'
+
+import ErrorCallout from 'components/ErrorCallout'
+import withAccounts from '../marketplace/hoc/withAccounts'
+import rnd from 'utils/rnd'
 
 const DeployMarketplaceMutation = gql`
-  mutation DeployMarketplace($token: String) {
-    deployMarketplace(token: $token)
+  mutation DeployMarketplace(
+    $token: String!
+    $version: String
+    $from: String
+    $autoWhitelist: Boolean
+  ) {
+    deployMarketplace(
+      token: $token
+      version: $version
+      from: $from
+      autoWhitelist: $autoWhitelist
+    )
   }
 `
 
 class DeployMarketplace extends Component {
-  state = {
-    token: ''
+  constructor(props) {
+    super(props)
+    const token = props.tokens.find(t => t.symbol === 'OGN') || props.tokens[0]
+    const admin = rnd(props.accounts.filter(a => a.role === 'Admin'))
+    this.state = {
+      version: '001',
+      token: token ? token.id : null,
+      from: admin ? admin.id : null,
+      autoWhitelist: true
+    }
   }
 
   render() {
@@ -25,17 +53,59 @@ class DeployMarketplace extends Component {
       <Mutation
         mutation={DeployMarketplaceMutation}
         onCompleted={this.props.onCompleted}
+        refetchQueries={['AllContracts']}
       >
-        {(deployMarketplace, { loading }) => (
+        {(deployMarketplace, { loading, error }) => (
           <Dialog
             title="Deploy Marketplace"
             isOpen={this.props.isOpen}
             onClose={this.props.onCompleted}
           >
             <div className="bp3-dialog-body">
-              <FormGroup label="Token Address">
-                <InputGroup {...input('token')} />
-              </FormGroup>
+              <ErrorCallout error={error} />
+              <div style={{ display: 'flex' }}>
+                <div style={{ flex: 1, marginRight: 20 }}>
+                  <FormGroup label="Owner">
+                    <HTMLSelect
+                      {...input('from')}
+                      fill={true}
+                      options={this.props.accounts
+                        .filter(a => a.role === 'Admin')
+                        .map(a => ({
+                          label: `${(a.name || a.id).substr(0, 24)}`,
+                          value: a.id
+                        }))}
+                    />
+                  </FormGroup>
+                </div>
+                <div style={{ flex: 1, marginRight: 20 }}>
+                  <FormGroup label="Version">
+                    <InputGroup {...input('version')} />
+                  </FormGroup>
+                </div>
+                <div style={{ flex: 1, marginRight: 20 }}>
+                  <FormGroup label="Token">
+                    <HTMLSelect
+                      fill={true}
+                      {...input('token')}
+                      options={this.props.tokens.map(a => ({
+                        label: a.symbol,
+                        value: a.id
+                      }))}
+                    />
+                  </FormGroup>
+                </div>
+                <div style={{ flex: 1 }}>
+                  <FormGroup label="Auto-Whitelist">
+                    <Checkbox
+                      checked={this.state.autoWhitelist}
+                      onChange={e =>
+                        this.setState({ autoWhitelist: e.target.checked })
+                      }
+                    />
+                  </FormGroup>
+                </div>
+              </div>
             </div>
             <div className="bp3-dialog-footer">
               <div className="bp3-dialog-footer-actions">
@@ -54,4 +124,4 @@ class DeployMarketplace extends Component {
   }
 }
 
-export default DeployMarketplace
+export default withAccounts(DeployMarketplace)

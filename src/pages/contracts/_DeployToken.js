@@ -22,7 +22,7 @@ class DeployToken extends Component {
   state = {
     name: 'Origin Token',
     symbol: 'OGN',
-    decimals: '2',
+    decimals: '18',
     supply: '1000000'
   }
 
@@ -35,6 +35,7 @@ class DeployToken extends Component {
       <Mutation
         mutation={DeployTokenMutation}
         onCompleted={this.props.onCompleted}
+        refetchQueries={['AllContracts']}
       >
         {(deployToken, { loading }) => (
           <Dialog

@@ -20,8 +20,12 @@ export default function eventCache(contract) {
       fromBlock,
       toBlock
     })
-    events = [...events, ...newEvents]
-    fromBlock = toBlock
+
+    events = [
+      ...events,
+      ...newEvents.map(e => ({ ...e, block: { id: e.blockNumber } }))
+    ]
+    fromBlock = toBlock + 1
   }
 
   async function listings(listingId, eventName) {

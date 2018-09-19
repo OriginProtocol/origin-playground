@@ -11,7 +11,7 @@ import {
 } from '@blueprintjs/core'
 
 import { ExecuteRulingMutation } from '../../../mutations'
-import ErrorCallout from './_ErrorCallout'
+import ErrorCallout from 'components/ErrorCallout'
 
 class ExecuteRuling extends Component {
   state = {
@@ -30,7 +30,7 @@ class ExecuteRuling extends Component {
       <Mutation
         mutation={ExecuteRulingMutation}
         onCompleted={this.props.onCompleted}
-        refetchQueries={['AllAccounts']}
+        refetchQueries={['AllAccounts', 'Listing']}
       >
         {(executeRuling, { loading, error }) => (
           <Dialog

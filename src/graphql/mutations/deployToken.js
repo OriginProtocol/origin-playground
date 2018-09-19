@@ -1,5 +1,5 @@
 import Token from '../../contracts/Token'
-import { resetContracts } from '../contracts'
+import { resetContracts } from '../context'
 /*
 mutation deployToken($name: String, $symbol: String, $decimals: Int, $supply: String) {
   deployToken(name: $name, symbol: $symbol, decimals: $decimals, supply: $supply)
@@ -25,6 +25,16 @@ async function deployToken(_, { name, symbol, decimals, supply }) {
       })
       .on('receipt', receipt => {
         window.localStorage[`${symbol}Contract`] = receipt.contractAddress
+
+        let tokens = {}
+        try {
+          tokens = JSON.parse(window.localStorage.tokens)
+        } catch (e) {
+          /* Ignore */
+        }
+        tokens[symbol] = receipt.contractAddress
+        localStorage.tokens = JSON.stringify(tokens)
+
         resetContracts()
         resolve(receipt.contractAddress)
       })

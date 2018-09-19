@@ -120,14 +120,36 @@ contract Marketplace is Ownable {
   // @dev Seller updates listing
   function updateListing(
     uint listingID,
-    bytes32 _ipfsHash,       // Updated IPFS hash
-    uint _additionalDeposit  // Additional deposit to add
+    bytes32 _ipfsHash,
+    uint _additionalDeposit
   ) public {
+    _updateListing(msg.sender, listingID, _ipfsHash, _additionalDeposit);
+  }
+
+  function updateListingWithSender(
+    address _seller,
+    uint listingID,
+    bytes32 _ipfsHash,
+    uint _additionalDeposit
+  )
+    public returns (bool)
+  {
+    require(msg.sender == address(tokenAddr)); // Only Token contract can call this method
+    _updateListing(_seller, listingID, _ipfsHash, _additionalDeposit);
+    return true;
+  }
+
+  function _updateListing(
+    address _seller,
+    uint listingID,
+    bytes32 _ipfsHash,      // Updated IPFS hash
+    uint _additionalDeposit // Additional deposit to add
+  ) private {
     Listing storage listing = listings[listingID];
-    require(listing.seller == msg.sender);
+    require(listing.seller == _seller);
 
     if (_additionalDeposit > 0) {
-      tokenAddr.transferFrom(msg.sender, this, _additionalDeposit);
+      tokenAddr.transferFrom(_seller, this, _additionalDeposit);
       listing.deposit += _additionalDeposit;
     }
 
@@ -303,7 +325,7 @@ contract Marketplace is Ownable {
     delete offers[listingID][offerID];
   }
 
-  // @dev Update the refund amount
+  // @dev Sets the amount that a seller wants to refund to a buyer.
   function updateRefund(uint listingID, uint offerID, uint _refund, bytes32 _ipfsHash) public {
     Offer storage offer = offers[listingID][offerID];
     Listing storage listing = listings[listingID];
@@ -314,7 +336,7 @@ contract Marketplace is Ownable {
     emit OfferData(msg.sender, listingID, offerID, _ipfsHash);
   }
 
-  // @dev Refunds buyer in ETH or ERC20
+  // @dev Refunds buyer in ETH or ERC20 - used by 1) executeRuling() and 2) to allow a seller to refund a purchase
   function refundBuyer(uint listingID, uint offerID) private {
     Offer storage offer = offers[listingID][offerID];
     if (address(offer.currency) == 0x0) {

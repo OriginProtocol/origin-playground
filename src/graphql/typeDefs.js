@@ -2,15 +2,17 @@ export default `
   type Query {
     web3: Web3
     marketplace: Marketplace
+    marketplaces: [Marketplace]
     contracts: [Contract]
     contract(id: String!): Contract
+    tokens: [Token]
   }
 
   type Mutation {
     deployToken(name: String!, symbol: String!, decimals: String!, supply: String!): String
     transferToken(token: String!, from: String!, to: String!, value: String!): TransferTokenOutput
     updateTokenAllowance(token: String!, from: String!, to: String!, value: String!): Boolean
-    deployMarketplace(token: String!): String
+    deployMarketplace(token: String!, version: String, from: String, autoWhitelist: Boolean): String
 
     sendFromNode(from: String!, to: String!, value: String!): SendFromNodeOutput
     setActiveWallet(address: String!): Account
@@ -30,6 +32,7 @@ export default `
       additionalDeposit: String
       from: String,
       data: NewListingInput
+      autoApprove: Boolean
     ): Listing
 
     withdrawListing(
@@ -106,6 +109,15 @@ export default `
     allowance(contract: String!): String
   }
 
+  type Token {
+    id: ID!
+    address: String
+    name: String
+    symbol: String
+    decimals: Int
+    totalSupply: String
+  }
+
   type Contract {
     id: String!
     balance: Balance
@@ -126,6 +138,10 @@ export default `
 
   type Marketplace {
     address: String
+    version: String
+    token: Token
+    owner: Account
+    account: Account
     totalListings: Int
     getListing(idx: Int!): Listing
     getOffer(idx: Int!, listingId: Int!): Offer
@@ -142,6 +158,7 @@ export default `
     totalOffers: Int
     offers: [Offer]
     getOffer(idx: Int!): Offer
+    events: [Event]
   }
 
   type ListingData {
@@ -195,6 +212,58 @@ export default `
     to: String
     value: String
     pct: Float
+  }
+
+  type Event {
+    id: ID!
+    address: String
+    blockHash: String
+    blockNumber: Int
+    block: Block
+    event: String
+    logIndex: Int
+    raw: EventRaw
+    returnValues: EventReturnValues
+    signature: String
+    transactionHash: String
+    transactionIndex: Int
+    type: String
+  }
+
+  type EventRaw {
+    data: String
+    topics: [String]
+  }
+
+  type EventReturnValues {
+    listingID: String
+    offerID: String
+    party: String!
+    ipfsHash: String!
+  }
+
+  type Block {
+    id: ID!
+    number: Int
+    hash: String
+    parentHash: String
+    mixHash: String
+    nonce: String
+    sha3Uncles: String
+    logsBloom: String
+    transactionsRoot: String
+    stateRoot: String
+    receiptsRoot: String
+    miner: String
+    difficulty: String
+    totalDifficulty: String
+    extraData: String
+    size: Int
+    gasLimit: Int
+    gasUsed: Int
+    timestamp: Int
+    transactions: [String]
+    uncles: [String]
   }
 
   input NewListingInput {

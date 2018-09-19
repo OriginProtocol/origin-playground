@@ -3,6 +3,8 @@ import { get } from 'utils/ipfsHash'
 import getOffer from './helpers/getOffer'
 
 export default {
+  events: async listing =>
+    await listing.contract.eventCache.listings(listing.id),
   ipfs: async listing => {
     const events = await listing.contract.eventCache.listings(listing.id)
     if (events.length) {

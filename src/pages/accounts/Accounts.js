@@ -3,6 +3,7 @@ import { Query } from 'react-apollo'
 
 import { Button } from '@blueprintjs/core'
 
+import { resetContracts } from '../../graphql/context'
 import NodeAccounts from './_NodeAccounts'
 import WalletAccounts from './_WalletAccounts'
 import CreateWallet from './_CreateWallet'
@@ -18,23 +19,23 @@ import {
 
 import query from './_query'
 
-import gql from '../../graphqlClient'
+import gqlClient from '../../graphqlClient'
 
 async function populate(NodeAccount) {
   const refetchQueries = ['AllAccounts']
 
-  const Admin = (await gql.mutate({
+  const Admin = (await gqlClient.mutate({
     mutation: CreateWalletMutation,
     variables: { role: 'Admin', name: 'Admin' }
   })).data.createWallet.id
 
-  await gql.mutate({
+  await gqlClient.mutate({
     mutation: SendFromNodeMutation,
     variables: { to: Admin, from: NodeAccount, value: '0.5' },
     refetchQueries
   })
 
-  const OGN = (await gql.mutate({
+  const OGN = (await gqlClient.mutate({
     mutation: DeployTokenMutation,
     variables: {
       name: 'Origin Token',
@@ -44,62 +45,62 @@ async function populate(NodeAccount) {
     }
   })).data.deployToken
 
-  const Marketplace = (await gql.mutate({
+  const Marketplace = (await gqlClient.mutate({
     mutation: DeployMarketplaceMutation,
-    variables: { token: OGN },
+    variables: { token: OGN, version: '001', autoWhitelist: true },
     refetchQueries
   })).data.deployMarketplace
 
-  const Seller = (await gql.mutate({
+  const Seller = (await gqlClient.mutate({
     mutation: CreateWalletMutation,
     variables: { role: 'Seller', name: 'Stan' }
   })).data.createWallet.id
 
-  await gql.mutate({
+  await gqlClient.mutate({
     mutation: SendFromNodeMutation,
     variables: { to: Seller, from: NodeAccount, value: '0.5' },
     refetchQueries
   })
 
-  await gql.mutate({
+  await gqlClient.mutate({
     mutation: TransferTokenMutation,
     variables: { token: 'ogn', to: Seller, from: Admin, value: '500' }
   })
 
-  await gql.mutate({
+  await gqlClient.mutate({
     mutation: UpdateTokenAllowanceMutation,
     variables: { token: 'ogn', to: Marketplace, from: Seller, value: '500' },
     refetchQueries
   })
 
-  const Buyer = (await gql.mutate({
+  const Buyer = (await gqlClient.mutate({
     mutation: CreateWalletMutation,
     variables: { role: 'Buyer', name: 'Nick' }
   })).data.createWallet.id
 
-  await gql.mutate({
+  await gqlClient.mutate({
     mutation: SendFromNodeMutation,
     variables: { to: Buyer, from: NodeAccount, value: '0.5' },
     refetchQueries
   })
 
-  const Arbitrator = (await gql.mutate({
+  const Arbitrator = (await gqlClient.mutate({
     mutation: CreateWalletMutation,
     variables: { role: 'Arbitrator', name: 'Origin' }
   })).data.createWallet.id
 
-  await gql.mutate({
+  await gqlClient.mutate({
     mutation: SendFromNodeMutation,
     variables: { to: Arbitrator, from: NodeAccount, value: '0.5' },
     refetchQueries
   })
 
-  const Affiliate = (await gql.mutate({
+  const Affiliate = (await gqlClient.mutate({
     mutation: CreateWalletMutation,
     variables: { role: 'Affiliate', name: 'Origin' }
   })).data.createWallet.id
 
-  await gql.mutate({
+  await gqlClient.mutate({
     mutation: SendFromNodeMutation,
     variables: { to: Affiliate, from: NodeAccount, value: '0.1' },
     refetchQueries
@@ -110,7 +111,7 @@ class Accounts extends Component {
   render() {
     return (
       <Query query={query}>
-        {({ loading, error, data }) => {
+        {({ loading, error, data, client }) => {
           if (loading) return <p className="mt-3">Loading...</p>
           if (error) {
             console.log(query)
@@ -129,7 +130,10 @@ class Accounts extends Component {
           return (
             <>
               <CreateWallet />
-              <WalletAccounts data={data.web3} />
+              <WalletAccounts
+                data={data.web3}
+                maxNodeAccount={maxNodeAccount[0].id}
+              />
               <NodeAccounts data={data.web3.nodeAccounts} />
               <Button
                 style={{ marginTop: '1rem' }}
@@ -137,8 +141,9 @@ class Accounts extends Component {
                 onClick={async () => {
                   localStorage.clear()
                   web3.eth.accounts.wallet.clear()
-                  await gql.cache.reset()
-                  await gql.resetStore()
+                  resetContracts()
+                  await client.cache.reset()
+                  await client.resetStore()
                 }}
                 text="Reset"
               />

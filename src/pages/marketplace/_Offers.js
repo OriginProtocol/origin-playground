@@ -20,7 +20,7 @@ import {
 import AccountButton from '../accounts/AccountButton'
 
 const Offers = ({ listing, offers, accounts }) => (
-  <table className="bp3-html-table bp3-small mt-3">
+  <table className="bp3-html-table bp3-small">
     <thead>
       <tr>
         <th>ID</th>

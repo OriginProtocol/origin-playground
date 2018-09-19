@@ -5,7 +5,7 @@ import { Button } from '@blueprintjs/core'
 import { Dialog, FormGroup, InputGroup } from '@blueprintjs/core'
 
 import { AcceptOfferMutation } from '../../../mutations'
-import ErrorCallout from './_ErrorCallout'
+import ErrorCallout from 'components/ErrorCallout'
 
 class AcceptOffer extends Component {
   state = {
@@ -21,6 +21,7 @@ class AcceptOffer extends Component {
       <Mutation
         mutation={AcceptOfferMutation}
         onCompleted={this.props.onCompleted}
+        refetchQueries={['AllAccounts', 'Listing']}
       >
         {(acceptOffer, { loading, error }) => (
           <Dialog

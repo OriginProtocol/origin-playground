@@ -10,5 +10,7 @@ export default {
     }
     console.log(contracts)
     return contracts
-  }
+  },
+  marketplaces: (_, args, context) => context.contracts.marketplaces,
+  tokens: (_, args, context) => context.contracts.tokens
 }

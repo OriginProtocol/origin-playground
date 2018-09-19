@@ -64,7 +64,9 @@ class TokenButton extends Component {
                       current && a.id !== current.id ? (
                         <Menu.Item
                           key={a.id}
-                          text={`${a.name || `${a.id.substr(0, 8)}`}${a.role ? ` (${a.role})` : ''}`}
+                          text={`${a.name || `${a.id.substr(0, 8)}`}${
+                            a.role ? ` (${a.role})` : ''
+                          }`}
                           onClick={() => {
                             transferToken({
                               variables: {
@@ -103,10 +105,9 @@ class TokenButton extends Component {
 }
 
 const WalletAccounts = ({
-  data: { accounts, nodeAccounts, defaultAccount = {} }
+  maxNodeAccount,
+  data: { accounts, defaultAccount = {} }
 }) => {
-  const rnd = Math.floor(Math.random() * nodeAccounts.length)
-  const randomAccount = nodeAccounts[rnd].id
   return (
     <HTMLTable small={true} bordered={true} className="mt-3 mb-3">
       <thead>
@@ -142,7 +143,7 @@ const WalletAccounts = ({
               )}
             </td>
             <td>
-              <SendFromNodeBtn from={randomAccount} to={a.id} value="0.5" />
+              <SendFromNodeBtn from={maxNodeAccount} to={a.id} value="0.5" />
               <RemoveWalletBtn address={a.id} />
               {defaultAccount && defaultAccount.id === a.id ? (
                 <Icon

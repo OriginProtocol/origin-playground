@@ -4,7 +4,7 @@ import { Mutation } from 'react-apollo'
 import { Button, Dialog, FormGroup, InputGroup } from '@blueprintjs/core'
 
 import { FinalizeOfferMutation } from '../../../mutations'
-import ErrorCallout from './_ErrorCallout'
+import ErrorCallout from 'components/ErrorCallout'
 
 class FinalizeOffer extends Component {
   state = {
@@ -21,7 +21,7 @@ class FinalizeOffer extends Component {
       <Mutation
         mutation={FinalizeOfferMutation}
         onCompleted={this.props.onCompleted}
-        refetchQueries={['AllAccounts']}
+        refetchQueries={['AllAccounts', 'Listing']}
       >
         {(finalizeOffer, { loading, error }) => (
           <Dialog

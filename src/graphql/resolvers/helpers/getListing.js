@@ -31,6 +31,7 @@ export default async (contract, args) => {
     arbitrator: { id: listing.arbitrator },
     seller: { id: seller },
     contract,
-    status
+    status,
+    events
   }
 }

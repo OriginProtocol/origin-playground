@@ -15,7 +15,9 @@ const App = () => (
     <TransactionToasts />
     <Navbar>
       <Navbar.Group>
-        <Navbar.Heading className="logo"><img src="images/origin-logo-dark.png" /> ADMIN</Navbar.Heading>
+        <Navbar.Heading className="logo">
+          <img src="images/origin-logo-dark.png" /> ADMIN
+        </Navbar.Heading>
         <NavLink
           className="bp3-button bp3-minimal"
           activeClassName="bp3-active"
@@ -75,6 +77,8 @@ require('react-styl')(`
     margin-top: 0.5rem
   .mb-2
     margin-bottom: 0.5rem
+  .ml-2
+    margin-left: 0.5rem
   .mb-3
     margin-bottom: 1rem
   .vm > td

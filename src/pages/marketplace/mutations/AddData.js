@@ -4,7 +4,7 @@ import { Mutation } from 'react-apollo'
 import { Button, Dialog, FormGroup, InputGroup } from '@blueprintjs/core'
 
 import { AddDataMutation } from '../../../mutations'
-import ErrorCallout from './_ErrorCallout'
+import ErrorCallout from 'components/ErrorCallout'
 
 class AddData extends Component {
   state = {

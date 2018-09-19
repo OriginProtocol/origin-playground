@@ -65,8 +65,16 @@ export const UpdateTokenAllowanceMutation = gql`
 `
 
 export const DeployMarketplaceMutation = gql`
-  mutation DeployMarketplace($token: String) {
-    deployMarketplace(token: $token)
+  mutation DeployMarketplace(
+    $token: String
+    $version: String
+    $autoWhitelist: Boolean
+  ) {
+    deployMarketplace(
+      token: $token
+      version: $version
+      autoWhitelist: $autoWhitelist
+    )
   }
 `
 
@@ -95,12 +103,14 @@ export const UpdateListingMutation = gql`
     $additionalDeposit: String
     $from: String
     $data: NewListingInput
+    $autoApprove: Boolean
   ) {
     updateListing(
       listingID: $listingID
       additionalDeposit: $additionalDeposit
       from: $from
       data: $data
+      autoApprove: $autoApprove
     ) {
       ...basicListingFields
     }

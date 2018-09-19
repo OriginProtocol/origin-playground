@@ -7,12 +7,15 @@ import {
   NonIdealState,
   AnchorButton,
   Tooltip,
-  Tag
+  Tag,
+  Tabs,
+  Tab
 } from '@blueprintjs/core'
 
 import withAccounts from './hoc/withAccounts'
 import { MakeOffer, WithdrawListing, AddData, UpdateListing } from './mutations'
 import Offers from './_Offers'
+import EventsTable from './_EventsTable'
 import AccountButton from '../accounts/AccountButton'
 
 import query from './queries/_offers'
@@ -32,13 +35,8 @@ class Listing extends Component {
             return <p className="mt-3">Error :(</p>
           }
 
-          const accounts = this.props.accounts
           const listing = data.marketplace.getListing
           const listingData = listing.ipfs || {}
-
-          const sellerPresent = accounts.find(
-            a => listing.seller && a.id === listing.seller.id
-          )
 
           if (!listing) {
             return (
@@ -56,39 +54,50 @@ class Listing extends Component {
             )
           }
 
+          let selectedTabId = 'offers'
+          if (this.props.location.pathname.match(/events$/)) {
+            selectedTabId = 'events'
+          }
+
           return (
             <>
               {this.renderBreadcrumbs(listing)}
               <h3 className="bp3-heading mt-3">{listingData.title}</h3>{' '}
-              <div>
-                <div>
-                  {`${listingData.category} by `}
-                  <AccountButton account={listing.seller} />
-                  <span style={{ marginRight: 10 }}>
-                    {` for ${listingData.price} ${listingData.currencyId ||
-                      ''}. Abitrator `}
-                    <AccountButton account={listing.arbitrator} />
-                    <span style={{ marginLeft: 10 }}>
-                      {`${listing.deposit || '0'} OGN`}
-                    </span>
-                  </span>
-                  {this.renderActions(sellerPresent, listing)}
-                  {listing.status === 'active' ? (
-                    <Tag style={{ marginLeft: 15 }} intent="success">
-                      Active
-                    </Tag>
-                  ) : (
-                    <Tag style={{ marginLeft: 15 }}>Withdrawn</Tag>
-                  )}
-                </div>
-              </div>
-              {!data.marketplace.getListing.offers.length ? null : (
-                <Offers
-                  listing={listing}
-                  listingId={listingId}
-                  offers={data.marketplace.getListing.offers}
+              {this.renderDetail({ listingData, listing })}
+              <Tabs
+                selectedTabId={selectedTabId}
+                onChange={(newTab, prevTab) => {
+                  if (prevTab === newTab) {
+                    return
+                  }
+                  if (newTab === 'offers') {
+                    this.props.history.push(
+                      `/marketplace/listings/${listingId}`
+                    )
+                  } else if (newTab === 'events') {
+                    this.props.history.push(
+                      `/marketplace/listings/${listingId}/events`
+                    )
+                  }
+                }}
+              >
+                <Tab
+                  id="offers"
+                  title="Offers"
+                  panel={
+                    <Offers
+                      listing={listing}
+                      listingId={listingId}
+                      offers={listing.offers}
+                    />
+                  }
                 />
-              )}
+                <Tab
+                  id="events"
+                  title="Events"
+                  panel={<EventsTable events={listing.events} />}
+                />
+              </Tabs>
               <MakeOffer
                 {...this.state}
                 listing={listing}
@@ -116,6 +125,35 @@ class Listing extends Component {
           )
         }}
       </Query>
+    )
+  }
+
+  renderDetail({ listingData, listing }) {
+    const accounts = this.props.accounts
+    const sellerPresent = accounts.find(
+      a => listing.seller && a.id === listing.seller.id
+    )
+    return (
+      <div style={{ marginBottom: 10 }}>
+        {`${listingData.category} by `}
+        <AccountButton account={listing.seller} />
+        <span style={{ marginRight: 10 }}>
+          {` for ${listingData.price} ${listingData.currencyId ||
+            ''}. Abitrator `}
+          <AccountButton account={listing.arbitrator} />
+          <span style={{ marginLeft: 10 }}>
+            {`${listing.deposit || '0'} OGN`}
+          </span>
+        </span>
+        {this.renderActions(sellerPresent, listing)}
+        {listing.status === 'active' ? (
+          <Tag style={{ marginLeft: 15 }} intent="success">
+            Active
+          </Tag>
+        ) : (
+          <Tag style={{ marginLeft: 15 }}>Withdrawn</Tag>
+        )}
+      </div>
     )
   }
 

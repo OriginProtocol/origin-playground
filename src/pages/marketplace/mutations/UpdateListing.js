@@ -8,14 +8,14 @@ import {
   InputGroup,
   ControlGroup,
   HTMLSelect,
-  Slider
+  Slider,
+  Checkbox
 } from '@blueprintjs/core'
 
-import rnd from 'utils/rnd'
 import withAccounts from '../hoc/withAccounts'
 
 import { UpdateListingMutation } from '../../../mutations'
-import ErrorCallout from './_ErrorCallout'
+import ErrorCallout from 'components/ErrorCallout'
 
 function showOGN(account) {
   if (!account.ogn) return ''
@@ -28,15 +28,14 @@ class UpdateListing extends Component {
   constructor(props) {
     super()
 
-    const seller = rnd(props.accounts.filter(a => a.role === 'Seller'))
-
     this.state = {
       title: props.listing.ipfs.title || '',
       currencyId: props.listing.ipfs.currencyId || 'ETH',
       price: props.listing.ipfs.price || '0.1',
-      from: seller ? seller.id : '',
+      from: props.listing.seller.id || '',
       additionalDeposit: 0,
-      category: props.listing.ipfs.category || 'For Sale'
+      category: props.listing.ipfs.category || 'For Sale',
+      autoApprove: true
     }
   }
 
@@ -64,17 +63,34 @@ class UpdateListing extends Component {
           >
             <div className="bp3-dialog-body">
               <ErrorCallout error={error} />
-              <FormGroup label="Seller">
-                <HTMLSelect
-                  {...input('from')}
-                  options={this.props.accounts
-                    .filter(a => a.role === 'Seller')
-                    .map(a => ({
-                      label: `${(a.name || a.id).substr(0, 24)} ${showOGN(a)}`,
-                      value: a.id
-                    }))}
-                />
-              </FormGroup>
+              <div style={{ display: 'flex' }}>
+                <div style={{ flex: 3, marginRight: 20 }}>
+                  <FormGroup label="Seller">
+                    <HTMLSelect
+                      {...input('from')}
+                      fill={true}
+                      options={this.props.accounts
+                        .filter(a => a.role === 'Seller')
+                        .map(a => ({
+                          label: `${(a.name || a.id).substr(0, 24)} ${showOGN(
+                            a
+                          )}`,
+                          value: a.id
+                        }))}
+                    />
+                  </FormGroup>
+                </div>
+                <div style={{ flex: 1 }}>
+                  <FormGroup label="Auto-Approve">
+                    <Checkbox
+                      checked={this.state.autoApprove}
+                      onChange={e =>
+                        this.setState({ autoApprove: e.target.checked })
+                      }
+                    />
+                  </FormGroup>
+                </div>
+              </div>
               <div style={{ display: 'flex' }}>
                 <div style={{ flex: 1, marginRight: 20 }}>
                   <FormGroup label="Category">
@@ -150,6 +166,7 @@ class UpdateListing extends Component {
         listingID: String(this.props.listing.id),
         additionalDeposit: String(this.state.additionalDeposit),
         from: this.state.from,
+        autoApprove: this.state.autoApprove,
         data: {
           title: this.state.title,
           price: this.state.price,

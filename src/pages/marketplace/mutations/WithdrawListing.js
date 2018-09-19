@@ -11,7 +11,7 @@ import {
 
 import withAccounts from '../hoc/withAccounts'
 import { WithdrawListingMutation } from '../../../mutations'
-import ErrorCallout from './_ErrorCallout'
+import ErrorCallout from 'components/ErrorCallout'
 
 class WithdrawListing extends Component {
   constructor(props) {

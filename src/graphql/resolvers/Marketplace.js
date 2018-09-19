@@ -2,14 +2,23 @@ import getListing from './helpers/getListing'
 import offerFields from './helpers/offerFields'
 
 export default {
-  address: contract => contract._address,
+  address: contract => {
+    if (!contract) {
+      return null
+    }
+    return contract._address
+  },
   totalListings: contract => {
-    if (!contract) { return null; }
+    if (!contract) {
+      return null
+    }
     return contract.methods.totalListings().call()
   },
   getListing,
   allListings: async (contract, { limit = 10 }) => {
-    if (!contract) { return null; }
+    if (!contract) {
+      return null
+    }
     const totalListings = await contract.methods.totalListings().call()
     const listings = []
     for (const id of Array.from(
@@ -21,14 +30,33 @@ export default {
     return listings.reverse().slice(0, limit)
   },
   getOffer: async (contract, args) => {
-    const offer = await contract.methods
-      .offers(args.listingId, args.idx)
-      .call()
+    if (!contract) {
+      return null
+    }
+    const offer = await contract.methods.offers(args.listingId, args.idx).call()
     return {
       id: args.idx,
       listingId: args.listingId,
       ...offerFields(offer),
       contract
     }
+  },
+  account: contract => {
+    if (!contract) {
+      return null
+    }
+    return { id: contract._address }
+  },
+  token: async contract => {
+    if (!contract) {
+      return null
+    }
+    return { id: await contract.methods.tokenAddr().call() }
+  },
+  owner: async contract => {
+    if (!contract) {
+      return null
+    }
+    return { id: await contract.methods.owner().call() }
   }
 }

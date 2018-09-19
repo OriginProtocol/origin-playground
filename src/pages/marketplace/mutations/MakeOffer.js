@@ -14,7 +14,7 @@ import {
 import rnd from 'utils/rnd'
 import withAccounts from '../hoc/withAccounts'
 import { MakeOfferMutation } from '../../../mutations'
-import ErrorCallout from './_ErrorCallout'
+import ErrorCallout from 'components/ErrorCallout'
 
 const jsDateFormatter = {
   formatDate: date => date.toLocaleDateString(),
