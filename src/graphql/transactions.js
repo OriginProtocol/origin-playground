@@ -1,9 +1,17 @@
+import pubsub from './pubsub'
+
 let transactions = [
   // '0xfd1a57994ab26a1f67e31fc9240d4269397ac35f584a4ca969e4df78fa854c11'
 ]
 
 const pct = {}
 const status = {}
+
+web3.eth.subscribe('newBlockHeaders').on('data', blockHeaders => {
+  pubsub.publish('NEW_BLOCK', {
+    newBlock: { ...blockHeaders, id: blockHeaders.hash }
+  })
+})
 
 export async function getTransactions() {
   let results = []

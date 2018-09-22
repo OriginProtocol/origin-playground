@@ -1,13 +1,25 @@
+import { ApolloLink } from 'apollo-link'
 import ApolloClient from 'apollo-client'
 import { InMemoryCache } from 'apollo-cache-inmemory'
-// import { persistCache } from 'apollo-cache-persist'
+import { getMainDefinition } from 'apollo-utilities'
 
-import schemaLink from './graphql/schemaLink'
+import SchemaLink from './graphql/SchemaLink'
+import SubscriptionsLink from './graphql/SubscriptionsLink'
+// import { persistCache } from 'apollo-cache-persist'
 
 const cache = new InMemoryCache()
 // persistCache({ cache, storage: window.localStorage })
 
-const client = new ApolloClient({ link: schemaLink, cache })
+const link = ApolloLink.split(
+  operation => {
+    const definition = getMainDefinition(operation.query)
+    return definition.operation === 'subscription'
+  },
+  new SubscriptionsLink(),
+  SchemaLink
+)
+
+const client = new ApolloClient({ link, cache })
 
 window.gql = client
 

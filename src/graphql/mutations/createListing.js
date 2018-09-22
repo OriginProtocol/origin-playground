@@ -1,4 +1,5 @@
 import { post } from 'utils/ipfsHash'
+import pubsub from '../pubsub'
 
 import { addTransaction, updateTransactionStatus } from '../transactions'
 
@@ -43,20 +44,33 @@ async function createListing(_, input, context) {
       .send({ gas: 4612388, from: from || web3.eth.defaultAccount })
       .once('transactionHash', hash => {
         addTransaction(hash)
-        resolve({ id: hash })
+        resolve(hash)
+        pubsub.publish('TRANSACTION_UPDATED', {
+          transactionUpdated: { id: hash, status: 'pending' }
+        })
       })
       .once('receipt', receipt => {
-        updateTransactionStatus(receipt.transactionHash, 'Receipt')
+        // updateTransactionStatus(receipt.transactionHash, 'Receipt')
         context.contracts.marketplace.eventCache.updateBlock(
           receipt.blockNumber
         )
+        pubsub.publish('TRANSACTION_UPDATED', {
+          transactionUpdated: { id: receipt.transactionHash, status: 'receipt' }
+        })
+        // resolve()
       })
       .on('confirmation', function(confNumber, receipt) {
+        if (confNumber === 1) {
+          pubsub.publish('TRANSACTION_UPDATED', {
+            transactionUpdated: { id: receipt.transactionHash, status: 'confirmed' }
+          })
+        }
         if (confNumber > 0 && confNumber < 4) {
-          updateTransactionStatus(
-            receipt.transactionHash,
-            `Confirmed ${confNumber} times`
-          )
+
+          // updateTransactionStatus(
+          //   receipt.transactionHash,
+          //   `Confirmed ${confNumber} times`
+          // )
         }
       })
       .catch(reject)

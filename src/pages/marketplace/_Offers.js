@@ -19,32 +19,43 @@ import {
 
 import AccountButton from '../accounts/AccountButton'
 
-const Offers = ({ listing, offers, accounts }) => (
-  <table className="bp3-html-table bp3-small">
-    <thead>
-      <tr>
-        <th>ID</th>
-        <th>Status</th>
-        <th>Offer</th>
-        <th>Refund</th>
-        <th>Buyer</th>
-        <th>Commission</th>
-        <th>Arbitrator</th>
-        <th style={{ borderLeft: '1px solid rgba(16, 22, 26, 0.15)' }}>
-          Buyer
-        </th>
-        <th>Seller</th>
-        <th>Arbitrator</th>
-        <th>Other</th>
-      </tr>
-    </thead>
-    <tbody>
-      {offers.map(a => (
-        <OfferRow key={a.id} offer={a} listing={listing} accounts={accounts} />
-      ))}
-    </tbody>
-  </table>
-)
+const Offers = ({ listing, offers, accounts }) => {
+  return (
+    <table className="bp3-html-table bp3-small">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Status</th>
+          <th>Offer</th>
+          <th>Refund</th>
+          <th>Buyer</th>
+          <th>Commission</th>
+          <th>Arbitrator</th>
+          <th
+            style={{
+              borderLeft: '1px solid rgba(16, 22, 26, 0.15)'
+            }}
+          >
+            Buyer
+          </th>
+          <th>Seller</th>
+          <th>Arbitrator</th>
+          <th>Other</th>
+        </tr>
+      </thead>
+      <tbody>
+        {offers.map(a => (
+          <OfferRow
+            key={a.id}
+            offer={a}
+            listing={listing}
+            accounts={accounts}
+          />
+        ))}
+      </tbody>
+    </table>
+  )
+}
 
 class OfferRow extends Component {
   state = {}
@@ -88,7 +99,11 @@ class OfferRow extends Component {
           <td>
             <AccountButton account={offer.arbitrator} />
           </td>
-          <td style={{ borderLeft: '1px solid rgba(16, 22, 26, 0.15)' }}>
+          <td
+            style={{
+              borderLeft: '1px solid rgba(16, 22, 26, 0.15)'
+            }}
+          >
             {this.renderBuyerActions(offer, buyerPresent)}
           </td>
           <td>{this.renderSellerActions(offer, sellerPresent)}</td>
@@ -250,7 +265,7 @@ class OfferRow extends Component {
             <AnchorButton
               intent="success"
               disabled={!buyerPresent}
-              style={{ marginRight: 5 }}
+              style={{ marginRight: 5, border: '1px solid black' }}
               icon="tick"
               onClick={() => this.setState({ finalizeOffer: true })}
             />
@@ -312,7 +327,7 @@ class OfferRow extends Component {
               icon="tick"
               onClick={() => this.setState({ acceptOffer: true })}
               disabled={!sellerPresent}
-              style={{ marginRight: 5 }}
+              style={{ marginRight: 5, border: '1px solid black' }}
             />
           </Tooltip>
           <Tooltip content="Decline">
@@ -338,6 +353,7 @@ class OfferRow extends Component {
             <AnchorButton
               disabled={!arbitratorPresent}
               icon="take-action"
+              style={{ border: '1px solid black' }}
               onClick={() => this.setState({ executeRuling: true })}
             />
           </Tooltip>

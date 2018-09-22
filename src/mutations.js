@@ -3,9 +3,24 @@ import gqlClient from './graphqlClient'
 
 import fragments from './fragments'
 
+export const RefetchMutation = gql`
+  mutation Refetch {
+    refetch
+  }
+`
+
 export const CreateWalletMutation = gql`
   mutation CreateWallet($role: String, $name: String) {
     createWallet(role: $role, name: $name) {
+      ...balanceFields
+    }
+  }
+  ${fragments.Account.balance}
+`
+
+export const ImportWalletMutation = gql`
+  mutation ImportWallet($role: String, $name: String, $privateKey: String!) {
+    importWallet(role: $role, name: $name, privateKey: $privateKey) {
       ...balanceFields
     }
   }
@@ -40,6 +55,12 @@ export const SendFromNodeMutation = gql`
     }
   }
   ${fragments.Account.balance}
+`
+
+export const SendFromWalletMutation = gql`
+  mutation SendFromWallet($from: String, $to: String, $value: String) {
+    sendFromWallet(from: $from, to: $to, value: $value)
+  }
 `
 
 export const TransferTokenMutation = gql`
@@ -293,6 +314,12 @@ window.originJS = {
       mutation: CreateListingMutation,
       variables,
       refetchQueries: ['AllListings']
+    })
+  },
+  refetch: async function(refetchQueries) {
+    return await gqlClient.mutate({
+      mutation: RefetchMutation,
+      refetchQueries
     })
   }
 }

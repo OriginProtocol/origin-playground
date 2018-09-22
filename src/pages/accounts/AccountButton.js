@@ -3,12 +3,17 @@ import { Query } from 'react-apollo'
 
 import { Button, ContextMenuTarget, Menu, MenuItem } from '@blueprintjs/core'
 
+import SendFromWallet from './mutations/SendFromWallet'
 import SetWalletMutation from './_SetWalletMutation'
 
 import query from './_query'
 
 @ContextMenuTarget
 class AccountButton extends Component {
+  constructor() {
+    super()
+    this.state = {}
+  }
   render() {
     const { account } = this.props
     if (!account) {
@@ -45,6 +50,12 @@ class AccountButton extends Component {
             )
           }
         </Query>
+        <SendFromWallet
+          isOpen={this.state.sendEth}
+          lazy={true}
+          from={accountId}
+          onCompleted={() => this.setState({ sendEth: false })}
+        />
       </span>
     )
   }
@@ -69,6 +80,10 @@ class AccountButton extends Component {
               }
             )
           }}
+        />
+        <MenuItem
+          text="Send Eth"
+          onClick={() => this.setState({ sendEth: true })}
         />
       </Menu>
     )

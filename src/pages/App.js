@@ -8,7 +8,9 @@ import Listing from './marketplace/Listing'
 import Contracts from './contracts/Contracts'
 
 import AccountChooser from './accounts/_Chooser'
-import TransactionToasts from './accounts/TransactionToasts'
+
+import TransactionToasts from './_TransactionToasts'
+import NodeInfo from './_NodeInfo'
 
 const App = () => (
   <>
@@ -41,6 +43,7 @@ const App = () => (
         </NavLink>
       </Navbar.Group>
       <Navbar.Group align={Alignment.RIGHT}>
+        <NodeInfo />
         <AccountChooser />
       </Navbar.Group>
     </Navbar>

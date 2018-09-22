@@ -2,7 +2,10 @@ import { getTransactions } from '../transactions'
 
 export default {
   networkId: () => web3.eth.net.getId(),
-  nodeAccounts: async () => (await web3.eth.getAccounts()).map(id => ({ id })),
+  nodeAccounts: () => new Promise((resolve) => {
+    web3.eth.getAccounts().then(accts => resolve(accts.map(id => ({ id }))))
+    .catch(() => resolve([]))
+  }),
   nodeAccount: (_, args) => ({ id: args.id }),
   nodeAccountAt: async (_, args) => {
     const accounts = await web3.eth.getAccounts()

@@ -1,4 +1,16 @@
 export default `
+  type Subscription {
+    newBlock: Block
+    transactionUpdated: TransactionUpdate
+  }
+
+  type TransactionUpdate {
+    id: ID!
+    status: String
+    mutation: String
+    confirmations: Int
+  }
+
   type Query {
     web3: Web3
     marketplace: Marketplace
@@ -9,14 +21,17 @@ export default `
   }
 
   type Mutation {
+    refetch: Boolean
     deployToken(name: String!, symbol: String!, decimals: String!, supply: String!): String
     transferToken(token: String!, from: String!, to: String!, value: String!): TransferTokenOutput
     updateTokenAllowance(token: String!, from: String!, to: String!, value: String!): Boolean
     deployMarketplace(token: String!, version: String, from: String, autoWhitelist: Boolean): String
 
     sendFromNode(from: String!, to: String!, value: String!): SendFromNodeOutput
+    sendFromWallet(from: String!, to: String!, value: String!): String
     setActiveWallet(address: String!): Account
     createWallet(role: String, name: String): Account
+    importWallet(role: String, name: String, privateKey: String!): Account
     removeWallet(address: String!): String
 
     createListing(

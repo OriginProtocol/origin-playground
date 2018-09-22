@@ -35,11 +35,12 @@ class DeployMarketplace extends Component {
   constructor(props) {
     super(props)
     const token = props.tokens.find(t => t.symbol === 'OGN') || props.tokens[0]
-    const admin = rnd(props.accounts.filter(a => a.role === 'Admin'))
+    let admin = rnd(props.accounts.filter(a => a.role === 'Admin'))
+    if (!admin) admin = rnd(props.accounts)
     this.state = {
       version: '001',
-      token: token ? token.id : null,
-      from: admin ? admin.id : null,
+      token: token ? token.id : '',
+      from: admin ? admin.id : '',
       autoWhitelist: true
     }
   }
@@ -53,7 +54,6 @@ class DeployMarketplace extends Component {
       <Mutation
         mutation={DeployMarketplaceMutation}
         onCompleted={this.props.onCompleted}
-        refetchQueries={['AllContracts']}
       >
         {(deployMarketplace, { loading, error }) => (
           <Dialog
@@ -69,12 +69,10 @@ class DeployMarketplace extends Component {
                     <HTMLSelect
                       {...input('from')}
                       fill={true}
-                      options={this.props.accounts
-                        .filter(a => a.role === 'Admin')
-                        .map(a => ({
-                          label: `${(a.name || a.id).substr(0, 24)}`,
-                          value: a.id
-                        }))}
+                      options={this.props.accounts.map(a => ({
+                        label: `${(a.name || a.id).substr(0, 24)}`,
+                        value: a.id
+                      }))}
                     />
                   </FormGroup>
                 </div>

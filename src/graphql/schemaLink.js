@@ -1,11 +1,7 @@
 import { SchemaLink } from 'apollo-link-schema'
-import { makeExecutableSchema } from 'graphql-tools'
 
 import context from './context'
-import typeDefs from './typeDefs'
-import resolvers from './resolvers'
-
-const schema = makeExecutableSchema({ typeDefs, resolvers })
+import schema from './schema'
 
 const link = new SchemaLink({
   schema,

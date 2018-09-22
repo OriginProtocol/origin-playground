@@ -1,4 +1,5 @@
 import Query from './Query'
+import Subscription from './Subscription'
 import Web3 from './Web3'
 import Account from './Account'
 import Marketplace from './Marketplace'
@@ -12,6 +13,7 @@ import Mutation from '../mutations'
 export default {
   Query,
   Mutation,
+  Subscription,
   Web3,
   Event,
   Account,

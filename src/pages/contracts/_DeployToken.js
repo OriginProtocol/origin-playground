@@ -35,7 +35,6 @@ class DeployToken extends Component {
       <Mutation
         mutation={DeployTokenMutation}
         onCompleted={this.props.onCompleted}
-        refetchQueries={['AllContracts']}
       >
         {(deployToken, { loading }) => (
           <Dialog

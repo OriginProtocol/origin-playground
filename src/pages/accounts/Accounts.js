@@ -114,7 +114,6 @@ class Accounts extends Component {
         {({ loading, error, data, client }) => {
           if (loading) return <p className="mt-3">Loading...</p>
           if (error) {
-            console.log(query)
             return <p className="mt-3">Error :(</p>
           }
           if (!data || !data.web3) {
@@ -125,14 +124,14 @@ class Accounts extends Component {
             if (Number(a.balance.eth) > Number(b.balance.eth)) return -1
             if (Number(a.balance.eth) < Number(b.balance.eth)) return 1
             return 0
-          })
+          })[0]
 
           return (
             <>
               <CreateWallet />
               <WalletAccounts
                 data={data.web3}
-                maxNodeAccount={maxNodeAccount[0].id}
+                maxNodeAccount={maxNodeAccount ? maxNodeAccount.id : null}
               />
               <NodeAccounts data={data.web3.nodeAccounts} />
               <Button
@@ -150,7 +149,9 @@ class Accounts extends Component {
               <Button
                 style={{ marginTop: '1rem', marginLeft: '0.5rem' }}
                 intent="success"
-                onClick={() => populate(maxNodeAccount[0].id)}
+                onClick={() =>
+                  populate(maxNodeAccount ? maxNodeAccount.id : null)
+                }
                 text="Populate"
               />
             </>
