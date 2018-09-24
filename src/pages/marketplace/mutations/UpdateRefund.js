@@ -7,7 +7,6 @@ import { UpdateRefundMutation } from '../../../mutations'
 import ErrorCallout from 'components/ErrorCallout'
 
 class UpdateRefund extends Component {
-
   constructor(props) {
     super(props)
     const refund = props.offer.refund || '0'
@@ -32,6 +31,7 @@ class UpdateRefund extends Component {
             title="Update Refund"
             isOpen={this.props.isOpen}
             onClose={this.props.onCompleted}
+            lazy={true}
           >
             <div className="bp3-dialog-body">
               <ErrorCallout error={error} />

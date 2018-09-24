@@ -21,13 +21,13 @@ class DisputeOffer extends Component {
       <Mutation
         mutation={DisputeOfferMutation}
         onCompleted={this.props.onCompleted}
-        refetchQueries={['AllAccounts', 'Listing']}
       >
         {(disputeOffer, { loading, error }) => (
           <Dialog
             title="Dispute Offer"
             isOpen={this.props.isOpen}
             onClose={this.props.onCompleted}
+            lazy={true}
           >
             <div className="bp3-dialog-body">
               <ErrorCallout error={error} />

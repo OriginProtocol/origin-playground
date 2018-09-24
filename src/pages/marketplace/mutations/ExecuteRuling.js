@@ -30,13 +30,13 @@ class ExecuteRuling extends Component {
       <Mutation
         mutation={ExecuteRulingMutation}
         onCompleted={this.props.onCompleted}
-        refetchQueries={['AllAccounts', 'Listing']}
       >
         {(executeRuling, { loading, error }) => (
           <Dialog
             title="Execute Ruling"
             isOpen={this.props.isOpen}
             onClose={this.props.onCompleted}
+            lazy={true}
           >
             <div className="bp3-dialog-body">
               <ErrorCallout error={error} />

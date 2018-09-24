@@ -14,6 +14,10 @@ if (process.env.NODE_ENV !== 'production') {
 
 if (typeof window !== 'undefined') {
   provider = window.sessionStorage.provider || provider
+  if (window.web3) {
+    window.metaMask = new Web3(web3.currentProvider)
+  }
+  // window.web3 = new Web3(provider)
   window.web3 = new Web3(provider)
 }
 
@@ -39,7 +43,12 @@ export function resetContracts() {
       MarketplaceContract.abi,
       window.localStorage.marketplaceContract
     )
+    context.marketplaceMetaMask = new metaMask.eth.Contract(
+      MarketplaceContract.abi,
+      window.localStorage.marketplaceContract
+    )
     context.marketplace.eventCache = eventCache(context.marketplace)
+    context.marketplaceExec = context.marketplaceMetaMask
     context[window.localStorage.marketplaceContract] = context.marketplace
     // contracts.marketplace.events.allEvents(async () => {
     //   const block = await web3.eth.getBlockNumber()
@@ -52,6 +61,11 @@ export function resetContracts() {
       TokenContract.abi,
       window.localStorage.OGNContract
     )
+    context.ognMetaMask = new metaMask.eth.Contract(
+      TokenContract.abi,
+      window.localStorage.OGNContract
+    )
+    context.ognExec = context.ognMetaMask
     context[window.localStorage.OGNContract] = context.ogn
   }
   if (window.localStorage.marketplaces) {

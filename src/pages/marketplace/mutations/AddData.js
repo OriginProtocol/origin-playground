@@ -30,6 +30,7 @@ class AddData extends Component {
             title={title}
             isOpen={this.props.isOpen}
             onClose={this.props.onCompleted}
+            lazy={true}
           >
             <div className="bp3-dialog-body">
               <ErrorCallout error={error} />

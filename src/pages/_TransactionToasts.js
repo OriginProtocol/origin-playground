@@ -18,7 +18,24 @@ const TransactionSubscription = gql`
 
 const refetchQueries = {
   sendFromWallet: ['AllAccounts'],
-  deployToken: ['AllContracts']
+  deployToken: ['AllContracts'],
+  createListing: ['AllAccounts', 'AccountsWithAllowance', 'AllListings'],
+  updateListing: [
+    'AllAccounts',
+    'AccountsWithAllowance',
+    'AllListings',
+    'Listing'
+  ],
+  makeOffer: ['AllAccounts', 'Listing'],
+  acceptOffer: ['AllAccounts', 'Listing'],
+  finalizeOffer: ['AllAccounts', 'Listing'],
+  withdrawOffer: ['AllAccounts', 'Listing'],
+  withdrawListing: ['Listing'],
+  addFunds: ['AllAccounts', 'Listing'],
+  updateRefund: ['AllAccounts', 'Listing'],
+  disputeOffer: ['AllAccounts', 'Listing'],
+  executeRuling: ['AllAccounts', 'Listing'],
+  addData: ['AllAccounts', 'Listing']
 }
 
 import Toaster from './Toaster'

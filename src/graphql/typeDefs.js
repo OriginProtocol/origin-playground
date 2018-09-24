@@ -28,7 +28,7 @@ export default `
     deployMarketplace(token: String!, version: String, from: String, autoWhitelist: Boolean): String
 
     sendFromNode(from: String!, to: String!, value: String!): SendFromNodeOutput
-    sendFromWallet(from: String!, to: String!, value: String!): String
+    sendFromWallet(from: String!, to: String!, value: String!): Transaction
     setActiveWallet(address: String!): Account
     createWallet(role: String, name: String): Account
     importWallet(role: String, name: String, privateKey: String!): Account
@@ -48,14 +48,14 @@ export default `
       from: String,
       data: NewListingInput
       autoApprove: Boolean
-    ): Listing
+    ): Transaction
 
     withdrawListing(
       listingID: String!
       target: String!
       reason: String
       from: String
-    ): Boolean
+    ): Transaction
 
     makeOffer(
       listingID: String,
@@ -67,7 +67,7 @@ export default `
       arbitrator: String,
       from: String,
       withdraw: String
-    ): Offer
+    ): Transaction
 
     executeRuling(
       listingID: String!
@@ -77,16 +77,16 @@ export default `
       message: String
       refund: String
       from: String
-    ): Offer
+    ): Transaction
 
-    addData(data: String!, listingID: String, offerID: String): Boolean
+    addData(data: String!, listingID: String, offerID: String): Transaction
 
-    acceptOffer(listingID: String!, offerID: String!, from: String): Offer
-    withdrawOffer(listingID: String!, offerID: String!, from: String): Offer
-    finalizeOffer(listingID: String!, offerID: String!, from: String): Offer
-    disputeOffer(listingID: String!, offerID: String!, from: String): Offer
-    addFunds(listingID: String!, offerID: String!, amount: String!, from: String): Offer
-    updateRefund(listingID: String!, offerID: String!, amount: String!, from: String): Offer
+    acceptOffer(listingID: String!, offerID: String!, from: String): Transaction
+    withdrawOffer(listingID: String!, offerID: String!, from: String): Transaction
+    finalizeOffer(listingID: String!, offerID: String!, from: String): Transaction
+    disputeOffer(listingID: String!, offerID: String!, from: String): Transaction
+    addFunds(listingID: String!, offerID: String!, amount: String!, from: String): Transaction
+    updateRefund(listingID: String!, offerID: String!, amount: String!, from: String): Transaction
   }
 
   type Web3 {

@@ -39,7 +39,13 @@ class CreateWalletBtn extends Component {
             <ControlGroup>
               <InputGroup {...input('name')} placeholder="Name" />
               <HTMLSelect
-                options={['Buyer', 'Seller', 'Arbitrator', 'Admin']}
+                options={[
+                  'Buyer',
+                  'Seller',
+                  'Arbitrator',
+                  'Affiliate',
+                  'Admin'
+                ]}
                 {...input('role')}
               />
               <Button

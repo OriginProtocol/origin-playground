@@ -22,13 +22,13 @@ class WithdrawOffer extends Component {
       <Mutation
         mutation={WithdrawOfferMutation}
         onCompleted={this.props.onCompleted}
-        refetchQueries={['AllAccounts', 'Listing']}
       >
         {(withdrawOffer, { loading, error }) => (
           <Dialog
             title={`${title} Offer`}
             isOpen={this.props.isOpen}
             onClose={this.props.onCompleted}
+            lazy={true}
           >
             <div className="bp3-dialog-body">
               <ErrorCallout error={error} />

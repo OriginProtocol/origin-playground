@@ -61,65 +61,16 @@ class OfferRow extends Component {
   state = {}
 
   render() {
-    const { offer, listing, accounts } = this.props
+    const { offer, listing } = this.props
+    let row
     if (offer.status === 0 || offer.status >= 4) {
-      return this.renderInactiveRow()
+      row = this.renderInactiveRow()
+    } else {
+      row = this.renderActiveRow()
     }
-    const buyerPresent = accounts.find(
-      a => offer.buyer && a.id === offer.buyer.id
-    )
-    const sellerPresent = accounts.find(
-      a => listing.seller && a.id === listing.seller.id
-    )
-    const arbitratorPresent = accounts.find(
-      a => offer.arbitrator && a.id === offer.arbitrator.id
-    )
     return (
       <>
-        <tr className="vm">
-          <td>{offer.id}</td>
-          <td>{status(offer)}</td>
-          <td>{price(offer)}</td>
-          <td>{price(offer, 'refund')}</td>
-          <td>
-            <AccountButton account={offer.buyer} />
-          </td>
-          <td>
-            {offer.commission && offer.commission !== '0' ? (
-              <>
-                {`${offer.commission} OGN`}
-                <Icon
-                  style={{ verticalAlign: '-0.2rem', margin: '0 0.2rem' }}
-                  icon="arrow-right"
-                />
-                <AccountButton account={offer.affiliate} />
-              </>
-            ) : null}
-          </td>
-          <td>
-            <AccountButton account={offer.arbitrator} />
-          </td>
-          <td
-            style={{
-              borderLeft: '1px solid rgba(16, 22, 26, 0.15)'
-            }}
-          >
-            {this.renderBuyerActions(offer, buyerPresent)}
-          </td>
-          <td>{this.renderSellerActions(offer, sellerPresent)}</td>
-          <td>{this.renderArbitratorActions(offer, arbitratorPresent)}</td>
-          <td>
-            <Tooltip content="Add Data">
-              <AnchorButton
-                icon="comment"
-                onClick={() => {
-                  this.setState({ addData: true })
-                }}
-              />
-            </Tooltip>
-          </td>
-        </tr>
-
+        {row}
         <AcceptOffer
           isOpen={this.state.acceptOffer}
           listing={listing}
@@ -189,6 +140,67 @@ class OfferRow extends Component {
     )
   }
 
+  renderActiveRow() {
+    const { offer, listing, accounts } = this.props
+    if (offer.status === 0 || offer.status >= 4) {
+      return this.renderInactiveRow()
+    }
+    const buyerPresent = accounts.find(
+      a => offer.buyer && a.id === offer.buyer.id
+    )
+    const sellerPresent = accounts.find(
+      a => listing.seller && a.id === listing.seller.id
+    )
+    const arbitratorPresent = accounts.find(
+      a => offer.arbitrator && a.id === offer.arbitrator.id
+    )
+    return (
+      <tr className="vm">
+        <td>{offer.id}</td>
+        <td>{status(offer)}</td>
+        <td>{price(offer)}</td>
+        <td>{price(offer, 'refund')}</td>
+        <td>
+          <AccountButton account={offer.buyer} />
+        </td>
+        <td>
+          {offer.commission && offer.commission !== '0' ? (
+            <>
+              {`${offer.commission} OGN`}
+              <Icon
+                style={{ verticalAlign: '-0.2rem', margin: '0 0.2rem' }}
+                icon="arrow-right"
+              />
+              <AccountButton account={offer.affiliate} />
+            </>
+          ) : null}
+        </td>
+        <td>
+          <AccountButton account={offer.arbitrator} />
+        </td>
+        <td
+          style={{
+            borderLeft: '1px solid rgba(16, 22, 26, 0.15)'
+          }}
+        >
+          {this.renderBuyerActions(offer, buyerPresent)}
+        </td>
+        <td>{this.renderSellerActions(offer, sellerPresent)}</td>
+        <td>{this.renderArbitratorActions(offer, arbitratorPresent)}</td>
+        <td>
+          <Tooltip content="Add Data">
+            <AnchorButton
+              icon="comment"
+              onClick={() => {
+                this.setState({ addData: true })
+              }}
+            />
+          </Tooltip>
+        </td>
+      </tr>
+    )
+  }
+
   renderInactiveRow() {
     const { offer } = this.props
     const offerData = offer.ipfs || {}
@@ -223,9 +235,7 @@ class OfferRow extends Component {
           <Tooltip content="Add Data">
             <AnchorButton
               icon="comment"
-              onClick={() => {
-                this.setState({ addData: true })
-              }}
+              onClick={() => this.setState({ addData: true })}
             />
           </Tooltip>
         </td>

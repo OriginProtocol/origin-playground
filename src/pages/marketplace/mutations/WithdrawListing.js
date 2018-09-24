@@ -33,13 +33,13 @@ class WithdrawListing extends Component {
       <Mutation
         mutation={WithdrawListingMutation}
         onCompleted={this.props.onCompleted}
-        refetchQueries={['Listing']}
       >
         {(withdrawListing, { loading, error }) => (
           <Dialog
             title="Withdraw Listing"
             isOpen={this.props.isOpen}
             onClose={this.props.onCompleted}
+            lazy={true}
           >
             <div className="bp3-dialog-body">
               <ErrorCallout error={error} />
@@ -50,7 +50,9 @@ class WithdrawListing extends Component {
                       fill={true}
                       {...input('target')}
                       options={this.props.accounts.map(a => ({
-                        label: `${(a.name || a.id).substr(0, 24)}${a.role ? ` (${a.role})` : ''}`,
+                        label: `${(a.name || a.id).substr(0, 24)}${
+                          a.role ? ` (${a.role})` : ''
+                        }`,
                         value: a.id
                       }))}
                     />

@@ -21,7 +21,6 @@ class AddFunds extends Component {
       <Mutation
         mutation={AddFundsMutation}
         onCompleted={this.props.onCompleted}
-        refetchQueries={['AllAccounts', 'Listing']}
       >
         {(addFunds, { loading, error }) => (
           <Dialog
@@ -29,6 +28,7 @@ class AddFunds extends Component {
             isOpen={this.props.isOpen}
             onClose={this.props.onCompleted}
             refetchQueries={['AllAccounts']}
+            lazy={true}
           >
             <div className="bp3-dialog-body">
               <ErrorCallout error={error} />

@@ -48,12 +48,7 @@ class UpdateListing extends Component {
       <Mutation
         mutation={UpdateListingMutation}
         onCompleted={this.props.onCompleted}
-        refetchQueries={[
-          'AllAccounts',
-          'AccountsWithAllowance',
-          'AllListings',
-          'Listing'
-        ]}
+        lazy={true}
       >
         {(updateListing, { loading, error }) => (
           <Dialog

@@ -1,6 +1,24 @@
 import { post } from 'utils/ipfsHash'
+import txHelper from './_txHelper'
 
-import getOffer from '../resolvers/helpers/getOffer'
+async function addFunds(_, data, context) {
+  const ipfsHash = await post(context.contracts.ipfsRPC, data)
+
+  const tx = context.contracts.marketplaceExec.methods
+    .addFunds(data.listingID, data.offerID, ipfsHash, data.amount)
+    .send({
+      gas: 4612388,
+      from: data.from || web3.eth.defaultAccount,
+      value: data.amount
+    })
+  return txHelper({
+    tx,
+    context,
+    mutation: 'addFunds'
+  })
+}
+
+export default addFunds
 
 /*
 mutation addFunds($listingID: String, $offerID: String) {
@@ -11,32 +29,3 @@ mutation addFunds($listingID: String, $offerID: String) {
   "offerID": "0"
 }
 */
-
-function addFunds(_, data, context) {
-  return new Promise(async (resolve, reject) => {
-    const ipfsHash = await post(context.contracts.ipfsRPC, data)
-
-    context.contracts.marketplace.methods
-      .addFunds(data.listingID, data.offerID, ipfsHash, data.amount)
-      .send({
-        gas: 4612388,
-        from: data.from || web3.eth.defaultAccount,
-        value: data.amount
-      })
-      .on('receipt', receipt => {
-        context.contracts.marketplace.eventCache.updateBlock(receipt.blockNumber)
-      })
-      .on('confirmation', async (confirmations) => {
-        if (confirmations === 1) {
-          resolve(getOffer(context.contracts.marketplace, {
-            listingId: data.listingID,
-            idx: data.offerID
-          }))
-        }
-      })
-      .catch(reject)
-      .then(() => {})
-  })
-}
-
-export default addFunds

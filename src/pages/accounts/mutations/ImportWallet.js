@@ -53,7 +53,13 @@ class SendFromWallet extends Component {
                 <div style={{ flex: 1 }}>
                   <FormGroup label="Role">
                     <HTMLSelect
-                      options={['Buyer', 'Seller', 'Arbitrator', 'Admin']}
+                      options={[
+                        'Buyer',
+                        'Seller',
+                        'Arbitrator',
+                        'Affiliate',
+                        'Admin'
+                      ]}
                       {...input('role')}
                     />
                   </FormGroup>

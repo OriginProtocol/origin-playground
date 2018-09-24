@@ -53,13 +53,13 @@ class MakeOffer extends Component {
       <Mutation
         mutation={MakeOfferMutation}
         onCompleted={this.props.onCompleted}
-        refetchQueries={['AllAccounts', 'Listing']}
       >
         {(makeOffer, { loading, error }) => (
           <Dialog
             title={title}
             isOpen={this.props.isOpen}
             onClose={this.props.onCompleted}
+            lazy={true}
           >
             <div className="bp3-dialog-body">
               <ErrorCallout error={error} />

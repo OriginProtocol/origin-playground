@@ -21,13 +21,13 @@ class FinalizeOffer extends Component {
       <Mutation
         mutation={FinalizeOfferMutation}
         onCompleted={this.props.onCompleted}
-        refetchQueries={['AllAccounts', 'Listing']}
       >
         {(finalizeOffer, { loading, error }) => (
           <Dialog
             title="Finalize Offer"
             isOpen={this.props.isOpen}
             onClose={this.props.onCompleted}
+            lazy={true}
           >
             <div className="bp3-dialog-body">
               <ErrorCallout error={error} />

@@ -1,35 +1,24 @@
 import { post } from 'utils/ipfsHash'
+import txHelper from './_txHelper'
 
 async function addData(_, data, context) {
-  return new Promise(async (resolve, reject) => {
-    const ipfsHash = await post(context.contracts.ipfsRPC, data)
+  const ipfsHash = await post(context.contracts.ipfsRPC, data)
 
-    const args = [ipfsHash]
-    if (data.listingId) {
-      args.push(data.listingId)
-    }
-    if (data.offerId) {
-      args.push(data.offerId)
-    }
+  let args = [ipfsHash]
+  if (data.offerID) {
+    args = [data.listingID, data.offerID, ipfsHash]
+  } else if (data.listingID) {
+    args = [data.listingID, ipfsHash]
+  }
 
-    context.contracts.marketplace.methods
-      .addData(...args)
-      .send({
-        gas: 4612388,
-        from: data.from || web3.eth.defaultAccount
-      })
-      .on('receipt', receipt => {
-        context.contracts.marketplace.eventCache.updateBlock(
-          receipt.blockNumber
-        )
-      })
-      .on('confirmation', async confirmations => {
-        if (confirmations === 1) {
-          resolve(true)
-        }
-      })
-      .catch(reject)
-      .then(() => {})
+  const tx = context.contracts.marketplaceExec.methods.addData(...args).send({
+    gas: 4612388,
+    from: data.from || web3.eth.defaultAccount
+  })
+  return txHelper({
+    tx,
+    context,
+    mutation: 'addData'
   })
 }
 

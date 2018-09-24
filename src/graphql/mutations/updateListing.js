@@ -1,61 +1,43 @@
 import { post } from 'utils/ipfsHash'
+import txHelper from './_txHelper'
 
-import getListing from '../resolvers/helpers/getListing'
+async function updateListing(_, args, context) {
+  const { listingID, additionalDeposit, data, from, autoApprove } = args
+  const ipfsHash = await post(context.contracts.ipfsRPC, data)
 
-function updateRefund(
-  _,
-  { listingID, additionalDeposit, data, from, autoApprove },
-  context
-) {
-  return new Promise(async (resolve, reject) => {
-    const ipfsHash = await post(context.contracts.ipfsRPC, data)
+  let updateListingCall
 
-    let updateListingCall
+  if (autoApprove && additionalDeposit > 0) {
+    const fnSig = web3.eth.abi.encodeFunctionSignature(
+      'updateListingWithSender(address,uint256,bytes32,uint256)'
+    )
+    const params = web3.eth.abi.encodeParameters(
+      ['uint256', 'bytes32', 'uint256'],
+      [listingID, ipfsHash, additionalDeposit]
+    )
+    updateListingCall = context.contracts.ognExec.methods.approveAndCallWithSender(
+      context.contracts.marketplace._address,
+      additionalDeposit,
+      fnSig,
+      params
+    )
+  } else {
+    updateListingCall = context.contracts.marketplaceExec.methods.updateListing(
+      listingID,
+      ipfsHash,
+      additionalDeposit
+    )
+  }
 
-    if (autoApprove && additionalDeposit > 0) {
-      const fnSig = web3.eth.abi.encodeFunctionSignature(
-        'updateListingWithSender(address,uint256,bytes32,uint256)'
-      )
-      const params = web3.eth.abi.encodeParameters(
-        ['uint256', 'bytes32', 'uint256'],
-        [listingID, ipfsHash, additionalDeposit]
-      )
-      updateListingCall = context.contracts.ogn.methods.approveAndCallWithSender(
-        context.contracts.marketplace._address,
-        additionalDeposit,
-        fnSig,
-        params
-      )
-    } else {
-      updateListingCall = context.contracts.marketplace.methods.updateListing(
-        listingID,
-        ipfsHash,
-        additionalDeposit
-      )
-    }
-
-    updateListingCall
-      .send({
-        gas: 4612388,
-        from: from || web3.eth.defaultAccount
-      })
-      .on('receipt', receipt => {
-        context.contracts.marketplace.eventCache.updateBlock(
-          receipt.blockNumber
-        )
-      })
-      .on('confirmation', async confirmations => {
-        if (confirmations === 1) {
-          resolve(
-            getListing(context.contracts.marketplace, {
-              idx: data.listingID
-            })
-          )
-        }
-      })
-      .catch(reject)
-      .then(() => {})
+  const tx = updateListingCall.send({
+    gas: 4612388,
+    from: from || web3.eth.defaultAccount
+  })
+  return txHelper({
+    tx,
+    context,
+    mutation: 'updateListing'
   })
 }
 
-export default updateRefund
+export default updateListing
