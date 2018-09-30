@@ -1,18 +1,12 @@
 import { post } from 'utils/ipfsHash'
 import txHelper from './_txHelper'
 
-/*
-mutation createListing($deposit: String, $arbitrator: String) {
-  createListing(deposit: $deposit, arbitrator: $arbitrator)
-}
-{ "deposit": "0", "arbitrator": "0xBECf244F615D69AaE9648E4bB3f32161A87caFF1" }
-*/
-
 async function createListing(_, input, context) {
-  const { deposit, arbitrator, data, from, autoApprove } = input
+  const { arbitrator, data, from, autoApprove } = input
   const ipfsHash = await post(context.contracts.ipfsRPC, data)
 
   let createListingCall
+  const deposit = web3.utils.toWei(String(input.deposit), 'ether')
 
   if (autoApprove) {
     const fnSig = web3.eth.abi.encodeFunctionSignature(
@@ -44,46 +38,13 @@ async function createListing(_, input, context) {
     context,
     mutation: 'createListing'
   })
-
-  //
-  //
-  // return new Promise(async (resolve, reject) => {
-  //     .once('transactionHash', hash => {
-  //       addTransaction(hash)
-  //       resolve(hash)
-  //       pubsub.publish('TRANSACTION_UPDATED', {
-  //         transactionUpdated: { id: hash, status: 'pending' }
-  //       })
-  //     })
-  //     .once('receipt', receipt => {
-  //       // updateTransactionStatus(receipt.transactionHash, 'Receipt')
-  //       context.contracts.marketplace.eventCache.updateBlock(
-  //         receipt.blockNumber
-  //       )
-  //       pubsub.publish('TRANSACTION_UPDATED', {
-  //         transactionUpdated: { id: receipt.transactionHash, status: 'receipt' }
-  //       })
-  //       // resolve()
-  //     })
-  //     .on('confirmation', function(confNumber, receipt) {
-  //       if (confNumber === 1) {
-  //         pubsub.publish('TRANSACTION_UPDATED', {
-  //           transactionUpdated: {
-  //             id: receipt.transactionHash,
-  //             status: 'confirmed'
-  //           }
-  //         })
-  //       }
-  //       if (confNumber > 0 && confNumber < 4) {
-  //         // updateTransactionStatus(
-  //         //   receipt.transactionHash,
-  //         //   `Confirmed ${confNumber} times`
-  //         // )
-  //       }
-  //     })
-  //     .catch(reject)
-  //     .then(() => {})
-  // })
 }
 
 export default createListing
+
+/*
+mutation createListing($deposit: String, $arbitrator: String) {
+  createListing(deposit: $deposit, arbitrator: $arbitrator)
+}
+{ "deposit": "0", "arbitrator": "0xBECf244F615D69AaE9648E4bB3f32161A87caFF1" }
+*/

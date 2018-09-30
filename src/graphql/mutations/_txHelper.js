@@ -1,6 +1,12 @@
 import pubsub from '../pubsub'
 
-export default function txHelper({ tx, mutation, onConfirmation, context }) {
+export default function txHelper({
+  tx,
+  mutation,
+  onConfirmation,
+  onReceipt,
+  context
+}) {
   return new Promise((resolve, reject) => {
     tx.once('transactionHash', hash => {
       resolve({ id: hash })
@@ -17,6 +23,9 @@ export default function txHelper({ tx, mutation, onConfirmation, context }) {
           context.contracts.marketplace.eventCache.updateBlock(
             receipt.blockNumber
           )
+        }
+        if (onReceipt) {
+          onReceipt(receipt)
         }
         pubsub.publish('TRANSACTION_UPDATED', {
           transactionUpdated: {
@@ -45,6 +54,10 @@ export default function txHelper({ tx, mutation, onConfirmation, context }) {
             }
           })
         }
+      })
+      .on('error', function(err) {
+        console.log('TX error')
+        console.log(err)
       })
       .catch(reject)
   })

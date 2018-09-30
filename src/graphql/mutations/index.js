@@ -1,3 +1,4 @@
+import addAffiliate from './addAffiliate'
 import acceptOffer from './acceptOffer'
 import addFunds from './addFunds'
 import updateRefund from './updateRefund'
@@ -22,6 +23,7 @@ import addData from './addData'
 import updateListing from './updateListing'
 
 export default {
+  addAffiliate,
   acceptOffer,
   addFunds,
   updateRefund,

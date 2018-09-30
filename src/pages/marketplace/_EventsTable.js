@@ -1,5 +1,6 @@
 import React, { Component } from 'react'
 import { getIpfsHashFromBytes32 } from 'utils/ipfsHash'
+import formatDate from 'utils/formatDate'
 
 import AccountButton from '../accounts/AccountButton'
 
@@ -42,7 +43,7 @@ class EventsTable extends Component {
               <td>{e.returnValues.listingID}</td>
               <td>{e.returnValues.offerID}</td>
               <td>{ipfs(e.returnValues.ipfsHash)}</td>
-              <td>{e.block.timestamp}</td>
+              <td>{formatDate(e.block.timestamp)}</td>
             </tr>
           ))}
         </tbody>

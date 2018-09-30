@@ -1,15 +1,16 @@
-import MarketplaceContract from '../contracts/Marketplace'
-import TokenContract from '../contracts/Token'
+import MarketplaceContract from '../contracts/V00_Marketplace'
+import UserRegistryContract from '../contracts/V00_UserRegistry'
+import TokenContract from '../contracts/OriginToken'
 import eventCache from './eventCache'
 
 const HOST = process.env.HOST || 'localhost'
 let provider = 'https://eth-node.dapptix.com'
 
 if (process.env.NODE_ENV !== 'production') {
-  provider = `wss://kovan.infura.io/ws`
+  // provider = `wss://kovan.infura.io/ws`
   // provider = `wss://rinkeby.infura.io/ws`
   // provider = `ws://${HOST}:8545`
-  // provider = `http://${HOST}:8545`
+  provider = `http://${HOST}:8545`
 }
 
 if (typeof window !== 'undefined') {
@@ -30,6 +31,7 @@ if (window.localStorage.privateKeys) {
 
 const context = {
   ipfsGateway: `http://localhost:9090`,
+  // ipfsGateway: `https://ipfs.staging.originprotocol.com`,
   ipfsRPC: `http://localhost:5002`
 }
 
@@ -38,6 +40,12 @@ export function resetContracts() {
   delete context.ogn
   delete context.marketplaces
   delete context.tokens
+  if (window.localStorage.userRegistryContract) {
+    context.userRegistry = new web3.eth.Contract(
+      UserRegistryContract.abi,
+      window.localStorage.userRegistryContract
+    )
+  }
   if (window.localStorage.marketplaceContract) {
     context.marketplace = new web3.eth.Contract(
       MarketplaceContract.abi,
@@ -48,7 +56,8 @@ export function resetContracts() {
       window.localStorage.marketplaceContract
     )
     context.marketplace.eventCache = eventCache(context.marketplace)
-    context.marketplaceExec = context.marketplaceMetaMask
+    // context.marketplaceExec = context.marketplaceMetaMask
+    context.marketplaceExec = context.marketplace
     context[window.localStorage.marketplaceContract] = context.marketplace
     // contracts.marketplace.events.allEvents(async () => {
     //   const block = await web3.eth.getBlockNumber()
@@ -61,11 +70,13 @@ export function resetContracts() {
       TokenContract.abi,
       window.localStorage.OGNContract
     )
+    // console.log('Set ogn')
     context.ognMetaMask = new metaMask.eth.Contract(
       TokenContract.abi,
       window.localStorage.OGNContract
     )
-    context.ognExec = context.ognMetaMask
+    // context.ognExec = context.ognMetaMask
+    context.ognExec = context.ogn
     context[window.localStorage.OGNContract] = context.ogn
   }
   if (window.localStorage.marketplaces) {
@@ -95,6 +106,7 @@ export function resetContracts() {
   }
   window.context = context
 }
+window.resetContracts = resetContracts
 
 resetContracts()
 

@@ -25,6 +25,7 @@ export function getIpfsHashFromBytes32(bytes32Hex) {
   const hashStr = bs58.encode(hashBytes)
   return hashStr
 }
+window.getIpfsHashFromBytes32 = getIpfsHashFromBytes32
 
 export async function post(gateway, json) {
   var formData = new FormData()
@@ -42,12 +43,14 @@ export async function post(gateway, json) {
 export async function postEnc(gateway, json, pubKeys) {
   var formData = new FormData()
 
-  var publicKeys = pubKeys.reduce((acc, val) =>
-    acc.concat(openpgp.key.readArmored(val).keys),
-  []);
+  var publicKeys = pubKeys.reduce(
+    (acc, val) => acc.concat(openpgp.key.readArmored(val).keys),
+    []
+  )
 
   var encrypted = await openpgp.encrypt({
-    data: JSON.stringify(json), publicKeys
+    data: JSON.stringify(json),
+    publicKeys
   })
 
   formData.append('file', new Blob([encrypted.data]))
@@ -62,20 +65,34 @@ export async function postEnc(gateway, json, pubKeys) {
 }
 
 export async function decode(text, key, pass) {
-
   const privKeyObj = openpgp.key.readArmored(key).keys[0]
   await privKeyObj.decrypt(pass)
 
   const decrypted = await openpgp.decrypt({
-      message: openpgp.message.readArmored(text),
-      privateKeys: [privKeyObj]
+    message: openpgp.message.readArmored(text),
+    privateKeys: [privKeyObj]
   })
   return decrypted.data
 }
 
 export async function getText(gateway, hashAsBytes) {
   var hash = getIpfsHashFromBytes32(hashAsBytes)
-  const response = await fetch(`${gateway}/ipfs/${hash}`)
+  const response = await new Promise(resolve => {
+    let didTimeOut = false
+    const timeout = setTimeout(() => {
+      didTimeOut = true
+      resolve()
+    }, 2000)
+    fetch(`${gateway}/ipfs/${hash}`).then(response => {
+      clearTimeout(timeout)
+      if (!didTimeOut) {
+        resolve(response)
+      }
+    })
+  })
+  if (!response) {
+    return '{}'
+  }
   return await response.text()
 }
 
@@ -84,7 +101,7 @@ export async function get(gateway, hashAsBytes, party) {
   if (text.indexOf('-----BEGIN PGP MESSAGE-----') === 0 && party) {
     try {
       text = await decode(text, party.privateKey, party.pgpPass)
-    } catch(e) {
+    } catch (e) {
       return { encrypted: true, decryptError: e }
     }
   }

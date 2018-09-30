@@ -6,7 +6,7 @@
 
 pragma solidity ^0.4.24;
 
-import '/contracts/arbitration/Arbitrator.sol';
+import "./Arbitrator.sol";
 
 /** @title Centralized Arbitrator
  *  This is a centralized arbitrator deciding alone of the result of disputes.

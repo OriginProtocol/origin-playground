@@ -18,11 +18,11 @@ import withAccounts from '../hoc/withAccounts'
 import { CreateListingMutation } from '../../../mutations'
 import ErrorCallout from 'components/ErrorCallout'
 
-function showOGN(account) {
+export function showOGN(account) {
   if (!account.ogn) return ''
-  return ` (${account.ogn.balance} OGN available, ${
-    account.ogn.allowance
-  } allowed)`
+  const balance = web3.utils.fromWei(account.ogn.balance, 'ether')
+  const allowance = web3.utils.fromWei(account.ogn.allowance, 'ether')
+  return ` (${balance} OGN available, ${allowance} allowed)`
 }
 
 class CreateListing extends Component {
@@ -178,8 +178,7 @@ class CreateListing extends Component {
         autoApprove: this.state.autoApprove,
         data: {
           title: this.state.title,
-          price: this.state.price,
-          currencyId: this.state.currencyId,
+          price: { currency: this.state.currencyId, amount: this.state.price },
           category: this.state.category
         }
       }

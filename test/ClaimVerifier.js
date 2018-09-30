@@ -1,9 +1,9 @@
 import assert from 'assert'
-import helper from './_helper'
+import helper, { contractPath } from './_helper'
 
 describe('ClaimVerifier.sol', async function() {
-  var web3, accounts, deploy, prvSigner, pubSigner
-  var UserIdentity, ClaimIssuer, ClaimVerifier
+  let web3, accounts, deploy, prvSigner, pubSigner
+  let UserIdentity, ClaimIssuer, ClaimVerifier
 
   before(async function() {
     ({ deploy, accounts, web3 } = await helper(`${__dirname}/..`))
@@ -13,22 +13,22 @@ describe('ClaimVerifier.sol', async function() {
 
     UserIdentity = await deploy('ClaimHolder', {
       from: accounts[0],
-      path: `${__dirname}/../contracts/identity`
+      path: `${contractPath}/identity/`
     })
     ClaimIssuer = await deploy('ClaimHolder', {
       from: accounts[1],
-      path: `${__dirname}/../contracts/identity`
+      path: `${contractPath}/identity/`
     })
     ClaimVerifier = await deploy('ClaimVerifier', {
       from: accounts[2],
       args: [ClaimIssuer._address],
-      path: `${__dirname}/../contracts/identity`
+      path: `${contractPath}/identity/`
     })
   })
 
   it('should allow verifier owner to addKey', async function() {
-    var key = web3.utils.sha3(pubSigner)
-    var result = await ClaimIssuer.methods
+    const key = web3.utils.sha3(pubSigner)
+    const result = await ClaimIssuer.methods
       .addKey(key, 3, 1)
       .send({ from: accounts[1] })
 
@@ -36,21 +36,21 @@ describe('ClaimVerifier.sol', async function() {
   })
 
   it('should not allow new listing without identity claim', async function() {
-    var res = await ClaimVerifier.methods
+    const res = await ClaimVerifier.methods
       .checkClaim(UserIdentity._address, 3)
       .send({ from: accounts[0] })
     assert(res.events.ClaimInvalid)
   })
 
   it('should allow identity owner to addClaim', async function() {
-    var data = web3.utils.asciiToHex('Verified OK')
-    var claimType = 3
-    var hashed = web3.utils.soliditySha3(UserIdentity._address, claimType, data)
-    var signed = await web3.eth.accounts.sign(hashed, prvSigner)
+    const data = web3.utils.asciiToHex('Verified OK')
+    const topic = 3
+    const hashed = web3.utils.soliditySha3(UserIdentity._address, topic, data)
+    const signed = await web3.eth.accounts.sign(hashed, prvSigner)
 
-    var claimRes = await UserIdentity.methods
+    const claimRes = await UserIdentity.methods
       .addClaim(
-        claimType,
+        topic,
         2,
         ClaimIssuer._address,
         signed.signature,
@@ -63,7 +63,7 @@ describe('ClaimVerifier.sol', async function() {
   })
 
   it('should not allow new listing without identity claim', async function() {
-    var res = await ClaimVerifier.methods
+    const res = await ClaimVerifier.methods
       .checkClaim(UserIdentity._address, 3)
       .send({ from: accounts[0] })
     assert(res.events.ClaimValid)

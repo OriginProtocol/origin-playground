@@ -2,10 +2,14 @@ import { post } from 'utils/ipfsHash'
 import txHelper from './_txHelper'
 
 async function updateListing(_, args, context) {
-  const { listingID, additionalDeposit, data, from, autoApprove } = args
+  const { listingID, data, from, autoApprove } = args
   const ipfsHash = await post(context.contracts.ipfsRPC, data)
 
   let updateListingCall
+  const additionalDeposit = web3.utils.toWei(
+    String(args.additionalDeposit),
+    'ether'
+  )
 
   if (autoApprove && additionalDeposit > 0) {
     const fnSig = web3.eth.abi.encodeFunctionSignature(

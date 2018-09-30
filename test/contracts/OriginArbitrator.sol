@@ -7,8 +7,11 @@ pragma solidity ^0.4.24;
  * Listings may be priced in Eth or ERC20.
  */
 
-import '/contracts/arbitration/Arbitrable.sol';
-import '/contracts/Marketplace.sol';
+import './arbitration/Arbitrable.sol';
+
+contract Marketplace {
+  function executeRuling(uint listingID, uint offerID, uint _ruling, uint _refund) public;
+}
 
 contract OriginArbitrator is Arbitrable {
 
@@ -47,7 +50,6 @@ contract OriginArbitrator is Arbitrable {
     marketplace.executeRuling(
       dispute.listingID,
       dispute.offerID,
-      '0x0',
       _ruling,
       dispute.refund
     );

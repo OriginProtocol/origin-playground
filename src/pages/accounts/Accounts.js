@@ -1,5 +1,6 @@
 import React, { Component } from 'react'
 import { Query } from 'react-apollo'
+import gql from 'graphql-tag'
 
 import { Button } from '@blueprintjs/core'
 
@@ -14,28 +15,59 @@ import {
   SendFromNodeMutation,
   TransferTokenMutation,
   DeployMarketplaceMutation,
-  UpdateTokenAllowanceMutation
+  UpdateTokenAllowanceMutation,
+  AddAffiliateMutation
 } from '../../mutations'
 
 import query from './_query'
 
+const TransactionSubscription = gql`
+  subscription onTransactionUpdated {
+    transactionUpdated {
+      id
+      status
+      mutation
+      confirmations
+    }
+  }
+`
+
 import gqlClient from '../../graphqlClient'
 
+function transactionConfirmed(hash) {
+  return new Promise(resolve => {
+    const sub = gqlClient
+      .subscribe({
+        query: TransactionSubscription
+      })
+      .subscribe({
+        next: async result => {
+          const t = result.data.transactionUpdated
+          if (t.id === hash && t.status === 'receipt') {
+            sub.unsubscribe()
+            const result = await web3.eth.getTransactionReceipt(hash)
+            resolve(result)
+          }
+        }
+      })
+  })
+}
+
 async function populate(NodeAccount) {
-  const refetchQueries = ['AllAccounts']
+  let hash
 
   const Admin = (await gqlClient.mutate({
     mutation: CreateWalletMutation,
     variables: { role: 'Admin', name: 'Admin' }
   })).data.createWallet.id
 
-  await gqlClient.mutate({
+  hash = (await gqlClient.mutate({
     mutation: SendFromNodeMutation,
-    variables: { to: Admin, from: NodeAccount, value: '0.5' },
-    refetchQueries
-  })
+    variables: { to: Admin, from: NodeAccount, value: '0.5' }
+  })).data.sendFromNode.id
+  await transactionConfirmed(hash)
 
-  const OGN = (await gqlClient.mutate({
+  hash = (await gqlClient.mutate({
     mutation: DeployTokenMutation,
     variables: {
       name: 'Origin Token',
@@ -43,68 +75,76 @@ async function populate(NodeAccount) {
       decimals: '18',
       supply: '1000000000'
     }
-  })).data.deployToken
+  })).data.deployToken.id
+  const OGN = (await transactionConfirmed(hash)).contractAddress
 
-  const Marketplace = (await gqlClient.mutate({
+  hash = (await gqlClient.mutate({
     mutation: DeployMarketplaceMutation,
-    variables: { token: OGN, version: '001', autoWhitelist: true },
-    refetchQueries
-  })).data.deployMarketplace
+    variables: { token: OGN, version: '001', autoWhitelist: true }
+  })).data.deployMarketplace.id
+  const Marketplace = (await transactionConfirmed(hash)).contractAddress
 
   const Seller = (await gqlClient.mutate({
     mutation: CreateWalletMutation,
     variables: { role: 'Seller', name: 'Stan' }
   })).data.createWallet.id
 
-  await gqlClient.mutate({
+  hash = (await gqlClient.mutate({
     mutation: SendFromNodeMutation,
-    variables: { to: Seller, from: NodeAccount, value: '0.5' },
-    refetchQueries
-  })
+    variables: { to: Seller, from: NodeAccount, value: '0.5' }
+  })).data.sendFromNode.id
+  await transactionConfirmed(hash)
 
-  await gqlClient.mutate({
+  hash = (await gqlClient.mutate({
     mutation: TransferTokenMutation,
     variables: { token: 'ogn', to: Seller, from: Admin, value: '500' }
-  })
+  })).data.transferToken.id
+  await transactionConfirmed(hash)
 
-  await gqlClient.mutate({
+  hash = (await gqlClient.mutate({
     mutation: UpdateTokenAllowanceMutation,
-    variables: { token: 'ogn', to: Marketplace, from: Seller, value: '500' },
-    refetchQueries
-  })
+    variables: { token: 'ogn', to: Marketplace, from: Seller, value: '500' }
+  })).data.updateTokenAllowance.id
+  await transactionConfirmed(hash)
 
   const Buyer = (await gqlClient.mutate({
     mutation: CreateWalletMutation,
     variables: { role: 'Buyer', name: 'Nick' }
   })).data.createWallet.id
 
-  await gqlClient.mutate({
+  hash = (await gqlClient.mutate({
     mutation: SendFromNodeMutation,
-    variables: { to: Buyer, from: NodeAccount, value: '0.5' },
-    refetchQueries
-  })
+    variables: { to: Buyer, from: NodeAccount, value: '0.5' }
+  })).data.sendFromNode.id
+  await transactionConfirmed(hash)
 
   const Arbitrator = (await gqlClient.mutate({
     mutation: CreateWalletMutation,
     variables: { role: 'Arbitrator', name: 'Origin' }
   })).data.createWallet.id
 
-  await gqlClient.mutate({
+  hash = (await gqlClient.mutate({
     mutation: SendFromNodeMutation,
-    variables: { to: Arbitrator, from: NodeAccount, value: '0.5' },
-    refetchQueries
-  })
+    variables: { to: Arbitrator, from: NodeAccount, value: '0.5' }
+  })).data.sendFromNode.id
+  await transactionConfirmed(hash)
 
   const Affiliate = (await gqlClient.mutate({
     mutation: CreateWalletMutation,
     variables: { role: 'Affiliate', name: 'Origin' }
   })).data.createWallet.id
 
-  await gqlClient.mutate({
+  hash = (await gqlClient.mutate({
     mutation: SendFromNodeMutation,
-    variables: { to: Affiliate, from: NodeAccount, value: '0.1' },
-    refetchQueries
-  })
+    variables: { to: Affiliate, from: NodeAccount, value: '0.1' }
+  })).data.sendFromNode.id
+  await transactionConfirmed(hash)
+
+  hash = (await gqlClient.mutate({
+    mutation: AddAffiliateMutation,
+    variables: { affiliate: Affiliate, from: Admin }
+  })).data.addAffiliate.id
+  await transactionConfirmed(hash)
 }
 
 class Accounts extends Component {

@@ -1,13 +1,6 @@
-import Marketplace from '../../contracts/Marketplace'
+import Marketplace from '../../contracts/V00_Marketplace'
 import { resetContracts } from '../context'
 import txHelper from './_txHelper'
-
-/*
-mutation deployMarketplace($token: String) {
-  deployMarketplace(token: $token)
-}
-{ "token": "0x7c38A2934323aAa8dAda876Cfc147C8af40F8D0e"}
-*/
 
 async function deployMarketplace(
   _,
@@ -19,14 +12,14 @@ async function deployMarketplace(
     data: '0x' + Marketplace.data,
     arguments: [token]
   }).send({
-    gas: 4612388,
+    gas: 5500000,
     from: from || web3.eth.defaultAccount
   })
 
   return txHelper({
     tx,
-    mutation: 'deployToken',
-    onConfirmation: receipt => {
+    mutation: 'deployMarketplace',
+    onReceipt: receipt => {
       window.localStorage.marketplaceContract = receipt.contractAddress
 
       let marketplaces = {}
@@ -48,7 +41,7 @@ async function deployMarketplace(
 
       if (Token) {
         Token.methods
-          .addToApproveCallWhitelist(receipt.contractAddress)
+          .addCallSpenderWhitelist(receipt.contractAddress)
           .send({
             gas: 4000000,
             from: from || web3.eth.defaultAccount
@@ -117,3 +110,10 @@ async function deployMarketplace(
 }
 
 export default deployMarketplace
+
+/*
+mutation deployMarketplace($token: String) {
+  deployMarketplace(token: $token)
+}
+{ "token": "0x7c38A2934323aAa8dAda876Cfc147C8af40F8D0e"}
+*/

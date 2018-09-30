@@ -22,12 +22,12 @@ export default `
 
   type Mutation {
     refetch: Boolean
-    deployToken(name: String!, symbol: String!, decimals: String!, supply: String!): String
-    transferToken(token: String!, from: String!, to: String!, value: String!): TransferTokenOutput
-    updateTokenAllowance(token: String!, from: String!, to: String!, value: String!): Boolean
-    deployMarketplace(token: String!, version: String, from: String, autoWhitelist: Boolean): String
+    deployToken(name: String!, symbol: String!, decimals: String!, supply: String!): Transaction
+    transferToken(token: String!, from: String!, to: String!, value: String!): Transaction
+    updateTokenAllowance(token: String!, from: String!, to: String!, value: String!): Transaction
+    deployMarketplace(token: String!, version: String, from: String, autoWhitelist: Boolean): Transaction
 
-    sendFromNode(from: String!, to: String!, value: String!): SendFromNodeOutput
+    sendFromNode(from: String!, to: String!, value: String!): Transaction
     sendFromWallet(from: String!, to: String!, value: String!): Transaction
     setActiveWallet(address: String!): Account
     createWallet(role: String, name: String): Account
@@ -80,6 +80,7 @@ export default `
     ): Transaction
 
     addData(data: String!, listingID: String, offerID: String): Transaction
+    addAffiliate(affiliate: String!, from: String): Transaction
 
     acceptOffer(listingID: String!, offerID: String!, from: String): Transaction
     withdrawOffer(listingID: String!, offerID: String!, from: String): Transaction
@@ -102,12 +103,18 @@ export default `
     transaction(id: ID!): Transaction
   }
 
+  type Price {
+    currency: String
+    amount: String
+  }
+
   type Account {
     id: String!
     balance: Balance
     role: String
     name: String
     token(symbol: String!): TokenHolder
+    identity: Identity
   }
 
   type Balance {
@@ -167,21 +174,29 @@ export default `
     id: Int!
     status: String
     seller: Account
-    deposit: Int
+    deposit: String
     arbitrator: Account
     ipfs: ListingData
     totalOffers: Int
     offers: [Offer]
     getOffer(idx: Int!): Offer
     events: [Event]
+    createdEvent: Event
   }
 
   type ListingData {
     id: ID!
     title: String
+    description: String
     currencyId: String
-    price: String
+    price: Price
     category: String
+    media: [Media]
+  }
+
+  type Media {
+    url: String
+    contentType: String
   }
 
   type Offer {
@@ -281,12 +296,23 @@ export default `
     uncles: [String]
   }
 
+  type Identity {
+    id: String!
+    name: String
+  }
+
   input NewListingInput {
     title: String!
-    currencyId: String
+    description: String
     category: String
-    price: String
+    price: PriceInput
   }
+
+  input PriceInput {
+    amount: String
+    currency: String
+  }
+
   input MakeOfferInput {
     currency: String
   }

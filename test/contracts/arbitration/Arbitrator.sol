@@ -6,7 +6,7 @@
 
 pragma solidity ^0.4.24;
 
-import '/contracts/arbitration/Arbitrable.sol';
+import './Arbitrable.sol';
 
 /** @title Arbitrator
  *  Arbitrator abstract contract.

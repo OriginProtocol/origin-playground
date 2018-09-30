@@ -12,6 +12,7 @@ import {
   Tab
 } from '@blueprintjs/core'
 
+import currency from 'utils/currency'
 import withAccounts from './hoc/withAccounts'
 import { MakeOffer, WithdrawListing, AddData, UpdateListing } from './mutations'
 import Offers from './_Offers'
@@ -26,105 +27,138 @@ class Listing extends Component {
     const listingId = this.props.match.params.listingID
 
     return (
-      <Query query={query} variables={{ listingId }}>
-        {({ loading, error, data }) => {
-          if (loading) return <p className="mt-3">Loading...</p>
-          if (error) {
-            console.log(error)
-            console.log(query.loc.source.body)
-            return <p className="mt-3">Error :(</p>
-          }
+      <>
+        {this.renderBreadcrumbs()}
+        <Query query={query} variables={{ listingId }}>
+          {({ loading, error, data }) => {
+            if (loading) return <p className="mt-3">Loading...</p>
+            if (error) {
+              console.log(error)
+              console.log(query.loc.source.body)
+              return <p className="mt-3">Error :(</p>
+            }
+            if (!data.marketplace) {
+              return null
+            }
 
-          const listing = data.marketplace.getListing
-          const listingData = listing.ipfs || {}
+            const listing = data.marketplace.getListing
+            const listingData = listing ? listing.ipfs : null
 
-          if (!listing) {
+            if (!listing || !listingData) {
+              return (
+                <div style={{ maxWidth: 500, marginTop: 50 }}>
+                  <NonIdealState
+                    icon="help"
+                    title="Listing not found"
+                    action={
+                      <AnchorButton href="#/marketplace" icon="arrow-left">
+                        Back to Listings
+                      </AnchorButton>
+                    }
+                  />
+                </div>
+              )
+            }
+
+            let selectedTabId = 'offers'
+            if (this.props.location.pathname.match(/events$/)) {
+              selectedTabId = 'events'
+            }
+
+            const media = (data.marketplace.getListing.ipfs || {}).media || []
+
             return (
-              <div style={{ maxWidth: 500, marginTop: 50 }}>
-                <NonIdealState
-                  icon="help"
-                  title="Listing not found"
-                  action={
-                    <AnchorButton href="#/marketplace" icon="arrow-left">
-                      Back to Listings
-                    </AnchorButton>
-                  }
+              <>
+                <div style={{ display: 'flex' }}>
+                  {!media.length ? null : (
+                    <div
+                      className="gallery"
+                      style={{
+                        maxWidth: 300,
+                        margin: '20px 20px 0 0'
+                      }}
+                    >
+                      {media.map((m, idx) => (
+                        <img
+                          key={idx}
+                          src={`https://ipfs.staging.originprotocol.com/${m.url.replace(
+                            ':/',
+                            ''
+                          )}`}
+                          style={{ maxWidth: 300 }}
+                        />
+                      ))}
+                      <div className="mt-2">{listingData.description}</div>
+                    </div>
+                  )}
+                  <div>
+                    <h3 className="bp3-heading mt-3">{listingData.title}</h3>{' '}
+                    {this.renderDetail({ listingData, listing })}
+                    <Tabs
+                      selectedTabId={selectedTabId}
+                      onChange={(newTab, prevTab) => {
+                        if (prevTab === newTab) {
+                          return
+                        }
+                        if (newTab === 'offers') {
+                          this.props.history.push(
+                            `/marketplace/listings/${listingId}`
+                          )
+                        } else if (newTab === 'events') {
+                          this.props.history.push(
+                            `/marketplace/listings/${listingId}/events`
+                          )
+                        }
+                      }}
+                    >
+                      <Tab
+                        id="offers"
+                        title="Offers"
+                        panel={
+                          <Offers
+                            listing={listing}
+                            listingId={listingId}
+                            offers={listing.offers}
+                          />
+                        }
+                      />
+                      <Tab
+                        id="events"
+                        title="Events"
+                        panel={<EventsTable events={listing.events} />}
+                      />
+                    </Tabs>
+                  </div>
+                </div>
+
+                <MakeOffer
+                  {...this.state}
+                  listing={listing}
+                  isOpen={this.state.makeOffer}
+                  onCompleted={() => {
+                    this.setState({ makeOffer: false })
+                  }}
                 />
-              </div>
+                <UpdateListing
+                  isOpen={this.state.updateListing}
+                  listing={listing}
+                  onCompleted={() => this.setState({ updateListing: false })}
+                />
+                <WithdrawListing
+                  isOpen={this.state.withdrawListing}
+                  listing={listing}
+                  onCompleted={() => this.setState({ withdrawListing: false })}
+                />
+                <AddData
+                  isOpen={this.state.addData}
+                  listing={listing}
+                  onCompleted={() => this.setState({ addData: false })}
+                />
+              </>
             )
-          }
-
-          let selectedTabId = 'offers'
-          if (this.props.location.pathname.match(/events$/)) {
-            selectedTabId = 'events'
-          }
-
-          return (
-            <>
-              {this.renderBreadcrumbs(listing)}
-              <h3 className="bp3-heading mt-3">{listingData.title}</h3>{' '}
-              {this.renderDetail({ listingData, listing })}
-              <Tabs
-                selectedTabId={selectedTabId}
-                onChange={(newTab, prevTab) => {
-                  if (prevTab === newTab) {
-                    return
-                  }
-                  if (newTab === 'offers') {
-                    this.props.history.push(
-                      `/marketplace/listings/${listingId}`
-                    )
-                  } else if (newTab === 'events') {
-                    this.props.history.push(
-                      `/marketplace/listings/${listingId}/events`
-                    )
-                  }
-                }}
-              >
-                <Tab
-                  id="offers"
-                  title="Offers"
-                  panel={
-                    <Offers
-                      listing={listing}
-                      listingId={listingId}
-                      offers={listing.offers}
-                    />
-                  }
-                />
-                <Tab
-                  id="events"
-                  title="Events"
-                  panel={<EventsTable events={listing.events} />}
-                />
-              </Tabs>
-              <MakeOffer
-                {...this.state}
-                listing={listing}
-                isOpen={this.state.makeOffer}
-                onCompleted={() => {
-                  this.setState({ makeOffer: false })
-                }}
-              />
-              <UpdateListing
-                isOpen={this.state.updateListing}
-                listing={listing}
-                onCompleted={() => this.setState({ updateListing: false })}
-              />
-              <WithdrawListing
-                isOpen={this.state.withdrawListing}
-                listing={listing}
-                onCompleted={() => this.setState({ withdrawListing: false })}
-              />
-              <AddData
-                isOpen={this.state.addData}
-                listing={listing}
-                onCompleted={() => this.setState({ addData: false })}
-              />
-            </>
-          )
-        }}
-      </Query>
+          }}
+        </Query>
+      </>
     )
   }
 
@@ -138,11 +172,10 @@ class Listing extends Component {
         {`${listingData.category} by `}
         <AccountButton account={listing.seller} />
         <span style={{ marginRight: 10 }}>
-          {` for ${listingData.price} ${listingData.currencyId ||
-            ''}. Abitrator `}
+          {` for ${currency(listingData.price)}. Abitrator `}
           <AccountButton account={listing.arbitrator} />
           <span style={{ marginLeft: 10 }}>
-            {`${listing.deposit || '0'} OGN`}
+            {currency({ amount: listing.deposit, currency: 'OGN' })}
           </span>
         </span>
         {this.renderActions(sellerPresent, listing)}
@@ -194,7 +227,8 @@ class Listing extends Component {
     )
   }
 
-  renderBreadcrumbs(listing) {
+  renderBreadcrumbs() {
+    const listingId = Number(this.props.match.params.listingID)
     return (
       <ul className="bp3-breadcrumbs">
         <li>
@@ -204,13 +238,34 @@ class Listing extends Component {
         </li>
         <li>
           <span className="bp3-breadcrumb bp3-breadcrumb-current">
-            {`Listing #${listing.id}`}
+            {`Listing #${listingId}`}
           </span>
         </li>
         <li>
           <Button onClick={() => this.setState({ makeOffer: true })}>
             Make Offer
           </Button>
+          <Button
+            icon="arrow-left"
+            style={{ marginLeft: 10 }}
+            disabled={listingId === 1}
+            onClick={() => {
+              console.log(this.props)
+              this.props.history.push(
+                `/marketplace/listings/${Number(listingId - 1)}`
+              )
+            }}
+          />
+          <Button
+            icon="arrow-right"
+            style={{ marginLeft: 10 }}
+            onClick={() => {
+              console.log(this.props)
+              this.props.history.push(
+                `/marketplace/listings/${Number(listingId + 1)}`
+              )
+            }}
+          />
         </li>
       </ul>
     )

@@ -9,6 +9,14 @@ export const RefetchMutation = gql`
   }
 `
 
+export const AddAffiliateMutation = gql`
+  mutation AddAffiliate($affiliate: String, $from: String) {
+    addAffiliate(affiliate: $affiliate, from: $from) {
+      id
+    }
+  }
+`
+
 export const CreateWalletMutation = gql`
   mutation CreateWallet($role: String, $name: String) {
     createWallet(role: $role, name: $name) {
@@ -39,27 +47,25 @@ export const DeployTokenMutation = gql`
       symbol: $symbol
       decimals: $decimals
       supply: $supply
-    )
+    ) {
+      id
+    }
   }
 `
 
 export const SendFromNodeMutation = gql`
   mutation SendFromNode($from: String, $to: String, $value: String) {
     sendFromNode(from: $from, to: $to, value: $value) {
-      toAccount {
-        ...balanceFields
-      }
-      fromAccount {
-        ...balanceFields
-      }
+      id
     }
   }
-  ${fragments.Account.balance}
 `
 
 export const SendFromWalletMutation = gql`
   mutation SendFromWallet($from: String, $to: String, $value: String) {
-    sendFromWallet(from: $from, to: $to, value: $value)
+    sendFromWallet(from: $from, to: $to, value: $value) {
+      id
+    }
   }
 `
 
@@ -70,7 +76,9 @@ export const TransferTokenMutation = gql`
     $to: String!
     $value: String!
   ) {
-    transferToken(token: $token, from: $from, to: $to, value: $value)
+    transferToken(token: $token, from: $from, to: $to, value: $value) {
+      id
+    }
   }
 `
 
@@ -81,7 +89,9 @@ export const UpdateTokenAllowanceMutation = gql`
     $to: String!
     $value: String!
   ) {
-    updateTokenAllowance(token: $token, from: $from, to: $to, value: $value)
+    updateTokenAllowance(token: $token, from: $from, to: $to, value: $value) {
+      id
+    }
   }
 `
 
@@ -95,7 +105,9 @@ export const DeployMarketplaceMutation = gql`
       token: $token
       version: $version
       autoWhitelist: $autoWhitelist
-    )
+    ) {
+      id
+    }
   }
 `
 
@@ -113,9 +125,10 @@ export const CreateListingMutation = gql`
       from: $from
       data: $data
       autoApprove: $autoApprove
-    )
+    ) {
+      id
+    }
   }
-  ${fragments.Listing.basic}
 `
 
 export const UpdateListingMutation = gql`
@@ -132,7 +145,9 @@ export const UpdateListingMutation = gql`
       from: $from
       data: $data
       autoApprove: $autoApprove
-    )
+    ) {
+      id
+    }
   }
 `
 
@@ -148,7 +163,9 @@ export const WithdrawListingMutation = gql`
       target: $target
       reason: $reason
       from: $from
-    )
+    ) {
+      id
+    }
   }
 `
 
@@ -176,7 +193,9 @@ export const MakeOfferMutation = gql`
       data: $data
       from: $from
       withdraw: $withdraw
-    )
+    ) {
+      id
+    }
   }
 `
 
@@ -198,7 +217,9 @@ export const AddFundsMutation = gql`
       offerID: $offerID
       amount: $amount
       from: $from
-    )
+    ) {
+      id
+    }
   }
 `
 
@@ -214,7 +235,9 @@ export const UpdateRefundMutation = gql`
       offerID: $offerID
       amount: $amount
       from: $from
-    )
+    ) {
+      id
+    }
   }
 `
 
@@ -237,25 +260,33 @@ export const ExecuteRulingMutation = gql`
       message: $message
       refund: $refund
       from: $from
-    )
+    ) {
+      id
+    }
   }
 `
 
 export const FinalizeOfferMutation = gql`
   mutation FinalizeOffer($listingID: String, $offerID: String, $from: String) {
-    finalizeOffer(listingID: $listingID, offerID: $offerID, from: $from)
+    finalizeOffer(listingID: $listingID, offerID: $offerID, from: $from) {
+      id
+    }
   }
 `
 
 export const DisputeOfferMutation = gql`
   mutation DisputeOffer($listingID: String, $offerID: String, $from: String) {
-    disputeOffer(listingID: $listingID, offerID: $offerID, from: $from)
+    disputeOffer(listingID: $listingID, offerID: $offerID, from: $from) {
+      id
+    }
   }
 `
 
 export const WithdrawOfferMutation = gql`
   mutation WithdrawOffer($listingID: String, $offerID: String, $from: String) {
-    withdrawOffer(listingID: $listingID, offerID: $offerID, from: $from)
+    withdrawOffer(listingID: $listingID, offerID: $offerID, from: $from) {
+      id
+    }
   }
 `
 
@@ -265,7 +296,9 @@ export const AddDataMutation = gql`
     $listingID: String
     $offerID: String
   ) {
-    addData(data: $data, listingID: $listingID, offerID: $offerID)
+    addData(data: $data, listingID: $listingID, offerID: $offerID) {
+      id
+    }
   }
 `
 

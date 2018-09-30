@@ -1,3 +1,17 @@
+import txHelper from './_txHelper'
+async function transferToken(_, { token, from, to, value }, context) {
+  const contract = context.contracts[token]
+  if (!contract) {
+    console.log(token, 'not found')
+    return
+  }
+  value = web3.utils.toWei(value, 'ether')
+  const tx = contract.methods.transfer(to, value).send({ gas: 4612388, from })
+  return txHelper({ tx, mutation: 'transferToken' })
+}
+
+export default transferToken
+
 /*
 mutation transferToken($token: String!, $from: String!, $to: String!, $value: String!) {
   transferToken(token: $token, from: $from, to: $to, value: $value)
@@ -9,35 +23,3 @@ mutation transferToken($token: String!, $from: String!, $to: String!, $value: St
   "value": "1"
 }
 */
-async function transferToken(_, { token, from, to, value }, context) {
-  return new Promise((resolve, reject) => {
-    const contract = context.contracts[token]
-    if (!contract) {
-      console.log(token, "not found")
-      return
-    }
-    contract.methods.transfer(to, value).send({
-      gas: 4612388,
-      from
-    })
-      .on('receipt', async () => {
-        resolve({
-          to: {
-            id: `${token.toUpperCase()}_${to}`,
-            balance: await contract.methods.balanceOf(to).call()
-          },
-          from: {
-            id: `${token.toUpperCase()}_${from}`,
-            balance: await contract.methods.balanceOf(from).call()
-          }
-        })
-      })
-      .catch(reject)
-      .then(() => {
-        // data.marketplace.allListings[listingIdx].status = 'pending'
-        // client.writeQuery({ query, data })
-      })
-  })
-}
-
-export default transferToken

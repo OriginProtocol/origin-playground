@@ -96,7 +96,9 @@ class TokenButton extends Component {
             }
             position={Position.BOTTOM}
           >
-            <Button loading={loading}>{numberFormat(Number(balance))}</Button>
+            <Button loading={loading}>
+              {numberFormat(Number(web3.utils.fromWei(balance, 'ether')))}
+            </Button>
           </Popover>
         )}
       </Mutation>

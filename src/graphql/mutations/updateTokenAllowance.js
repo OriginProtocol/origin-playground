@@ -1,3 +1,18 @@
+import txHelper from './_txHelper'
+async function updateTokenAllowance(_, { token, from, to, value }, context) {
+  if (!context.contracts[token]) {
+    return
+  }
+  value = web3.utils.toWei(value, 'ether')
+  const tx = context.contracts[token].methods.approve(to, value).send({
+    gas: 4612388,
+    from
+  })
+  return txHelper({ tx, mutation: 'transferToken' })
+}
+
+export default updateTokenAllowance
+
 /*
 mutation updateTokenAllowance($token: String!, $from: String!, $to: String!, $value: String!) {
   updateTokenAllowance(token: $token, from: $from, to: $to, value: $value)
@@ -9,26 +24,3 @@ mutation updateTokenAllowance($token: String!, $from: String!, $to: String!, $va
   "value": "1"
 }
 */
-async function updateTokenAllowance(_, { token, from, to, value }, context) {
-  return new Promise((resolve, reject) => {
-    if (!context.contracts[token]) {
-      return
-    }
-    context.contracts[token].methods
-      .approve(to, value)
-      .send({
-        gas: 4612388,
-        from
-      })
-      .on('receipt', async () => {
-        resolve(true)
-      })
-      .catch(reject)
-      .then(() => {
-        // data.marketplace.allListings[listingIdx].status = 'pending'
-        // client.writeQuery({ query, data })
-      })
-  })
-}
-
-export default updateTokenAllowance

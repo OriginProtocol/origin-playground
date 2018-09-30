@@ -1,4 +1,4 @@
-import Token from '../../contracts/Token'
+import Token from '../../contracts/OriginToken'
 import { resetContracts } from '../context'
 
 import txHelper from './_txHelper'
@@ -16,9 +16,11 @@ mutation deployToken($name: String, $symbol: String, $decimals: Int, $supply: St
 
 async function deployToken(_, { name, symbol, decimals, supply }) {
   const Contract = new web3.eth.Contract(Token.abi)
+  supply = web3.utils.toWei(supply, 'ether')
   const tx = Contract.deploy({
     data: '0x' + Token.data,
-    arguments: [name, symbol, decimals, supply]
+    arguments: [supply]
+    // arguments: [name, symbol, decimals, supply]
   }).send({
     gas: 4612388,
     from: web3.eth.defaultAccount
@@ -27,7 +29,7 @@ async function deployToken(_, { name, symbol, decimals, supply }) {
   return txHelper({
     tx,
     mutation: 'deployToken',
-    onConfirmation: receipt => {
+    onReceipt: receipt => {
       window.localStorage[`${symbol}Contract`] = receipt.contractAddress
 
       let tokens = {}

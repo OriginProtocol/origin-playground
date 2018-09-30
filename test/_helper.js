@@ -1,10 +1,11 @@
+import assert from 'assert'
 import fs from 'fs'
 import solc from 'solc'
 import linker from 'solc/linker'
 import Ganache from 'ganache-core'
 import Web3 from 'web3'
 
-var solcOpts = {
+const solcOpts = {
   language: 'Solidity',
   settings: {
     metadata: { useLiteralContent: true },
@@ -16,10 +17,19 @@ var solcOpts = {
   }
 }
 
+const solidityCoverage = process.env['SOLIDITY_COVERAGE'] !== undefined
+// Use solidity-coverage's forked testrpc if this is a coverage run
+const defaultProvider = solidityCoverage
+  ? 'ws://localhost:8555'
+  : 'ws://localhost:7545'
+export const contractPath = solidityCoverage
+  ? `${__dirname}/../../coverageEnv/contracts`
+  : `${__dirname}/../contracts`
+
 // Instantiate a web3 instance. Start a node if one is not already running.
-export async function web3Helper(provider = 'ws://localhost:7545') {
-  var web3 = new Web3(provider)
-  var instance = await server(web3, provider)
+export async function web3Helper(provider = defaultProvider) {
+  const web3 = new Web3(provider)
+  const instance = await server(web3, provider)
   return { web3, server: instance }
 }
 
@@ -27,7 +37,7 @@ function findImportsPath(prefix) {
   return function findImports(path) {
     try {
       if (path.indexOf('node_modules') < 0) {
-        path = prefix+path
+        path = prefix + path
       }
       const contents = fs.readFileSync(path).toString()
       return {
@@ -44,20 +54,24 @@ export default async function testHelper(contracts, provider) {
   const { web3, server } = await web3Helper(provider)
   const accounts = await web3.eth.getAccounts()
 
-  async function deploy(contractName, { from, args, log, path, trackGas }) {
-    var sources = {
-      [`${contractName}.sol`]: {
-        content: fs.readFileSync(`${path || contracts}/${contractName}.sol`).toString()
+  async function deploy(
+    contractName,
+    { from, args, log, path, trackGas, file }
+  ) {
+    file = file || `${contractName}.sol`
+    const sources = {
+      [file]: {
+        content: fs.readFileSync(`${path || contracts}/${file}`).toString()
       }
     }
-    var compileOpts = JSON.stringify({ ...solcOpts, sources })
+    const compileOpts = JSON.stringify({ ...solcOpts, sources })
 
     // Compile the contract using solc
-    var rawOutput = solc.compileStandardWrapper(
+    const rawOutput = solc.compileStandardWrapper(
       compileOpts,
-      findImportsPath(contracts)
+      findImportsPath(path) //contracts)
     )
-    var output = JSON.parse(rawOutput)
+    const output = JSON.parse(rawOutput)
 
     // If there were any compilation errors, throw them
     if (output.errors) {
@@ -68,25 +82,39 @@ export default async function testHelper(contracts, provider) {
       })
     }
 
-    var { abi, evm: { bytecode } } = output.contracts[`${contractName}.sol`][
-      contractName
-    ]
+    const {
+      abi,
+      evm: { bytecode }
+    } = output.contracts[file][contractName]
+
+    async function deployLib(linkedFile, linkedLib, bytecode) {
+      const libObj = output.contracts[linkedFile][linkedLib]
+
+      for (const linkedFile2 in libObj.evm.bytecode.linkReferences) {
+        for (const linkedLib2 in libObj.evm.bytecode.linkReferences[
+          linkedFile2
+        ]) {
+          libObj.evm.bytecode.object = await deployLib(
+            linkedFile2,
+            linkedLib2,
+            libObj.evm.bytecode
+          )
+        }
+      }
+
+      const LibContract = new web3.eth.Contract(libObj.abi)
+      const gas = solidityCoverage ? 3000000 * 3 : 3000000
+      const libContract = await LibContract.deploy({
+        data: libObj.evm.bytecode.object
+      }).send({ from, gas: gas })
+      const libs = { [`${linkedFile}:${linkedLib}`]: libContract._address }
+      return linker.linkBytecode(bytecode.object, libs)
+    }
 
     // Deploy linked libraries
-    for (let linkedFile in bytecode.linkReferences) {
-      for (let linkedLib in bytecode.linkReferences[linkedFile]) {
-        let libObj = output.contracts[linkedFile][linkedLib]
-        let LibContract = new web3.eth.Contract(libObj.abi)
-        var libContract = await LibContract.deploy({
-          data: libObj.evm.bytecode.object
-        }).send({
-          from,
-          gas: 3000000
-        })
-
-        let libs = { [`${linkedFile}:${linkedLib}`]: libContract._address }
-
-        bytecode.object = linker.linkBytecode(bytecode.object, libs)
+    for (const linkedFile in bytecode.linkReferences) {
+      for (const linkedLib in bytecode.linkReferences[linkedFile]) {
+        bytecode.object = await deployLib(linkedFile, linkedLib, bytecode)
       }
     }
 
@@ -112,13 +140,13 @@ export default async function testHelper(contracts, provider) {
     }
 
     // Instantiate the web3 contract using the abi and bytecode output from solc
-    var Contract = new web3.eth.Contract(abi)
-    var contract
+    const Contract = new web3.eth.Contract(abi)
+    let contract
 
     await new Promise(async resolve => {
-      var chainId = web3.eth.net.getId()
+      const chainId = web3.eth.net.getId()
 
-      var data = await Contract.deploy({
+      const data = await Contract.deploy({
         data: '0x' + bytecode.object,
         arguments: args
       }).encodeABI()
@@ -128,7 +156,7 @@ export default async function testHelper(contracts, provider) {
           data,
           from,
           value: 0,
-          gas: 4612388,
+          gas: solidityCoverage ? 6000000 * 5 : 6000000,
           chainId
         })
         .once('transactionHash', hash => {
@@ -172,11 +200,46 @@ export default async function testHelper(contracts, provider) {
     const ruling = Contract._jsonInterface.find(i => {
       return i.signature === topics[0]
     })
-    console.log(ruling)
-    return web3.eth.abi.decodeLog(ruling.inputs, data, topics)
+    return web3.eth.abi.decodeLog(ruling.inputs, data, topics.slice(1))
   }
 
-  return { web3, accounts, deploy, server, decodeEvent }
+  async function blockTimestamp() {
+    const block = await web3.eth.getBlock('latest')
+    return block.timestamp
+  }
+
+  async function evmIncreaseTime(secs) {
+    await web3.currentProvider.send(
+      {
+        jsonrpc: '2.0',
+        method: 'evm_increaseTime',
+        params: [secs],
+        id: new Date().getTime()
+      },
+      () => {}
+    )
+
+    // Mine a block to get the time change to occur
+    await web3.currentProvider.send(
+      {
+        jsonrpc: '2.0',
+        method: 'evm_mine',
+        params: [],
+        id: new Date().getTime()
+      },
+      () => {}
+    )
+  }
+
+  return {
+    web3,
+    accounts,
+    deploy,
+    server,
+    decodeEvent,
+    blockTimestamp,
+    evmIncreaseTime
+  }
 }
 
 // Start the server if it hasn't been already...
@@ -191,11 +254,41 @@ async function server(web3, provider) {
     /* Ignore */
   }
 
-  var port = '7545'
+  let port = '7545'
   if (String(provider).match(/:([0-9]+)$/)) {
     port = provider.match(/:([0-9]+)$/)[1]
   }
-  var server = Ganache.server()
+  const server = Ganache.server()
   await server.listen(port)
   return server
+}
+
+// Asserts unless the given promise leads to an EVM revert.
+// Ported from OpenZeppelin.
+export async function assertRevert(promise) {
+  try {
+    await promise
+  } catch (error) {
+    const revertFound = error.message.search('revert') >= 0
+    assert(revertFound, `Expected "revert", got ${error} instead`)
+    return
+  }
+  assert.fail('Expected revert not received')
+}
+
+/**
+ * Asserts that the given promise throws an error with the given message.
+ * @param {message} message - Message we expect to find in the exception.
+ * @param {promise} promise - A promise that we expect to be rejected.
+ */
+export async function assertRevertWithMessage(message, promise) {
+  try {
+    await promise
+  } catch (error) {
+    const revertFound = error.message.search('revert') >= 0
+    assert(revertFound, `Expected "revert", got ${error} instead`)
+    assert(error.message.match(message))
+    return
+  }
+  assert.fail('Expected revert not received')
 }

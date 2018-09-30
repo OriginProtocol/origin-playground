@@ -31,12 +31,25 @@ export default {
           id
         }
         deposit
+        createdEvent {
+          block {
+            timestamp
+          }
+        }
         ipfs {
           id
           category
           title
+          description
           currencyId
-          price
+          price {
+            amount
+            currency
+          }
+          media {
+            url
+            contentType
+          }
         }
       }
     `
@@ -51,6 +64,7 @@ export default {
         refund
         commission
         status
+        finalizes
         arbitrator {
           id
         }

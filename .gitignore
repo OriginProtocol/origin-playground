@@ -7,6 +7,7 @@ data/db
 data/ipfs
 data/geth
 data/OfficialIdentities.js
+data/tmp
 NOTES
 src/contracts/deployed.js
 issuer-services/package-lock.json

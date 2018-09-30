@@ -1,8 +1,11 @@
 import assert from 'assert'
-import helper from './_helper'
-import marketplaceHelpers, { IpfsHash } from './_marketplaceHelpers'
+import helper, { contractPath } from './_helper'
+import marketplaceHelpers, {
+  IpfsHash,
+  ZERO_ADDRESS
+} from './_marketplaceHelpers'
 import Table from 'cli-table'
-import GasPriceInDollars from '../src/utils/gasPriceInDollars'
+import GasPriceInDollars from './_gasPriceInDollars'
 
 // Account 0: Token owner. Marketplace owner
 // Account 1: Seller
@@ -16,6 +19,7 @@ const gasUsed = []
 const trackGas = id => receipt => gasUsed.push([id, receipt.cumulativeGasUsed])
 const gasOrder = `
 Create Listing
+Create Listing via call
 Make Offer
 Make Offer ERC20
 Accept Offer
@@ -28,78 +32,88 @@ Withdraw Listing
 `.split('\n')
 
 describe('Marketplace.sol', async function() {
-  const ZERO_ADDRESS = '0x0000000000000000000000000000000000000000'
-
   let accounts, deploy, web3
   let Marketplace,
     OriginToken,
     DaiStableCoin,
     Buyer,
     // BuyerIdentity,
+    Owner,
     Seller,
     Seller2,
     SellerIdentity,
+    Affiliate,
     Arbitrator,
     MarketArbitrator,
     ArbitratorAddr,
     helpers,
+    decodeEvent,
     gasEstimate
 
   before(async function() {
-    ({ deploy, accounts, web3 } = await helper(`${__dirname}/..`))
+    ({ deploy, accounts, web3, decodeEvent } = await helper(`${__dirname}/..`))
 
+    Owner = accounts[0]
     Seller = accounts[1]
     Buyer = accounts[2]
     ArbitratorAddr = accounts[3]
     Seller2 = accounts[4]
+    Affiliate = accounts[5]
 
     const gasPrice = await web3.eth.getGasPrice()
     gasEstimate = web3.utils.toBN(gasPrice).mul(web3.utils.toBN('4000000'))
 
-    OriginToken = await deploy('Token', {
-      from: accounts[0],
-      path: 'contracts/',
-      args: ['OriginToken', 'OG', 2, 12000]
+    OriginToken = await deploy('OriginToken', {
+      from: Owner,
+      path: `${contractPath}/token/`,
+      args: [12000]
     })
 
     DaiStableCoin = await deploy('Token', {
-      from: accounts[0],
-      path: 'contracts/',
+      from: Owner,
+      path: `${__dirname}/contracts/`,
       args: ['Dai', 'DAI', 2, 12000]
+      // args: [12000]
     })
 
     Arbitrator = await deploy('CentralizedArbitrator', {
       from: ArbitratorAddr,
-      path: 'contracts/arbitration/',
+      path: `${__dirname}/contracts/arbitration/`,
       args: [0]
     })
 
     MarketArbitrator = await deploy('OriginArbitrator', {
       from: ArbitratorAddr,
-      path: 'contracts/',
+      path: `${__dirname}/contracts/`,
       args: [Arbitrator._address]
     })
 
-    Marketplace = await deploy('Marketplace', {
-      from: accounts[0],
-      path: 'contracts/',
+    Marketplace = await deploy('V00_Marketplace', {
+      from: Owner,
+      // path: `${__dirname}/contracts/`,
+      path: `${contractPath}/marketplace/v00`,
+      file: 'Marketplace.sol',
       args: [OriginToken._address]
     })
 
     SellerIdentity = await deploy('ClaimHolder', {
       from: Seller,
-      path: `${__dirname}/../contracts/identity`
+      path: `${contractPath}/identity/`
     })
 
     // BuyerIdentity = await deploy('ClaimHolder', {
     //   from: Buyer,
-    //   path: `${__dirname}/../contracts/identity`
+    //   path: `${contractPath}/identity`
     // })
 
+    await Marketplace.methods.addAffiliate(Affiliate, IpfsHash).send()
     await OriginToken.methods.transfer(Seller, 400).send()
     await OriginToken.methods.transfer(Seller2, 400).send()
     await OriginToken.methods.transfer(SellerIdentity._address, 400).send()
     await DaiStableCoin.methods.transfer(Buyer, 400).send()
+    await OriginToken.methods
+      .addCallSpenderWhitelist(Marketplace._address)
+      .send({ from: Owner })
 
     helpers = marketplaceHelpers({
       Marketplace,
@@ -110,6 +124,7 @@ describe('Marketplace.sol', async function() {
       MarketArbitrator,
       ArbitratorAddr,
       Arbitrator,
+      Affiliate,
       trackGas
     })
   })
@@ -184,7 +199,6 @@ describe('Marketplace.sol', async function() {
 
     it('should allow an offer to be made', async function() {
       const result = await helpers.makeOffer({ trackGas })
-
       assert(result.events.OfferCreated)
 
       const offer = await Marketplace.methods.offers(0, 0).call()
@@ -555,6 +569,59 @@ describe('Marketplace.sol', async function() {
     // })
   })
 
+  describe('Approve and Call', function() {
+    let listingID
+
+    it('should allow a listing to be created', async function() {
+      const fnSig = web3.eth.abi.encodeFunctionSignature(
+        'createListingWithSender(address,bytes32,uint256,address)'
+      )
+      const params = web3.eth.abi.encodeParameters(
+        ['bytes32', 'uint', 'address'],
+        [IpfsHash, 5, ArbitratorAddr]
+      )
+
+      const balance_pre = await OriginToken.methods
+        .balanceOf(Seller2)
+        .call({ from: Seller2 })
+
+      const res = await OriginToken.methods
+        .approveAndCallWithSender(Marketplace._address, 5, fnSig, params)
+        .send({ from: Seller2 })
+        .once('receipt', trackGas('Create Listing via call'))
+
+      listingID = decodeEvent(res.events['0'].raw, Marketplace).listingID
+
+      const balance_post = await OriginToken.methods
+        .balanceOf(Seller2)
+        .call({ from: Seller2 })
+      assert.equal(Number(balance_pre), Number(balance_post) + 5)
+    })
+
+    it('should allow more deposit to be added to a listing', async function() {
+      const fnSig = web3.eth.abi.encodeFunctionSignature(
+        'updateListingWithSender(address,uint256,bytes32,uint256)'
+      )
+      const params = web3.eth.abi.encodeParameters(
+        ['uint256', 'bytes32', 'uint256'],
+        [listingID, IpfsHash, 5]
+      )
+
+      const balance_pre = await OriginToken.methods
+        .balanceOf(Seller2)
+        .call({ from: Seller2 })
+
+      await OriginToken.methods
+        .approveAndCallWithSender(Marketplace._address, 5, fnSig, params)
+        .send({ from: Seller2 })
+
+      const balance_post = await OriginToken.methods
+        .balanceOf(Seller2)
+        .call({ from: Seller2 })
+      assert.equal(Number(balance_pre), Number(balance_post) + 5)
+    })
+  })
+
   describe('Ownership', function() {
     it('should allow the contract owner to set the token address', async function() {
       try {
@@ -581,23 +648,91 @@ describe('Marketplace.sol', async function() {
     })
   })
 
-  describe('Approve and Call', function() {
-    it('should allow a listing to be created', async function() {
-      await OriginToken.methods
-        .addToApproveCallWhitelist(Marketplace._address)
-        .send({ from: accounts[0] })
+  describe('Affiliate whitelist', function() {
+    it('should only allow affiliates to be added by owner', async function() {
+      const res1 = await Marketplace.methods
+        .addAffiliate(Seller, IpfsHash)
+        .send({ from: Owner })
+      assert(res1.events.AffiliateAdded)
 
-      const fnSig = web3.eth.abi.encodeFunctionSignature(
-        'createListingWithSender(address,bytes32,uint256,address)'
-      )
-      const params = web3.eth.abi.encodeParameters(
-        ['bytes32', 'uint', 'address'],
-        [IpfsHash, 5, Seller2]
-      )
+      const res2 = await new Promise((resolve, reject) => {
+        Marketplace.methods
+          .addAffiliate(Seller, IpfsHash)
+          .send({ from: Seller })
+          .catch(resolve)
+          .then(reject)
+      })
+      assert(res2.toString().indexOf('revert') > 0)
+    })
 
-      await OriginToken.methods
-        .approveAndCallWithSender(Marketplace._address, 5, fnSig, params)
-        .send({ from: Seller2 })
+    it('should only allow affiliates to be removed by owner', async function() {
+      const res1 = await Marketplace.methods
+        .removeAffiliate(Seller, IpfsHash)
+        .send({ from: Owner })
+      assert(res1.events.AffiliateRemoved)
+
+      const res2 = await new Promise((resolve, reject) => {
+        Marketplace.methods
+          .removeAffiliate(Seller, IpfsHash)
+          .send({ from: Seller })
+          .catch(resolve)
+          .then(reject)
+      })
+      assert(res2.toString().indexOf('revert') > 0)
+    })
+
+    it('should only allow offers with whitelisted affiliates', async function() {
+      const result = await helpers.makeOffer({ trackGas })
+      assert(result.events.OfferCreated)
+
+      await new Promise((resolve, reject) => {
+        helpers
+          .makeOffer({ trackGas, affiliate: Seller })
+          .then(reject)
+          .catch(resolve)
+      })
+    })
+
+    it('should disallow no affiliate if not on whitelist', async function() {
+      await Marketplace.methods
+        .removeAffiliate(ZERO_ADDRESS, IpfsHash)
+        .send({ from: Owner })
+      await new Promise((resolve, reject) => {
+        helpers
+          .makeOffer({
+            trackGas,
+            affiliate: ZERO_ADDRESS,
+            commission: 0
+          })
+          .then(reject)
+          .catch(resolve)
+      })
+      await Marketplace.methods
+        .addAffiliate(ZERO_ADDRESS, IpfsHash)
+        .send({ from: Owner })
+    })
+
+    it('should not allow commission when no affiliate is set', async function() {
+      await new Promise((resolve, reject) => {
+        helpers
+          .makeOffer({
+            trackGas,
+            affiliate: ZERO_ADDRESS,
+            commission: 2
+          })
+          .then(reject)
+          .catch(resolve)
+      })
+    })
+
+    it('should allow any affiliate when affiliate whitelist is disabled', async function() {
+      const res = await Marketplace.methods
+        .addAffiliate(Marketplace._address, IpfsHash)
+        .send({ from: Owner })
+      assert(res.events.AffiliateAdded)
+
+      const result = await helpers.makeOffer({ trackGas, affiliate: Seller })
+      assert(result.events.OfferCreated)
     })
   })
 })

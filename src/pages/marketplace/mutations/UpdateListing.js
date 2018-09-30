@@ -17,12 +17,7 @@ import withAccounts from '../hoc/withAccounts'
 import { UpdateListingMutation } from '../../../mutations'
 import ErrorCallout from 'components/ErrorCallout'
 
-function showOGN(account) {
-  if (!account.ogn) return ''
-  return ` (${account.ogn.balance} OGN available, ${
-    account.ogn.allowance
-  } allowed)`
-}
+import { showOGN } from './CreateListing'
 
 class UpdateListing extends Component {
   constructor(props) {
@@ -30,8 +25,8 @@ class UpdateListing extends Component {
 
     this.state = {
       title: props.listing.ipfs.title || '',
-      currencyId: props.listing.ipfs.currencyId || 'ETH',
-      price: props.listing.ipfs.price || '0.1',
+      currencyId: props.listing.ipfs.price.currency || 'ETH',
+      price: props.listing.ipfs.price.amount || '0.1',
       from: props.listing.seller.id || '',
       additionalDeposit: 0,
       category: props.listing.ipfs.category || 'For Sale',
@@ -164,8 +159,7 @@ class UpdateListing extends Component {
         autoApprove: this.state.autoApprove,
         data: {
           title: this.state.title,
-          price: this.state.price,
-          currencyId: this.state.currencyId,
+          price: { amount: this.state.price, currency: this.state.currencyId },
           category: this.state.category
         }
       }

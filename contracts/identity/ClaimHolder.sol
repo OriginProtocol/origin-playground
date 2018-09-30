@@ -1,15 +1,16 @@
 pragma solidity ^0.4.24;
 
-import '/contracts/identity/ERC735.sol';
-import '/contracts/identity/KeyHolder.sol';
+import "./ERC735.sol";
+import "./KeyHolder.sol";
+import "./ClaimHolderLibrary.sol";
+
 
 contract ClaimHolder is KeyHolder, ERC735 {
 
-    mapping (bytes32 => Claim) claims;
-    mapping (uint256 => bytes32[]) claimsByType;
+    ClaimHolderLibrary.Claims claims;
 
     function addClaim(
-        uint256 _claimType,
+        uint256 _topic,
         uint256 _scheme,
         address _issuer,
         bytes _signature,
@@ -19,64 +20,47 @@ contract ClaimHolder is KeyHolder, ERC735 {
         public
         returns (bytes32 claimRequestId)
     {
-        bytes32 claimId = keccak256(_issuer, _claimType);
-
-        if (msg.sender != address(this)) {
-          require(keyHasPurpose(keccak256(msg.sender), 3), "Sender does not have claim signer key");
-        }
-
-        if (claims[claimId].issuer != _issuer) {
-            claimsByType[_claimType].push(claimId);
-        }
-
-        claims[claimId].claimType = _claimType;
-        claims[claimId].scheme = _scheme;
-        claims[claimId].issuer = _issuer;
-        claims[claimId].signature = _signature;
-        claims[claimId].data = _data;
-        claims[claimId].uri = _uri;
-
-        emit ClaimAdded(
-            claimId,
-            _claimType,
+        return ClaimHolderLibrary.addClaim(
+            keyHolderData,
+            claims,
+            _topic,
             _scheme,
             _issuer,
             _signature,
             _data,
             _uri
         );
+    }
 
-        return claimId;
+    function addClaims(
+        uint256[] _topic,
+        address[] _issuer,
+        bytes _signature,
+        bytes _data,
+        uint256[] _offsets
+    )
+        public
+    {
+        ClaimHolderLibrary.addClaims(
+            keyHolderData,
+            claims,
+            _topic,
+            _issuer,
+            _signature,
+            _data,
+            _offsets
+        );
     }
 
     function removeClaim(bytes32 _claimId) public returns (bool success) {
-        if (msg.sender != address(this)) {
-          require(keyHasPurpose(keccak256(msg.sender), 1), "Sender does not have management key");
-        }
-
-        /* uint index; */
-        /* (index, ) = claimsByType[claims[_claimId].claimType].indexOf(_claimId);
-        claimsByType[claims[_claimId].claimType].removeByIndex(index); */
-
-        emit ClaimRemoved(
-            _claimId,
-            claims[_claimId].claimType,
-            claims[_claimId].scheme,
-            claims[_claimId].issuer,
-            claims[_claimId].signature,
-            claims[_claimId].data,
-            claims[_claimId].uri
-        );
-
-        delete claims[_claimId];
-        return true;
+        return ClaimHolderLibrary.removeClaim(keyHolderData, claims, _claimId);
     }
 
     function getClaim(bytes32 _claimId)
         public
-        constant
+        view
         returns(
-            uint256 claimType,
+            uint256 topic,
             uint256 scheme,
             address issuer,
             bytes signature,
@@ -84,22 +68,14 @@ contract ClaimHolder is KeyHolder, ERC735 {
             string uri
         )
     {
-        return (
-            claims[_claimId].claimType,
-            claims[_claimId].scheme,
-            claims[_claimId].issuer,
-            claims[_claimId].signature,
-            claims[_claimId].data,
-            claims[_claimId].uri
-        );
+        return ClaimHolderLibrary.getClaim(claims, _claimId);
     }
 
-    function getClaimIdsByType(uint256 _claimType)
+    function getClaimIdsByTopic(uint256 _topic)
         public
-        constant
+        view
         returns(bytes32[] claimIds)
     {
-        return claimsByType[_claimType];
+        return claims.byTopic[_topic];
     }
-
 }

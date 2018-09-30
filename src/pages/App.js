@@ -41,6 +41,9 @@ const App = () => (
         >
           Accounts
         </NavLink>
+        <Navbar.Divider />
+        <a className="bp3-button bp3-minimal bp3-active">Rinkeby</a>
+        <a className="bp3-button bp3-minimal">Mainnet</a>
       </Navbar.Group>
       <Navbar.Group align={Alignment.RIGHT}>
         <NodeInfo />
@@ -86,4 +89,9 @@ require('react-styl')(`
     margin-bottom: 1rem
   .vm > td
     vertical-align: middle !important
+  .ellip
+    max-width: 200px
+    white-space: nowrap
+    overflow: hidden
+    text-overflow: ellipsis
 `)

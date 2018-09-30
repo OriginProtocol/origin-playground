@@ -16,6 +16,7 @@ class Marketplace extends Component {
         {({ loading, error, data }) => {
           if (loading) return <p className="mt-3">Loading...</p>
           if (error) {
+            console.log(error)
             return <p className="mt-3">Error :(</p>
           }
 

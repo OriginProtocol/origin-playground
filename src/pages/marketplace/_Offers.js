@@ -3,6 +3,7 @@ import { withRouter } from 'react-router'
 
 import { AnchorButton, Tooltip, Tag, Icon } from '@blueprintjs/core'
 
+import currency from 'utils/currency'
 import withAccounts from './hoc/withAccounts'
 
 import {
@@ -31,6 +32,7 @@ const Offers = ({ listing, offers, accounts }) => {
           <th>Buyer</th>
           <th>Commission</th>
           <th>Arbitrator</th>
+          <th>Finalizes</th>
           <th
             style={{
               borderLeft: '1px solid rgba(16, 22, 26, 0.15)'
@@ -39,7 +41,7 @@ const Offers = ({ listing, offers, accounts }) => {
             Buyer
           </th>
           <th>Seller</th>
-          <th>Arbitrator</th>
+          <th>Arb&apos;</th>
           <th>Other</th>
         </tr>
       </thead>
@@ -166,7 +168,7 @@ class OfferRow extends Component {
         <td>
           {offer.commission && offer.commission !== '0' ? (
             <>
-              {`${offer.commission} OGN`}
+              {currency({ amount: offer.commission, currency: 'OGN' })}
               <Icon
                 style={{ verticalAlign: '-0.2rem', margin: '0 0.2rem' }}
                 icon="arrow-right"
@@ -178,6 +180,7 @@ class OfferRow extends Component {
         <td>
           <AccountButton account={offer.arbitrator} />
         </td>
+        <td>{offer.finalizes}</td>
         <td
           style={{
             borderLeft: '1px solid rgba(16, 22, 26, 0.15)'
@@ -229,6 +232,7 @@ class OfferRow extends Component {
           <AccountButton account={offerData.arbitrator} />
         </td>
         <td style={{ borderLeft: '1px solid rgba(16, 22, 26, 0.15)' }} />
+        <td />
         <td />
         <td />
         <td>
@@ -384,22 +388,30 @@ function price(offer, field = 'value') {
 
 function status(offer) {
   if (offer.status === 0) {
-    if (offer.withdrawnBy.id !== offer.ipfs.buyer) {
-      return <Tag>Declined</Tag>
+    if (offer.withdrawnBy && offer.withdrawnBy.id !== offer.ipfs.buyer) {
+      return <Tag icon="cross">Declined</Tag>
     }
-    return <Tag>Withdrawn</Tag>
+    return <Tag icon="trash">Withdrawn</Tag>
   }
   if (offer.status === 1) {
     return <Tag intent="warning">New</Tag>
   }
   if (offer.status === 2) {
-    return <Tag intent="primary">Accepted</Tag>
+    return (
+      <Tag intent="primary" icon="tick">
+        Accepted
+      </Tag>
+    )
   }
   if (offer.status === 3) {
     return <Tag intent="danger">Disputed</Tag>
   }
   if (offer.status === 4) {
-    return <Tag intent="success">Finalized</Tag>
+    return (
+      <Tag intent="success" icon="tick">
+        Finalized
+      </Tag>
+    )
   }
   if (offer.status === 5) {
     return <Tag intent="success">Dispute Resolved</Tag>

@@ -37,5 +37,11 @@ export default {
       }
     }
     return null
+  },
+  identity: async (account, args, context) => {
+    const ur = context.contracts.userRegistry
+    if (!ur) return null
+    const id = await ur.methods.users(account.id).call()
+    return { id }
   }
 }

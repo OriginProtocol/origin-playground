@@ -10,7 +10,7 @@ async function makeOffer(_, data, context) {
     ipfsHash,
     data.finalizes,
     data.affiliate,
-    data.commission,
+    web3.utils.toWei(data.commission, 'ether'),
     data.value,
     data.currency,
     data.arbitrator

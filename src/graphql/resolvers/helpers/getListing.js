@@ -26,10 +26,10 @@ export default async (contract, args) => {
 
   return {
     id: String(args.idx),
-    ipfs: { id: ipfsHash },
+    ipfs: ipfsHash ? { id: ipfsHash } : null,
     deposit: listing.deposit,
-    arbitrator: { id: listing.arbitrator },
-    seller: { id: seller },
+    arbitrator: listing.depositManager ? { id: listing.depositManager } : null,
+    seller: seller ? { id: seller } : null,
     contract,
     status,
     events
