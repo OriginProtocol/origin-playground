@@ -2,10 +2,10 @@ import gql from 'graphql-tag'
 import fragments from '../../../fragments'
 
 export default gql`
-  query AllListings {
+  query AllListings($offset: Int, $limit: Int) {
     marketplace {
       totalListings
-      allListings {
+      allListings(offset: $offset, limit: $limit) {
         ...basicListingFields
       }
     }

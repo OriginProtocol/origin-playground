@@ -15,7 +15,7 @@ export default {
     return contract.methods.totalListings().call()
   },
   getListing,
-  allListings: async (contract, { limit = 10 }) => {
+  allListings: async (contract, { limit = 10, offset = 0 }) => {
     if (!contract) {
       return null
     }
@@ -26,8 +26,9 @@ export default {
       (v, i) => i
     )) {
       listings.push(await getListing(contract, { idx: id }))
+      // listings.push({ id: id })
     }
-    return listings.reverse().slice(0, limit)
+    return listings.reverse().slice(offset, offset + limit)
   },
   getOffer: async (contract, args) => {
     if (!contract) {

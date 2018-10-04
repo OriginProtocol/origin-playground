@@ -7,11 +7,13 @@ let transactions = [
 const pct = {}
 const status = {}
 
-web3.eth.subscribe('newBlockHeaders').on('data', blockHeaders => {
-  pubsub.publish('NEW_BLOCK', {
-    newBlock: { ...blockHeaders, id: blockHeaders.hash }
+if (typeof web3 !== 'undefined') {
+  web3.eth.subscribe('newBlockHeaders').on('data', blockHeaders => {
+    pubsub.publish('NEW_BLOCK', {
+      newBlock: { ...blockHeaders, id: blockHeaders.hash }
+    })
   })
-})
+}
 
 export async function getTransactions() {
   let results = []

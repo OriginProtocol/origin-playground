@@ -18,6 +18,8 @@ import { MakeOffer, WithdrawListing, AddData, UpdateListing } from './mutations'
 import Offers from './_Offers'
 import EventsTable from './_EventsTable'
 import AccountButton from '../accounts/AccountButton'
+import Price from 'components/Price'
+import Gallery from 'components/Gallery'
 
 import query from './queries/_offers'
 
@@ -71,23 +73,8 @@ class Listing extends Component {
               <>
                 <div style={{ display: 'flex' }}>
                   {!media.length ? null : (
-                    <div
-                      className="gallery"
-                      style={{
-                        maxWidth: 300,
-                        margin: '20px 20px 0 0'
-                      }}
-                    >
-                      {media.map((m, idx) => (
-                        <img
-                          key={idx}
-                          src={`https://ipfs.staging.originprotocol.com/${m.url.replace(
-                            ':/',
-                            ''
-                          )}`}
-                          style={{ maxWidth: 300 }}
-                        />
-                      ))}
+                    <div style={{ maxWidth: 300, margin: '20px 20px 0 0' }}>
+                      <Gallery pics={media} />
                       <div className="mt-2">{listingData.description}</div>
                     </div>
                   )}
@@ -172,7 +159,9 @@ class Listing extends Component {
         {`${listingData.category} by `}
         <AccountButton account={listing.seller} />
         <span style={{ marginRight: 10 }}>
-          {` for ${currency(listingData.price)}. Abitrator `}
+          {` for `}
+          <Price amount={listingData.price ? listingData.price.amount : 0} />
+          {`. Abitrator `}
           <AccountButton account={listing.arbitrator} />
           <span style={{ marginLeft: 10 }}>
             {currency({ amount: listing.deposit, currency: 'OGN' })}
@@ -250,7 +239,6 @@ class Listing extends Component {
             style={{ marginLeft: 10 }}
             disabled={listingId === 1}
             onClick={() => {
-              console.log(this.props)
               this.props.history.push(
                 `/marketplace/listings/${Number(listingId - 1)}`
               )
@@ -260,7 +248,6 @@ class Listing extends Component {
             icon="arrow-right"
             style={{ marginLeft: 10 }}
             onClick={() => {
-              console.log(this.props)
               this.props.history.push(
                 `/marketplace/listings/${Number(listingId + 1)}`
               )

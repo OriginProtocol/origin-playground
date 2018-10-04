@@ -2,6 +2,7 @@ import React from 'react'
 import { Switch, Route, Redirect, NavLink } from 'react-router-dom'
 import { Navbar, Alignment } from '@blueprintjs/core'
 
+import Price from 'components/Price'
 import Accounts from './accounts/Accounts'
 import Marketplace from './marketplace/Marketplace'
 import Listing from './marketplace/Listing'
@@ -41,11 +42,12 @@ const App = () => (
         >
           Accounts
         </NavLink>
-        <Navbar.Divider />
+        {/* <Navbar.Divider />
         <a className="bp3-button bp3-minimal bp3-active">Rinkeby</a>
-        <a className="bp3-button bp3-minimal">Mainnet</a>
+        <a className="bp3-button bp3-minimal">Mainnet</a> */}
       </Navbar.Group>
       <Navbar.Group align={Alignment.RIGHT}>
+        <Price amount="1" label="ETH Price" className="mr-2" />
         <NodeInfo />
         <AccountChooser />
       </Navbar.Group>
@@ -56,7 +58,7 @@ const App = () => (
         <Route path="/marketplace/listings/:listingID" component={Listing} />
         <Route path="/marketplace" component={Marketplace} />
         <Route path="/contracts" component={Contracts} />
-        <Redirect from="/" to="/accounts" />
+        <Redirect from="/" to="/marketplace" />
       </Switch>
     </div>
   </>
@@ -85,6 +87,8 @@ require('react-styl')(`
     margin-bottom: 0.5rem
   .ml-2
     margin-left: 0.5rem
+  .mr-2
+    margin-right: 0.5rem
   .mb-3
     margin-bottom: 1rem
   .vm > td

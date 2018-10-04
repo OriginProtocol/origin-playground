@@ -3,7 +3,7 @@ import helper from './_helper'
 
 describe('Identity', async function() {
   let web3, accounts, deploy, acctSha3, randomHex
-  let UserIdentity
+  let UserIdentity, UserRegistry
 
   before(async function() {
     ({
@@ -15,6 +15,10 @@ describe('Identity', async function() {
       }
     } = await helper(`${__dirname}/..`))
 
+    UserRegistry = await deploy('V00_UserRegistry', {
+      from: accounts[0],
+      path: `${__dirname}/../contracts/identity/`
+    })
     UserIdentity = await deploy('ClaimHolder', {
       from: accounts[0],
       path: `${__dirname}/../contracts/identity/`
@@ -22,26 +26,25 @@ describe('Identity', async function() {
     acctSha3 = web3.utils.keccak256(accounts[0])
   })
 
-  describe.skip('Pre-Auth Identity', async function() {
+  describe('Pre-Auth Identity', async function() {
     it('should deploy successfully', async function() {
-      const sig = randomHex(10)
-      const data = randomHex(10)
-      const url = '1234567890'
-      await deploy('Identity', {
+      const sig = randomHex(32)
+      const data = randomHex(32)
+      console.log(sig)
+      // const url = '1234567890'
+      await deploy('ClaimHolderRegistered', {
         from: accounts[0],
         args: [
           // [1], [3], [accounts[0]], sig, data, url, [sig.length-2], [data.length-2], [url.length]
+          UserRegistry.options.address,
           [1],
-          [3],
           [accounts[0]],
           sig,
           data,
-          url,
-          [10],
-          [10],
-          [10]
+          []
         ],
-        path: `${__dirname}/contracts/identity/`,
+        path: `${__dirname}/../contracts/identity/`,
+        log: true
       })
     })
   })

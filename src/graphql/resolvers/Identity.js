@@ -1,22 +1,60 @@
-import { get } from 'utils/ipfsHash'
+import { get, getIpfsHashFromBytes32 } from 'utils/ipfsHash'
 
 export default {
-  ipfs: offer =>
-    new Promise(async (resolve, reject) => {
-      const events = await offer.contract.eventCache.offers(
-        offer.listingId,
-        offer.id,
-        'OfferCreated'
-      )
-      if (!events.length) return resolve(null)
+  claims: (identity, args, context) =>
+    new Promise(async resolve => {
 
-      const hash = events[0].returnValues.ipfsHash
-      let data
-      try {
-        data = await get('http://localhost:5002', hash)
-      } catch (e) {
-        return reject(e)
-      }
-      resolve({ ...data, id: hash })
+      const contract = context.contracts.claimHolderRegistered
+      contract.options.address = identity.id
+
+      const claims = await contract.getPastEvents('ClaimAdded', {
+        fromBlock: context.contracts.EventBlock
+      })
+
+      resolve(
+        claims.map(c => {
+          const {
+            claimId,
+            data,
+            issuer,
+            scheme,
+            signature,
+            topic,
+            uri
+          } = c.returnValues
+
+          return {
+            id: claimId,
+            data,
+            issuer,
+            scheme,
+            signature,
+            topic,
+            uri
+          }
+        })
+      )
+    }),
+  profile: async function(identity, args, context) {
+    const contract = context.contracts.claimHolderRegistered
+    contract.options.address = identity.id
+
+    const claims = await contract.getPastEvents('ClaimAdded', {
+      fromBlock: context.contracts.EventBlock,
+      filter: { topic: '13'}
     })
+
+    if (!claims.length) { return null }
+
+    const claim = claims[claims.length - 1]
+    const ipfsHash = claim.returnValues.data
+
+    let data
+    try {
+      data = await get(context.contracts.ipfsGateway, ipfsHash)
+    } catch (e) {
+      return null
+    }
+    return { ...data, id: ipfsHash }
+  }
 }

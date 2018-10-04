@@ -8,6 +8,7 @@ import Offer from './Offer'
 import TokenHolder from './TokenHolder'
 import Event from './Event'
 import Token from './Token'
+import Identity from './Identity'
 import Mutation from '../mutations'
 
 export default {
@@ -21,5 +22,6 @@ export default {
   Listing,
   Offer,
   Token,
-  TokenHolder
+  TokenHolder,
+  Identity
 }

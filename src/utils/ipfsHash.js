@@ -25,7 +25,6 @@ export function getIpfsHashFromBytes32(bytes32Hex) {
   const hashStr = bs58.encode(hashBytes)
   return hashStr
 }
-window.getIpfsHashFromBytes32 = getIpfsHashFromBytes32
 
 export async function post(gateway, json) {
   var formData = new FormData()

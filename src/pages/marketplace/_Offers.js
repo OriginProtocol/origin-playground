@@ -156,6 +156,12 @@ class OfferRow extends Component {
     const arbitratorPresent = accounts.find(
       a => offer.arbitrator && a.id === offer.arbitrator.id
     )
+    let commission
+    if (typeof offer.commission === 'string') {
+      commission = { amount: offer.commission, currency: 'OGN' }
+    } else if (typeof offer.commission === 'object') {
+      commission = offer.commission
+    }
     return (
       <tr className="vm">
         <td>{offer.id}</td>
@@ -166,9 +172,9 @@ class OfferRow extends Component {
           <AccountButton account={offer.buyer} />
         </td>
         <td>
-          {offer.commission && offer.commission !== '0' ? (
+          {commission ? (
             <>
-              {currency({ amount: offer.commission, currency: 'OGN' })}
+              {currency(commission)}
               <Icon
                 style={{ verticalAlign: '-0.2rem', margin: '0 0.2rem' }}
                 icon="arrow-right"
@@ -207,6 +213,15 @@ class OfferRow extends Component {
   renderInactiveRow() {
     const { offer } = this.props
     const offerData = offer.ipfs || {}
+    let commission
+    if (typeof offerData.commission === 'string') {
+      commission = { amount: offerData.commission, currency: 'OGN' }
+    } else if (
+      typeof offerData.commission === 'object' &&
+      offerData.commission.amount
+    ) {
+      commission = offerData.commission
+    }
     return (
       <tr className="vm">
         <td>{offer.id}</td>
@@ -217,9 +232,9 @@ class OfferRow extends Component {
           <AccountButton account={offerData.buyer} />
         </td>
         <td>
-          {offerData.commission && offerData.commission !== '0' ? (
+          {commission ? (
             <>
-              {`${offerData.commission} OGN`}
+              {currency(commission)}
               <Icon
                 style={{ verticalAlign: '-0.2rem', margin: '0 0.2rem' }}
                 icon="arrow-right"

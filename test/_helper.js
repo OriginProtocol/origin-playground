@@ -13,7 +13,8 @@ const solcOpts = {
       '*': {
         '*': ['abi', 'evm.bytecode.object']
       }
-    }
+    },
+    optimizer: { enabled: true, runs: 1 }
   }
 }
 

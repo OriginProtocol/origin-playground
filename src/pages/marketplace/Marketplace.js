@@ -12,18 +12,54 @@ class Marketplace extends Component {
   state = {}
   render() {
     return (
-      <Query query={query}>
-        {({ loading, error, data }) => {
-          if (loading) return <p className="mt-3">Loading...</p>
+      <Query
+        query={query}
+        variables={{ offset: 0, limit: 10 }}
+        notifyOnNetworkStatusChange={true}
+      >
+        {({ loading, error, data, fetchMore }) => {
+          if (loading && !data.marketplace)
+            return <p className="mt-3">Loading...</p>
+          if (!data.marketplace)
+            return <p className="mt-3">No marketplace contract?</p>
           if (error) {
             console.log(error)
             return <p className="mt-3">Error :(</p>
           }
 
+          const numListings = data.marketplace.allListings.length
+
           return (
             <>
               {this.renderBreadcrumbs()}
               <Listings data={data} />
+              {Number(data.marketplace.totalListings) <= numListings ? null : (
+                <Button
+                  text="More"
+                  loading={loading}
+                  className="mt-3"
+                  onClick={() => {
+                    fetchMore({
+                      variables: {
+                        offset: numListings,
+                        limit: 10
+                      },
+                      updateQuery: (prev, { fetchMoreResult }) => {
+                        if (!fetchMoreResult) return prev
+                        return {
+                          marketplace: {
+                            ...prev.marketplace,
+                            allListings: [
+                              ...prev.marketplace.allListings,
+                              ...fetchMoreResult.marketplace.allListings
+                            ]
+                          }
+                        }
+                      }
+                    })
+                  }}
+                />
+              )}
               <CreateListing
                 {...this.state}
                 isOpen={this.state.createListing}

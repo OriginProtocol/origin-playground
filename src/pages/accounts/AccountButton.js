@@ -19,7 +19,7 @@ class AccountButton extends Component {
     if (!account) {
       return null
     }
-    const accountId = typeof account === 'string' ? account : account.id
+    const accountId = this.getAddress()
     if (accountId === '0x0000000000000000000000000000000000000000') {
       return null
     }
@@ -41,12 +41,12 @@ class AccountButton extends Component {
                       setActiveWallet({ variables: { address: accountId } })
                     }
                   >
-                    {accountId.substr(0, 6)}
+                    {this.getName()}
                   </Button>
                 )}
               </SetWalletMutation>
             ) : (
-              accountId.substr(0, 6)
+              this.getName()
             )
           }
         </Query>
@@ -63,6 +63,19 @@ class AccountButton extends Component {
   getAddress() {
     const { account } = this.props
     return typeof account === 'string' ? account : account.id
+  }
+
+  getName() {
+    const { account } = this.props
+    if (typeof account === 'string') {
+      return account.substr(0, 6)
+    }
+    if (account.identity && account.identity.profile) {
+      const profile = account.identity.profile
+      return `${profile.firstName} ${profile.lastName}`
+    } else {
+      return account.id.substr(0, 6)
+    }
   }
 
   renderContextMenu() {

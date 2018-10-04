@@ -16,10 +16,6 @@ const query = gql`
       owner {
         id
       }
-      token {
-        id
-        symbol
-      }
     }
     tokens {
       id

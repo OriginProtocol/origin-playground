@@ -1,8 +1,10 @@
-export default function eventCache(contract) {
+export default function eventCache(contract, fromBlock = 0) {
   let events = [],
-    fromBlock = 0,
     toBlock = 0,
     lastLookup = 0
+  try {
+    ({ events, toBlock, lastLookup } = JSON.parse(window.localStorage.eventCache))
+  } catch(e) { /* Ignore */ }
 
   function updateBlock(block) {
     toBlock = block
@@ -25,6 +27,11 @@ export default function eventCache(contract) {
       ...events,
       ...newEvents.map(e => ({ ...e, block: { id: e.blockNumber } }))
     ]
+    window.localStorage.eventCache = JSON.stringify({
+      toBlock,
+      lastLookup,
+      events
+    })
     fromBlock = toBlock + 1
   }
 

@@ -18,6 +18,7 @@ export default `
     contracts: [Contract]
     contract(id: String!): Contract
     tokens: [Token]
+    ethUsd: String
   }
 
   type Mutation {
@@ -167,7 +168,7 @@ export default `
     totalListings: Int
     getListing(idx: Int!): Listing
     getOffer(idx: Int!, listingId: Int!): Offer
-    allListings: [Listing]
+    allListings(offset: Int, limit: Int): [Listing]
   }
 
   type Listing {
@@ -221,7 +222,7 @@ export default `
     buyer: String
     finalizes: String
     affiliate: String
-    commission: String
+    commission: Price
     value: String
     refund: String
     currency: String
@@ -297,8 +298,28 @@ export default `
   }
 
   type Identity {
-    id: String!
+    id: ID!
     name: String
+    claims: [Claim]
+    profile: ProfileData
+  }
+
+  type ProfileData {
+    id: ID!
+    firstName: String
+    lastName: String
+    description: String
+    avatar: String
+  }
+
+  type Claim {
+    id: String!
+    topic: String
+    scheme: String
+    issuer: String
+    signature: String
+    data: String
+    uri: String
   }
 
   input NewListingInput {

@@ -314,18 +314,18 @@ export const AddDataMutation = gql`
 //   }
 // })
 
-window.originJS = {
-  createListing: async function(variables) {
-    return await gqlClient.mutate({
-      mutation: CreateListingMutation,
-      variables,
-      refetchQueries: ['AllListings']
-    })
-  },
-  refetch: async function(refetchQueries) {
-    return await gqlClient.mutate({
-      mutation: RefetchMutation,
-      refetchQueries
-    })
-  }
-}
+// window.originJS = {
+//   createListing: async function(variables) {
+//     return await gqlClient.mutate({
+//       mutation: CreateListingMutation,
+//       variables,
+//       refetchQueries: ['AllListings']
+//     })
+//   },
+//   refetch: async function(refetchQueries) {
+//     return await gqlClient.mutate({
+//       mutation: RefetchMutation,
+//       refetchQueries
+//     })
+//   }
+// }

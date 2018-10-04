@@ -32,8 +32,8 @@ var config = {
       {
         test: /\.mjs$/,
         include: /node_modules/,
-        type: "javascript/auto",
-      },
+        type: 'javascript/auto'
+      }
     ]
   },
   resolve: {
