@@ -21,6 +21,6 @@ const link = ApolloLink.split(
 
 const client = new ApolloClient({ link, cache })
 
-// window.gql = client
+window.gql = client
 
 export default client

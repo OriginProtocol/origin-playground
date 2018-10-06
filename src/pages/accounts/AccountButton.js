@@ -5,6 +5,7 @@ import { Button, ContextMenuTarget, Menu, MenuItem } from '@blueprintjs/core'
 
 import SendFromWallet from './mutations/SendFromWallet'
 import SetWalletMutation from './_SetWalletMutation'
+import Identity from 'components/Identity'
 
 import query from './_query'
 
@@ -41,12 +42,12 @@ class AccountButton extends Component {
                       setActiveWallet({ variables: { address: accountId } })
                     }
                   >
-                    {this.getName()}
+                    <Identity account={accountId} />
                   </Button>
                 )}
               </SetWalletMutation>
             ) : (
-              this.getName()
+              <Identity account={accountId} />
             )
           }
         </Query>
@@ -63,19 +64,6 @@ class AccountButton extends Component {
   getAddress() {
     const { account } = this.props
     return typeof account === 'string' ? account : account.id
-  }
-
-  getName() {
-    const { account } = this.props
-    if (typeof account === 'string') {
-      return account.substr(0, 6)
-    }
-    if (account.identity && account.identity.profile) {
-      const profile = account.identity.profile
-      return `${profile.firstName} ${profile.lastName}`
-    } else {
-      return account.id.substr(0, 6)
-    }
   }
 
   renderContextMenu() {

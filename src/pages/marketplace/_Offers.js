@@ -216,10 +216,7 @@ class OfferRow extends Component {
     let commission
     if (typeof offerData.commission === 'string') {
       commission = { amount: offerData.commission, currency: 'OGN' }
-    } else if (
-      typeof offerData.commission === 'object' &&
-      offerData.commission.amount
-    ) {
+    } else if (offerData.commission && offerData.commission.amount) {
       commission = offerData.commission
     }
     return (
@@ -246,8 +243,8 @@ class OfferRow extends Component {
         <td>
           <AccountButton account={offerData.arbitrator} />
         </td>
-        <td style={{ borderLeft: '1px solid rgba(16, 22, 26, 0.15)' }} />
         <td />
+        <td style={{ borderLeft: '1px solid rgba(16, 22, 26, 0.15)' }} />
         <td />
         <td />
         <td>

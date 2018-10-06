@@ -1,7 +1,9 @@
-import txHelper from './_txHelper'
+import txHelper, { checkMetaMask } from './_txHelper'
+
 async function transferToken(_, { token, from, to, value }, context) {
+  await checkMetaMask(context.from)
   const contract = context.contracts[token]
-  if (!contract) {
+  if (!contract || !contract.options.address) {
     console.log(token, 'not found')
     return
   }

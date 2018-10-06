@@ -25,8 +25,8 @@ class UpdateListing extends Component {
 
     this.state = {
       title: props.listing.ipfs.title || '',
-      currencyId: props.listing.ipfs.price.currency || 'ETH',
-      price: props.listing.ipfs.price.amount || '0.1',
+      currencyId: props.listing.ipfs.price ? props.listing.ipfs.price.currency : 'ETH',
+      price: props.listing.ipfs.price ? props.listing.ipfs.price.amount : '0.1',
       from: props.listing.seller.id || '',
       additionalDeposit: 0,
       category: props.listing.ipfs.category || 'For Sale',

@@ -1,7 +1,7 @@
 import Token from '../../contracts/OriginToken'
-import { resetContracts } from '../context'
+// import { resetContracts } from '../context'
 
-import txHelper from './_txHelper'
+import txHelper, { checkMetaMask } from './_txHelper'
 /*
 mutation deployToken($name: String, $symbol: String, $decimals: Int, $supply: String) {
   deployToken(name: $name, symbol: $symbol, decimals: $decimals, supply: $supply)
@@ -14,7 +14,9 @@ mutation deployToken($name: String, $symbol: String, $decimals: Int, $supply: St
 
  */
 
-async function deployToken(_, { name, symbol, decimals, supply }) {
+async function deployToken(_, { symbol, supply }, context) {
+  await checkMetaMask(context, web3.eth.defaultAccount)
+  const web3 = context.contracts.web3Exec
   const Contract = new web3.eth.Contract(Token.abi)
   supply = web3.utils.toWei(supply, 'ether')
   const tx = Contract.deploy({
@@ -40,8 +42,9 @@ async function deployToken(_, { name, symbol, decimals, supply }) {
       }
       tokens[symbol] = receipt.contractAddress
       localStorage.tokens = JSON.stringify(tokens)
-
-      resetContracts()
+      context.contracts.ogn.options.address = receipt.contractAddress
+      context.contracts[receipt.contractAddress] = context.contracts.ogn
+      // resetContracts()
     }
   })
 }

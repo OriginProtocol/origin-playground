@@ -26,14 +26,6 @@ export default {
         status
         seller {
           id
-          identity {
-            id
-            profile {
-              id
-              firstName
-              lastName
-            }
-          }
         }
         arbitrator {
           id

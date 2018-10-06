@@ -1,12 +1,14 @@
 import Marketplace from '../../contracts/V00_Marketplace'
-import { resetContracts } from '../context'
-import txHelper from './_txHelper'
+// import { resetContracts } from '../context'
+import txHelper, { checkMetaMask } from './_txHelper'
 
 async function deployMarketplace(
   _,
   { token, version, from, autoWhitelist },
   context
 ) {
+  await checkMetaMask(context, from)
+  const web3 = context.contracts.web3Exec
   const Contract = new web3.eth.Contract(Marketplace.abi)
   const tx = Contract.deploy({
     data: '0x' + Marketplace.data,
@@ -31,7 +33,7 @@ async function deployMarketplace(
       marketplaces[version] = receipt.contractAddress
       localStorage.marketplaces = JSON.stringify(marketplaces)
 
-      resetContracts()
+      context.contracts.marketplace.options.address = receipt.contractAddress
       context.contracts.marketplace.eventCache.updateBlock(receipt.blockNumber)
 
       const Token = context.contracts[token]

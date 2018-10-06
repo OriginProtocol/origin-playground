@@ -20,15 +20,10 @@ export default {
       return null
     }
     const totalListings = await contract.methods.totalListings().call()
-    const listings = []
-    for (const id of Array.from(
-      { length: Number(totalListings) },
-      (v, i) => i
-    )) {
-      listings.push(await getListing(contract, { idx: id }))
-      // listings.push({ id: id })
-    }
-    return listings.reverse().slice(offset, offset + limit)
+    const ids = Array.from({ length: Number(totalListings) }, (v, i) => i)
+      .reverse()
+      .slice(offset, offset + limit)
+    return Promise.all(ids.map(idx => getListing(contract, { idx })))
   },
   getOffer: async (contract, args) => {
     if (!contract) {

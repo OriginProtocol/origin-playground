@@ -25,7 +25,7 @@ export default {
   },
   token: async (account, args, context) => {
     if (args.symbol === 'OGN') {
-      if (!context.contracts.ogn) return null
+      if (!context.contracts.ogn || !context.contracts.ogn.options.address) return null
       const balance = await context.contracts.ogn.methods
         .balanceOf(account.id)
         .call()
@@ -40,7 +40,7 @@ export default {
   },
   identity: async (account, args, context) => {
     const ur = context.contracts.userRegistry
-    if (!ur) return null
+    if (!ur || !ur.options.address) return null
     const id = await ur.methods.users(account.id).call()
     return { id }
   }

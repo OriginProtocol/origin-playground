@@ -19,9 +19,10 @@ class Price extends Component {
           const usdAmount = data.ethUsd * Number(amount || 0)
           let rounded = Math.round(usdAmount * 100) / 100
           if (rounded === 0) rounded = 0.01
+          rounded = rounded.toFixed(2)
           return (
             <span className={className}>{`${
-              label ? `${label}: ` : ''
+              label ? `${label} ` : ''
             }$${rounded}`}</span>
           )
         }}

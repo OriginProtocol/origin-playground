@@ -1,19 +1,32 @@
 export default function eventCache(contract, fromBlock = 0) {
   let events = [],
     toBlock = 0,
-    lastLookup = 0
-  try {
-    ({ events, toBlock, lastLookup } = JSON.parse(window.localStorage.eventCache))
-  } catch(e) { /* Ignore */ }
+    lastLookup = 0,
+    processing = false,
+    queue = []
+  // try {
+  //   ({ events, lastLookup } = JSON.parse(
+  //     window.localStorage.eventCache
+  //   ))
+  //   fromBlock = lastLookup + 1
+  // } catch (e) {
+  //   /* Ignore */
+  // }
 
   function updateBlock(block) {
     toBlock = block
   }
 
+  const isDone = () => new Promise(resolve => queue.push(resolve))
+
   async function getPastEvents() {
+    if (processing) {
+      await isDone()
+    }
     if (lastLookup && lastLookup === toBlock) {
       return
     }
+    processing = true
     if (!toBlock) {
       toBlock = await web3.eth.getBlockNumber()
     }
@@ -27,12 +40,18 @@ export default function eventCache(contract, fromBlock = 0) {
       ...events,
       ...newEvents.map(e => ({ ...e, block: { id: e.blockNumber } }))
     ]
-    window.localStorage.eventCache = JSON.stringify({
-      toBlock,
-      lastLookup,
-      events
-    })
+    if (typeof window !== 'undefined') {
+      window.localStorage.eventCache = JSON.stringify({
+        lastLookup,
+        events
+      })
+    }
     fromBlock = toBlock + 1
+
+    processing = false
+    while(queue.length) {
+      queue.pop()()
+    }
   }
 
   async function listings(listingId, eventName) {

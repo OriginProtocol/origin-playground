@@ -1,12 +1,13 @@
 import React from 'react'
 import { Switch, Route, Redirect, NavLink } from 'react-router-dom'
-import { Navbar, Alignment } from '@blueprintjs/core'
+import { Navbar, Alignment, Icon } from '@blueprintjs/core'
 
 import Price from 'components/Price'
 import Accounts from './accounts/Accounts'
 import Marketplace from './marketplace/Marketplace'
 import Listing from './marketplace/Listing'
 import Contracts from './contracts/Contracts'
+import Explorer from './GraphIQL'
 
 import AccountChooser from './accounts/_Chooser'
 
@@ -26,41 +27,49 @@ const App = () => (
           activeClassName="bp3-active"
           to="/marketplace"
         >
-          Marketplace
+          <Icon icon="shop" />
         </NavLink>
-        <NavLink
+        {/* <NavLink
           className="bp3-button bp3-minimal"
           activeClassName="bp3-active"
           to="/contracts"
         >
           Contracts
-        </NavLink>
+        </NavLink> */}
         <NavLink
           className="bp3-button bp3-minimal"
           activeClassName="bp3-active"
           to="/accounts"
         >
-          Accounts
+          <Icon icon="settings" />
+        </NavLink>
+        <NavLink
+          className="bp3-button bp3-minimal"
+          activeClassName="bp3-active"
+          to="/explorer"
+        >
+          <Icon icon="console" />
         </NavLink>
         {/* <Navbar.Divider />
-        <a className="bp3-button bp3-minimal bp3-active">Rinkeby</a>
+        <a className="bp3-button bp3-minimal bp3-active">Localhost</a>
+        <a className="bp3-button bp3-minimal">Rinkeby</a>
         <a className="bp3-button bp3-minimal">Mainnet</a> */}
       </Navbar.Group>
       <Navbar.Group align={Alignment.RIGHT}>
-        <Price amount="1" label="ETH Price" className="mr-2" />
+        <Price amount="1" label="1 ETH =" className="mr-3" />
         <NodeInfo />
-        <AccountChooser />
+        {/* <AccountChooser /> */}
       </Navbar.Group>
     </Navbar>
-    <div className="p-3">
-      <Switch>
-        <Route path="/accounts" component={Accounts} />
-        <Route path="/marketplace/listings/:listingID" component={Listing} />
-        <Route path="/marketplace" component={Marketplace} />
-        <Route path="/contracts" component={Contracts} />
-        <Redirect from="/" to="/marketplace" />
-      </Switch>
-    </div>
+
+    <Switch>
+      <Route path="/accounts" component={Accounts} />
+      <Route path="/marketplace/listings/:listingID" component={Listing} />
+      <Route path="/marketplace" component={Marketplace} />
+      <Route path="/contracts" component={Contracts} />
+      <Route path="/explorer" component={Explorer} />
+      <Redirect from="/" to="/marketplace" />
+    </Switch>
   </>
 )
 
@@ -89,6 +98,8 @@ require('react-styl')(`
     margin-left: 0.5rem
   .mr-2
     margin-right: 0.5rem
+  .mr-3
+    margin-right: 1rem
   .mb-3
     margin-bottom: 1rem
   .vm > td

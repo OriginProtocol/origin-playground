@@ -1,8 +1,9 @@
-import txHelper from './_txHelper'
+import txHelper, { checkMetaMask } from './_txHelper'
 async function updateTokenAllowance(_, { token, from, to, value }, context) {
   if (!context.contracts[token]) {
     return
   }
+  await checkMetaMask(context, from)
   value = web3.utils.toWei(value, 'ether')
   const tx = context.contracts[token].methods.approve(to, value).send({
     gas: 4612388,

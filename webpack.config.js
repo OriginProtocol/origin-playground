@@ -24,6 +24,7 @@ var config = {
   module: {
     noParse: [/^react$/],
     rules: [
+      { test: /\.flow$/, loader: 'ignore-loader' },
       {
         test: /\.js$/,
         exclude: /node_modules/,

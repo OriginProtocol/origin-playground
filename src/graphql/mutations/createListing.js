@@ -1,8 +1,9 @@
 import { post } from 'utils/ipfsHash'
-import txHelper from './_txHelper'
+import txHelper, { checkMetaMask } from './_txHelper'
 
 async function createListing(_, input, context) {
   const { arbitrator, data, from, autoApprove } = input
+  await checkMetaMask(context, from)
   const ipfsHash = await post(context.contracts.ipfsRPC, data)
 
   let createListingCall

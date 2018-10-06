@@ -81,13 +81,20 @@ export async function getText(gateway, hashAsBytes) {
     const timeout = setTimeout(() => {
       didTimeOut = true
       resolve()
-    }, 2000)
-    fetch(`${gateway}/ipfs/${hash}`).then(response => {
-      clearTimeout(timeout)
-      if (!didTimeOut) {
-        resolve(response)
-      }
-    })
+    }, 10000)
+    fetch(`${gateway}/ipfs/${hash}`)
+      .then(response => {
+        clearTimeout(timeout)
+        if (!didTimeOut) {
+          resolve(response)
+        }
+      })
+      .catch(() => {
+        clearTimeout(timeout)
+        if (!didTimeOut) {
+          resolve(null)
+        }
+      })
   })
   if (!response) {
     return '{}'

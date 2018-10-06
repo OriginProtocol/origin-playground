@@ -1,5 +1,19 @@
 import pubsub from '../pubsub'
 
+export async function checkMetaMask(context, from) {
+  if (context.contracts.metaMask) {
+    const net = await web3.eth.net.getId()
+    const mmNet = await context.contracts.metaMask.eth.net.getId()
+    if (net !== mmNet) {
+      throw(new Error(`MetaMask is not on network ${net}`))
+    }
+    const mmAccount = await context.contracts.metaMask.eth.getAccounts()
+    if (!mmAccount || mmAccount[0] !== from) {
+      throw(new Error(`MetaMask is not set to account ${from}`))
+    }
+  }
+}
+
 export default function txHelper({
   tx,
   mutation,

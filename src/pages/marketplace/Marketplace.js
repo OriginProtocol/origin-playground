@@ -1,15 +1,16 @@
 import React, { Component } from 'react'
 import { Query } from 'react-apollo'
 
-import { Button } from '@blueprintjs/core'
+import { Button, ButtonGroup, Spinner } from '@blueprintjs/core'
 
 import Listings from './_Listings'
+import ListingsGallery from './_ListingsGallery'
 import CreateListing from './mutations/CreateListing'
 
 import query from './queries/_listings'
 
 class Marketplace extends Component {
-  state = {}
+  state = { mode: 'gallery' }
   render() {
     return (
       <Query
@@ -17,26 +18,38 @@ class Marketplace extends Component {
         variables={{ offset: 0, limit: 10 }}
         notifyOnNetworkStatusChange={true}
       >
-        {({ loading, error, data, fetchMore }) => {
-          if (loading && !data.marketplace)
-            return <p className="mt-3">Loading...</p>
-          if (!data.marketplace)
-            return <p className="mt-3">No marketplace contract?</p>
+        {({ error, data, fetchMore, networkStatus, refetch }) => {
+          if (networkStatus === 1)
+            return (
+              <div style={{ maxWidth: 300, marginTop: 100 }}>
+                <Spinner />
+              </div>
+            )
+          if (!data || !data.marketplace) return <p>No marketplace contract?</p>
           if (error) {
             console.log(error)
-            return <p className="mt-3">Error :(</p>
+            return <p>Error :(</p>
           }
 
           const numListings = data.marketplace.allListings.length
+          const totalListings = data.marketplace.totalListings
 
           return (
-            <>
-              {this.renderBreadcrumbs()}
-              <Listings data={data} />
+            <div className="p-3">
+              {this.renderBreadcrumbs({
+                refetch,
+                networkStatus,
+                totalListings
+              })}
+              {this.state.mode === 'list' ? (
+                <Listings data={data} />
+              ) : (
+                <ListingsGallery data={data} />
+              )}
               {Number(data.marketplace.totalListings) <= numListings ? null : (
                 <Button
-                  text="More"
-                  loading={loading}
+                  text="Load more..."
+                  loading={networkStatus === 3}
                   className="mt-3"
                   onClick={() => {
                     fetchMore({
@@ -67,27 +80,48 @@ class Marketplace extends Component {
                   this.setState({ createListing: false })
                 }}
               />
-            </>
+            </div>
           )
         }}
       </Query>
     )
   }
-  renderBreadcrumbs() {
+  renderBreadcrumbs({ refetch, networkStatus, totalListings }) {
     return (
-      <ul className="bp3-breadcrumbs">
-        {/* <li><a className="bp3-breadcrumb" href="#">Folder three</a></li> */}
-        <li>
-          <span className="bp3-breadcrumb bp3-breadcrumb-current">
-            Listings
-          </span>
-        </li>
-        <li>
-          <Button onClick={() => this.setState({ createListing: true })}>
-            Create Listing
-          </Button>
-        </li>
-      </ul>
+      <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+        <ul className="bp3-breadcrumbs">
+          <li>
+            <span className="bp3-breadcrumb bp3-breadcrumb-current">
+              {`${totalListings} Listings`}
+            </span>
+          </li>
+        </ul>
+        <div style={{ display: 'flex' }}>
+          <ButtonGroup>
+            <Button
+              icon="media"
+              active={this.state.mode === 'gallery'}
+              onClick={() => this.setState({ mode: 'gallery' })}
+            />
+            <Button
+              icon="list"
+              active={this.state.mode === 'list'}
+              onClick={() => this.setState({ mode: 'list' })}
+            />
+          </ButtonGroup>
+          <Button
+            onClick={() => this.setState({ createListing: true })}
+            className="ml-2"
+            text="Create Listing"
+          />
+          <Button
+            icon="refresh"
+            loading={networkStatus === 4}
+            className="ml-2"
+            onClick={() => refetch()}
+          />
+        </div>
+      </div>
     )
   }
 }

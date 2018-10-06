@@ -4,9 +4,7 @@ export default {
       const id = event.blockNumber
       web3.eth
         .getBlock(id)
-        .then(block => {
-          resolve({ ...block, id })
-        })
+        .then(block => resolve({ ...block, id }))
         .catch(reject)
     })
 }

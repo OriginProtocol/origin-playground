@@ -19,8 +19,7 @@ class SendFromWallet extends Component {
     this.state = {
       name: 'Nick',
       role: 'Buyer',
-      privateKey:
-        '0x818f8ab0b770badbccc7fe2f686e95fd04095eab9c2e3e29fcd7457bfc865fce'
+      privateKey: ''
     }
   }
 

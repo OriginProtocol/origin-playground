@@ -1,7 +1,8 @@
 import { post } from 'utils/ipfsHash'
-import txHelper from './_txHelper'
+import txHelper, { checkMetaMask } from './_txHelper'
 
 async function withdrawListing(_, data, context) {
+  await checkMetaMask(context, data.from)
   const ipfsHash = await post(context.contracts.ipfsRPC, data)
 
   const tx = context.contracts.marketplaceExec.methods

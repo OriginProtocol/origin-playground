@@ -9,7 +9,8 @@ import {
   Tooltip,
   Tag,
   Tabs,
-  Tab
+  Tab,
+  Spinner
 } from '@blueprintjs/core'
 
 import currency from 'utils/currency'
@@ -29,11 +30,17 @@ class Listing extends Component {
     const listingId = this.props.match.params.listingID
 
     return (
-      <>
+      <div className="p-3">
         {this.renderBreadcrumbs()}
         <Query query={query} variables={{ listingId }}>
           {({ loading, error, data }) => {
-            if (loading) return <p className="mt-3">Loading...</p>
+            if (loading)
+              return (
+                <div style={{ maxWidth: 300, marginTop: 100 }}>
+                  <Spinner />
+                </div>
+              )
+
             if (error) {
               console.log(error)
               console.log(query.loc.source.body)
@@ -145,7 +152,7 @@ class Listing extends Component {
             )
           }}
         </Query>
-      </>
+      </div>
     )
   }
 

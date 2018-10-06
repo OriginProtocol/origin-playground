@@ -23,6 +23,7 @@ export default `
 
   type Mutation {
     refetch: Boolean
+    setNetwork(network: String): Boolean
     deployToken(name: String!, symbol: String!, decimals: String!, supply: String!): Transaction
     transferToken(token: String!, from: String!, to: String!, value: String!): Transaction
     updateTokenAllowance(token: String!, from: String!, to: String!, value: String!): Transaction
@@ -100,8 +101,8 @@ export default `
     accountAt(idx: Int!): Account
     account(id: String!): Account
     defaultAccount: Account
-    transactions: [Transaction]
     transaction(id: ID!): Transaction
+    metaMaskAvailable: Boolean
   }
 
   type Price {

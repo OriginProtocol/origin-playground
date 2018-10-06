@@ -46,7 +46,7 @@ class Contracts extends Component {
           const marketplaces = data.marketplaces || []
           const tokens = data.tokens || []
           return (
-            <>
+            <div className="p-3">
               <div
                 style={{
                   display: 'flex',
@@ -137,7 +137,7 @@ class Contracts extends Component {
                 tokens={tokens}
                 onCompleted={() => this.setState({ deployMarketplace: false })}
               />
-            </>
+            </div>
           )
         }}
       </Query>

@@ -4,7 +4,7 @@ import gql from 'graphql-tag'
 
 import { Button } from '@blueprintjs/core'
 
-import { resetContracts } from '../../graphql/context'
+// import { resetContracts } from '../../graphql/context'
 import NodeAccounts from './_NodeAccounts'
 import WalletAccounts from './_WalletAccounts'
 import CreateWallet from './_CreateWallet'
@@ -150,10 +150,11 @@ async function populate(NodeAccount) {
 class Accounts extends Component {
   render() {
     return (
-      <Query query={query}>
-        {({ loading, error, data, client }) => {
+      <Query query={query} notifyOnNetworkStatusChange={true}>
+        {({ loading, error, data, client, refetch }) => {
           if (loading) return <p className="mt-3">Loading...</p>
           if (error) {
+            console.log(error)
             return <p className="mt-3">Error :(</p>
           }
           if (!data || !data.web3) {
@@ -167,7 +168,7 @@ class Accounts extends Component {
           })[0]
 
           return (
-            <>
+            <div className="p-3">
               <CreateWallet />
               <WalletAccounts
                 data={data.web3}
@@ -180,7 +181,7 @@ class Accounts extends Component {
                 onClick={async () => {
                   localStorage.clear()
                   web3.eth.accounts.wallet.clear()
-                  resetContracts()
+                  // resetContracts()
                   await client.cache.reset()
                   await client.resetStore()
                 }}
@@ -194,7 +195,12 @@ class Accounts extends Component {
                 }
                 text="Populate"
               />
-            </>
+              <Button
+                style={{ marginTop: '1rem', marginLeft: '0.5rem' }}
+                icon="refresh"
+                onClick={() => refetch()}
+              />
+            </div>
           )
         }}
       </Query>

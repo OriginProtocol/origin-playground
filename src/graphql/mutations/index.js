@@ -21,6 +21,7 @@ import withdrawOffer from './withdrawOffer'
 import withdrawListing from './withdrawListing'
 import addData from './addData'
 import updateListing from './updateListing'
+import setNetwork from './setNetwork'
 
 export default {
   addAffiliate,
@@ -46,5 +47,6 @@ export default {
   withdrawListing,
   addData,
   updateListing,
+  setNetwork,
   refetch: () => true
 }

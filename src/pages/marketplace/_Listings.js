@@ -4,16 +4,8 @@ import currency from 'utils/currency'
 import formatDate from 'utils/formatDate'
 
 import Price from 'components/Price'
+import Identity from 'components/Identity'
 
-function sellerName(seller) {
-  if (seller.identity && seller.identity.profile) {
-    const { profile } = seller.identity
-    if (profile.firstName) {
-      return `${profile.firstName} ${profile.lastName}`      
-    }
-  }
-  return seller.id.substr(0, 6)
-}
 const Listings = ({ data, history }) => {
   if (!data.marketplace || !data.marketplace.allListings) return null
   return (
@@ -51,7 +43,7 @@ const Listings = ({ data, history }) => {
               />
             </td>
             <td>{currency({ amount: a.deposit, currency: 'OGN' })}</td>
-            <td>{a.seller ? sellerName(a.seller) : null}</td>
+            <td>{a.seller ? <Identity account={a.seller.id} /> : null}</td>
             <td>{a.createdEvent ? formatDate(a.createdEvent.block.timestamp) : null}</td>
           </tr>
         ))}

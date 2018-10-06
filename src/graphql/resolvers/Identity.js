@@ -1,4 +1,4 @@
-import { get, getIpfsHashFromBytes32 } from 'utils/ipfsHash'
+import { get } from 'utils/ipfsHash'
 
 export default {
   claims: (identity, args, context) =>
@@ -36,6 +36,8 @@ export default {
       )
     }),
   profile: async function(identity, args, context) {
+    if (identity.id.indexOf('0x0000') === 0) return null
+
     const contract = context.contracts.claimHolderRegistered
     contract.options.address = identity.id
 

@@ -1,7 +1,8 @@
 import { post } from 'utils/ipfsHash'
-import txHelper from './_txHelper'
+import txHelper, { checkMetaMask } from './_txHelper'
 
 async function makeOffer(_, data, context) {
+  await checkMetaMask(context, data.from)
   const buyer = data.from || web3.eth.defaultAccount
   const ipfsHash = await post(context.contracts.ipfsRPC, { ...data, buyer })
 
