@@ -3,13 +3,14 @@ import { Switch, Route, Redirect, NavLink } from 'react-router-dom'
 import { Navbar, Alignment, Icon } from '@blueprintjs/core'
 
 import Price from 'components/Price'
+import MetaMaskSwitcher from 'components/MetaMaskSwitcher'
 import Accounts from './accounts/Accounts'
 import Marketplace from './marketplace/Marketplace'
 import Listing from './marketplace/Listing'
 import Contracts from './contracts/Contracts'
 import Explorer from './GraphIQL'
 
-import AccountChooser from './accounts/_Chooser'
+// import AccountChooser from './accounts/_Chooser'
 
 import TransactionToasts from './_TransactionToasts'
 import NodeInfo from './_NodeInfo'
@@ -50,12 +51,9 @@ const App = () => (
         >
           <Icon icon="console" />
         </NavLink>
-        {/* <Navbar.Divider />
-        <a className="bp3-button bp3-minimal bp3-active">Localhost</a>
-        <a className="bp3-button bp3-minimal">Rinkeby</a>
-        <a className="bp3-button bp3-minimal">Mainnet</a> */}
       </Navbar.Group>
       <Navbar.Group align={Alignment.RIGHT}>
+        <MetaMaskSwitcher />
         <Price amount="1" label="1 ETH =" className="mr-3" />
         <NodeInfo />
         {/* <AccountChooser /> */}
@@ -92,6 +90,8 @@ require('react-styl')(`
     margin-top: 1rem
   .mt-2
     margin-top: 0.5rem
+  .mb-0
+    margin-bottom: 0
   .mb-2
     margin-bottom: 0.5rem
   .ml-2

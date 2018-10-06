@@ -1,5 +1,5 @@
 import gql from 'graphql-tag'
-import gqlClient from './graphqlClient'
+// import gqlClient from './graphqlClient'
 
 import fragments from './fragments'
 

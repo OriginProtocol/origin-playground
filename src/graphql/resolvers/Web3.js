@@ -20,7 +20,6 @@ export default {
   defaultAccount: () =>
     web3.eth.defaultAccount ? { id: web3.eth.defaultAccount } : null,
   transaction: async (_, args) => {
-    console.log("Get transaction", args.id)
     let status = 'submitted'
     let transaction = await web3.eth.getTransaction(args.id)
     return {
@@ -29,5 +28,11 @@ export default {
       ...transaction
     }
   },
-  metaMaskAvailable: (_, args, context) => context.contracts.metaMask ? true : false
+  metaMaskAvailable: (_, args, context) => context.contracts.metaMask ? true : false,
+  metaMaskEnabled: (_, args, context) => context.contracts.metaMaskEnabled,
+  metaMaskAccount: async (_, args, context) => {
+    if (!context.contracts.metaMask) return null
+    const accounts = await context.contracts.metaMask.eth.getAccounts()
+    return { id: accounts[0] }
+  }
 }

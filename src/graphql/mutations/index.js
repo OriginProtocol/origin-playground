@@ -22,6 +22,7 @@ import withdrawListing from './withdrawListing'
 import addData from './addData'
 import updateListing from './updateListing'
 import setNetwork from './setNetwork'
+import toggleMetaMask from './toggleMetaMask'
 
 export default {
   addAffiliate,
@@ -48,5 +49,6 @@ export default {
   addData,
   updateListing,
   setNetwork,
+  toggleMetaMask,
   refetch: () => true
 }

@@ -1,7 +1,7 @@
 import pubsub from '../pubsub'
 
 export async function checkMetaMask(context, from) {
-  if (context.contracts.metaMask) {
+  if (context.contracts.metaMask && context.contracts.metaMaskEnabled) {
     const net = await web3.eth.net.getId()
     const mmNet = await context.contracts.metaMask.eth.net.getId()
     if (net !== mmNet) {

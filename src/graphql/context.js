@@ -5,7 +5,7 @@ import TokenContract from '../contracts/OriginToken'
 import eventCache from './eventCache'
 import pubsub from './pubsub'
 
-let metaMask, web3WS, wsSub
+let metaMask, metaMaskEnabled, web3WS, wsSub
 const HOST = process.env.HOST || 'localhost'
 
 const Configs = {
@@ -64,6 +64,7 @@ export function setContext(net) {
 
   window.web3 = new Web3(config.provider)
   context.web3Exec = web3
+  context.metaMaskEnabled = metaMaskEnabled
   web3WS = new Web3(config.providerWS)
   wsSub = web3WS.eth.subscribe('newBlockHeaders').on('data', blockHeaders => {
     pubsub.publish('NEW_BLOCK', {
@@ -104,41 +105,58 @@ export function setContext(net) {
     context.marketplace,
     config.V00_Marketplace_Epoch
   )
-  context.marketplaceExec = context.marketplace
   context.ogn = new web3.eth.Contract(TokenContract.abi, config.OriginToken)
   context[config.OriginToken] = context.ogn
-  context.ognExec = context.ogn
 
   if (metaMask) {
     context.metaMask = metaMask
-    context.web3Exec = metaMask
     context.marketplaceMM = new metaMask.eth.Contract(
       MarketplaceContract.abi,
       config.V00_Marketplace
     )
-    context.marketplaceExec = context.marketplaceMM
     context.ognMM = new metaMask.eth.Contract(TokenContract.abi, config.OriginToken)
-    context.ognExec = context.ognMM
   }
+  setMetaMask()
+}
+
+function setMetaMask() {
+  if (metaMask && metaMaskEnabled) {
+    context.metaMaskEnabled = true
+    context.web3Exec = metaMask
+    context.marketplaceExec = context.marketplaceMM
+    context.ognExec = context.ognMM
+  } else {
+    context.metaMaskEnabled = false
+    context.web3Exec = web3
+    context.marketplaceExec = context.marketplace
+    context.ognExec = context.ogn
+  }
+}
+
+export function toggleMetaMask() {
+  metaMaskEnabled = !metaMaskEnabled
+  if (metaMaskEnabled) {
+    window.localStorage.metaMaskEnabled = true
+  } else {
+    delete window.localStorage.metaMaskEnabled
+  }
+  setMetaMask()
 }
 
 if (typeof window !== 'undefined' && process.env.NODE_ENV !== 'CSS') {
   window.context = context
   if (window.web3) {
     metaMask = new Web3(web3.currentProvider)
+    metaMaskEnabled = window.localStorage.metaMaskEnabled ? true : false
   }
 
-  Configs.localhost.V00_UserRegistry = window.localStorage.userRegistryContract
   Configs.localhost.OriginToken = window.localStorage.OGNContract
   Configs.localhost.V00_Marketplace = window.localStorage.marketplaceContract
+  Configs.localhost.V00_UserRegistry = window.localStorage.userRegistryContract
 
   setContext(window.localStorage.ognNetwork || 'mainnet')
 
   window.context = context
-  // window.setNet = (net) => {
-  //   setContext(net)
-  //   gql.resetStore()
-  // }
 }
 
 export default context
