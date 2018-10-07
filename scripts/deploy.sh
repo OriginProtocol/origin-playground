@@ -11,7 +11,7 @@ npm run build
 # Add build directory to local ipfs. Extract directory hash from last line
 HASH=$(ipfs add -r public | tail -n 1 | cut -d ' ' -f 2)
 
-echo "\nPushing $HASH to https://https://cloudflare-ipfs.com/ipfs/${HASH}"
+echo "\nPushing $HASH to https://cloudflare-ipfs.com/ipfs/${HASH}"
 # echo "\nPushing $HASH to https://ipfs.originprotocol.com..."
 
 # Pin directory hash and children to Origin IPFS server

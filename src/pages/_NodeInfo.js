@@ -55,6 +55,20 @@ const Subs = () => (
                       client.resetStore()
                     }}
                   />
+                  <Menu.Item
+                    text="Rinkby Test"
+                    onClick={() => {
+                      setNetwork({ variables: { network: 'rinkebyTst' } })
+                      client.resetStore()
+                    }}
+                  />
+                  <Menu.Item
+                    text="Kovan Test"
+                    onClick={() => {
+                      setNetwork({ variables: { network: 'kovanTst' } })
+                      client.resetStore()
+                    }}
+                  />
                 </Menu>
               }
               position={Position.BOTTOM}

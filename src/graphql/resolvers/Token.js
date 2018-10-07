@@ -1,4 +1,5 @@
 export default {
+  id: contract => contract.id,
   address: contract => contract.id,
   name: async (contract, args, context) => {
     const Contract = context.contracts[contract.id]

@@ -25,7 +25,8 @@ class Marketplace extends Component {
                 <Spinner />
               </div>
             )
-          if (!data || !data.marketplace) return <p>No marketplace contract?</p>
+          if (!data || !data.marketplace)
+            return <p className="p-3">No marketplace contract?</p>
           if (error) {
             console.log(error)
             return <p>Error :(</p>

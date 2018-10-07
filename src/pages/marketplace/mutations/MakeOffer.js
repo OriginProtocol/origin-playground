@@ -15,6 +15,7 @@ import rnd from 'utils/rnd'
 import withAccounts from '../hoc/withAccounts'
 import { MakeOfferMutation } from '../../../mutations'
 import ErrorCallout from 'components/ErrorCallout'
+const ZeroAddress = '0x0000000000000000000000000000000000000000'
 
 const jsDateFormatter = {
   formatDate: date => date.toLocaleDateString(),
@@ -32,12 +33,10 @@ class MakeOffer extends Component {
 
     this.state = {
       finalizes: new Date(+new Date() + 1000 * 60 * 60 * 24 * 3),
-      affiliate: affiliate
-        ? affiliate.id
-        : '0x0000000000000000000000000000000000000000',
+      affiliate: affiliate ? affiliate.id : ZeroAddress,
       commission: '2',
       value: '0.1',
-      currency: '0x0000000000000000000000000000000000000000',
+      currency: ZeroAddress,
       arbitrator: arbitrator ? arbitrator.id : '',
       from: buyer ? buyer.id : ''
     }
@@ -49,6 +48,14 @@ class MakeOffer extends Component {
       onChange: e => this.setState({ [field]: e.currentTarget.value })
     })
     const title = this.props.offer ? 'Update Offer' : 'Make Offer'
+    const affiliates = this.props.accounts
+      .filter(a => a.role === 'Affiliate')
+      .map(a => ({
+        label: `${(a.name || a.id).substr(0, 24)}`,
+        value: a.id
+      }))
+    affiliates.push({ label: 'None', value: ZeroAddress })
+
     return (
       <Mutation
         mutation={MakeOfferMutation}
@@ -110,12 +117,7 @@ class MakeOffer extends Component {
                     <HTMLSelect
                       fill={true}
                       {...input('affiliate')}
-                      options={this.props.accounts
-                        .filter(a => a.role === 'Affiliate')
-                        .map(a => ({
-                          label: `${(a.name || a.id).substr(0, 24)}`,
-                          value: a.id
-                        }))}
+                      options={affiliates}
                     />
                   </FormGroup>
                 </div>
@@ -157,14 +159,15 @@ class MakeOffer extends Component {
   }
 
   getVars() {
+    const { affiliate } = this.state
     const variables = {
       listingID: String(this.props.listing.id),
       from: this.state.from,
       finalizes: String(Math.floor(Number(this.state.finalizes) / 1000)),
-      affiliate: this.state.affiliate,
-      commission: this.state.commission,
+      affiliate,
+      commission: affiliate === ZeroAddress ? '0' : this.state.commission,
       value: web3.utils.toWei(this.state.value, 'ether'),
-      currency: '0x0000000000000000000000000000000000000000',
+      currency: ZeroAddress,
       arbitrator: this.state.arbitrator
     }
     if (this.props.offer) {

@@ -22,7 +22,9 @@ export default function txHelper({
   context
 }) {
   return new Promise((resolve, reject) => {
+    let txHash
     tx.once('transactionHash', hash => {
+      txHash = hash
       resolve({ id: hash })
       pubsub.publish('TRANSACTION_UPDATED', {
         transactionUpdated: {
@@ -70,8 +72,14 @@ export default function txHelper({
         }
       })
       .on('error', function(err) {
-        console.log('TX error')
         console.log(err)
+        pubsub.publish('TRANSACTION_UPDATED', {
+          transactionUpdated: {
+            id: txHash,
+            status: 'error',
+            mutation
+          }
+        })
       })
       .catch(reject)
   })

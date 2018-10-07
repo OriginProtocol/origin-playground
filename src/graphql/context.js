@@ -31,6 +31,20 @@ const Configs = {
     V00_Marketplace: '0xe842831533c4bf4b0f71b4521c4320bdb669324e',
     V00_Marketplace_Epoch: '3086315'
   },
+  rinkebyTst: {
+    provider: 'https://rinkeby.infura.io',
+    providerWS: 'wss://rinkeby.infura.io/ws',
+    ipfsGateway: 'https://ipfs.staging.originprotocol.com',
+    ipfsRPC: `https://ipfs.staging.originprotocol.com`,
+  },
+  kovanTst: {
+    provider: 'https://kovan.infura.io',
+    providerWS: 'wss://kovan.infura.io/ws',
+    ipfsGateway: 'https://ipfs.staging.originprotocol.com',
+    ipfsRPC: `https://ipfs.staging.originprotocol.com`,
+    OriginToken: '0x0EF2f63397657DD71384C8c26F81deE23bA9c6dC',
+    V00_Marketplace: '0x72184988E5b102D32439c475E714b482D7E270df'
+  },
   localhost: {
     provider: `http://${HOST}:8545`,
     providerWS: `ws://${HOST}:8545`,
@@ -105,8 +119,19 @@ export function setContext(net) {
     context.marketplace,
     config.V00_Marketplace_Epoch
   )
+  if (config.V00_Marketplace) {
+    context.marketplaces = [context.marketplace]
+  } else {
+    context.marketplaces = []
+  }
+
   context.ogn = new web3.eth.Contract(TokenContract.abi, config.OriginToken)
   context[config.OriginToken] = context.ogn
+  if (config.OriginToken) {
+    context.tokens = [{ id: config.OriginToken }]
+  } else {
+    context.tokens = []
+  }
 
   if (metaMask) {
     context.metaMask = metaMask

@@ -4,14 +4,31 @@ import txHelper, { checkMetaMask } from './_txHelper'
 async function makeOffer(_, data, context) {
   await checkMetaMask(context, data.from)
   const buyer = data.from || web3.eth.defaultAccount
+  const marketplace = context.contracts.marketplaceExec
+
+  const affilaiteWhitelistDisabled = await marketplace.methods
+    .allowedAffiliates(marketplace.options.address)
+    .call()
+
+  if (!affilaiteWhitelistDisabled) {
+    const affilaiteAllowed = await marketplace.methods
+      .allowedAffiliates(data.affiliate)
+      .call()
+
+    if (!affilaiteAllowed) {
+      throw new Error('Affiliate not on whitelist')
+    }
+  }
+
   const ipfsHash = await post(context.contracts.ipfsRPC, { ...data, buyer })
+  const commission = web3.utils.toWei(data.commission, 'ether')
 
   const args = [
     data.listingID,
     ipfsHash,
     data.finalizes,
     data.affiliate,
-    web3.utils.toWei(data.commission, 'ether'),
+    commission,
     data.value,
     data.currency,
     data.arbitrator
@@ -20,7 +37,7 @@ async function makeOffer(_, data, context) {
     args.push(data.withdraw)
   }
 
-  const tx = context.contracts.marketplaceExec.methods.makeOffer(...args).send({
+  const tx = marketplace.methods.makeOffer(...args).send({
     gas: 4612388,
     from: buyer,
     value: data.value
@@ -30,32 +47,6 @@ async function makeOffer(_, data, context) {
     context,
     mutation: 'makeOffer'
   })
-
-  // return new Promise(async (resolve, reject) => {
-  //     .on('receipt', receipt => {
-  //       context.contracts.marketplace.eventCache.updateBlock(
-  //         receipt.blockNumber
-  //       )
-  //       resolve(
-  //         getOffer(context.contracts.marketplace, {
-  //           listingId: data.listingID,
-  //           idx: receipt.events.OfferCreated.returnValues.offerID
-  //         })
-  //       )
-  //     })
-  //     .on('confirmation', async (confirmations, receipt) => {
-  //       // if (confirmations === 1) {
-  //       //   resolve(
-  //       //     getOffer(context.contracts.marketplace, {
-  //       //       listingId: data.listingID,
-  //       //       idx: receipt.events.OfferCreated.returnValues.offerID
-  //       //     })
-  //       //   )
-  //       // }
-  //     })
-  //     .catch(reject)
-  //     .then(() => {})
-  // })
 }
 
 export default makeOffer

@@ -6,7 +6,7 @@ const ErrorCallout = ({ error }) => {
   if (!error) return null
   return (
     <Callout style={{ marginBottom: 15 }} intent="danger" icon="error">
-      {error.toString()}
+      {error.message || error.toString()}
     </Callout>
   )
 }

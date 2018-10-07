@@ -5,10 +5,6 @@ export default {
     .catch(() => resolve([]))
   }),
   nodeAccount: (_, args) => ({ id: args.id }),
-  nodeAccountAt: async (_, args) => {
-    const accounts = await web3.eth.getAccounts()
-    return { id: accounts[args.idx] }
-  },
   accounts: async () => {
     const accounts = []
     for (let i = 0; i < web3.eth.accounts.wallet.length; i++) {

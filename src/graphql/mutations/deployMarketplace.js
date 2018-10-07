@@ -7,8 +7,8 @@ async function deployMarketplace(
   { token, version, from, autoWhitelist },
   context
 ) {
-  await checkMetaMask(context, from)
   const web3 = context.contracts.web3Exec
+  await checkMetaMask(context, from)
   const Contract = new web3.eth.Contract(Marketplace.abi)
   const tx = Contract.deploy({
     data: '0x' + Marketplace.data,

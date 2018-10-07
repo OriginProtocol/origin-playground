@@ -3,6 +3,7 @@ node_modules
 public/app*.js
 public/vendor*.js
 public/css/app.css
+public/fonts
 data/db
 data/ipfs
 data/geth

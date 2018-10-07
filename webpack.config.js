@@ -1,5 +1,8 @@
 var path = require('path')
 var webpack = require('webpack')
+const MiniCssExtractPlugin = require('mini-css-extract-plugin')
+
+const isProduction = process.env.NODE_ENV === 'production'
 
 var OfficialIdentities = []
 try {
@@ -34,6 +37,27 @@ var config = {
         test: /\.mjs$/,
         include: /node_modules/,
         type: 'javascript/auto'
+      },
+      {
+        test: /\.css$/,
+        use: [
+          isProduction ? MiniCssExtractPlugin.loader : 'style-loader',
+          {
+            loader: 'css-loader'
+          }
+        ]
+      },
+      {
+        test: /\.(woff|woff2|eot|ttf|otf)$/,
+        use: [
+          {
+            loader: 'file-loader',
+            options: {
+              name: 'fonts/[name].[hash:8].[ext]',
+              publicPath: '../'
+            }
+          }
+        ]
       }
     ]
   },

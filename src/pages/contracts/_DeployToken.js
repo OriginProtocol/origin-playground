@@ -17,6 +17,7 @@ import { Dialog, FormGroup, InputGroup } from '@blueprintjs/core'
 // import query from './_query'
 
 import { DeployTokenMutation } from '../../mutations'
+import ErrorCallout from 'components/ErrorCallout'
 
 class DeployToken extends Component {
   state = {
@@ -36,13 +37,14 @@ class DeployToken extends Component {
         mutation={DeployTokenMutation}
         onCompleted={this.props.onCompleted}
       >
-        {(deployToken, { loading }) => (
+        {(deployToken, { loading, error }) => (
           <Dialog
             title="Deploy Token"
             isOpen={this.props.isOpen}
             onClose={this.props.onCompleted}
           >
             <div className="bp3-dialog-body">
+              <ErrorCallout error={error} />
               <FormGroup label="Name">
                 <InputGroup {...input('name')} />
               </FormGroup>

@@ -30,6 +30,7 @@ const query = gql`
 
 import DeployToken from './_DeployToken'
 import DeployMarketplace from './_DeployMarketplace'
+import AddAffiliate from './_AddAffiliate'
 
 class Contracts extends Component {
   state = {}
@@ -109,6 +110,7 @@ class Contracts extends Component {
                     <th>Token</th>
                     <th>Address</th>
                     <th>Owner</th>
+                    <th />
                   </tr>
                 </thead>
                 <tbody>
@@ -123,6 +125,14 @@ class Contracts extends Component {
                       <td>
                         <Address address={m.owner.id} />
                       </td>
+                      <td>
+                        <Button
+                          text="Add Affiliate"
+                          onClick={() =>
+                            this.setState({ addAffiliate: m.owner.id })
+                          }
+                        />
+                      </td>
                     </tr>
                   ))}
                 </tbody>
@@ -136,6 +146,11 @@ class Contracts extends Component {
                 isOpen={this.state.deployMarketplace}
                 tokens={tokens}
                 onCompleted={() => this.setState({ deployMarketplace: false })}
+              />
+              <AddAffiliate
+                isOpen={this.state.addAffiliate ? true : false}
+                from={this.state.addAffiliate}
+                onCompleted={() => this.setState({ addAffiliate: false })}
               />
             </div>
           )

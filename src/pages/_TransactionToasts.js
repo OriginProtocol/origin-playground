@@ -67,7 +67,9 @@ const mutationNames = {
 
 const statuses = {
   confirmed: 'Confirmed',
-  receipt: 'Pending'
+  pending: 'Pending',
+  receipt: 'Pending',
+  error: 'Error'
 }
 
 class TimedProgressBar extends Component {

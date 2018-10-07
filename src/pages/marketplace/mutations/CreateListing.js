@@ -91,27 +91,6 @@ class CreateListing extends Component {
                   </FormGroup>
                 </div>
               </div>
-              <div style={{ display: 'flex' }}>
-                <div style={{ flex: 1, marginRight: 20 }}>
-                  <FormGroup label="Category">
-                    <HTMLSelect
-                      fill={true}
-                      {...input('category')}
-                      options={[
-                        'For Sale',
-                        'Home Share',
-                        'Car Share',
-                        'Ticket'
-                      ]}
-                    />
-                  </FormGroup>
-                </div>
-                <div style={{ flex: 2 }}>
-                  <FormGroup label="Title">
-                    <InputGroup {...input('title')} />
-                  </FormGroup>
-                </div>
-              </div>
 
               <div style={{ display: 'flex' }}>
                 <div style={{ flex: 1, marginRight: 20 }}>
@@ -148,6 +127,27 @@ class CreateListing extends Component {
                       onChange={deposit => this.setState({ deposit })}
                       value={this.state.deposit}
                     />
+                  </FormGroup>
+                </div>
+              </div>
+              <div style={{ display: 'flex' }}>
+                <div style={{ flex: 1, marginRight: 20 }}>
+                  <FormGroup label="Category">
+                    <HTMLSelect
+                      fill={true}
+                      {...input('category')}
+                      options={[
+                        'For Sale',
+                        'Home Share',
+                        'Car Share',
+                        'Ticket'
+                      ]}
+                    />
+                  </FormGroup>
+                </div>
+                <div style={{ flex: 2 }}>
+                  <FormGroup label="Title">
+                    <InputGroup {...input('title')} />
                   </FormGroup>
                 </div>
               </div>

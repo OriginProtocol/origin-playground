@@ -1,10 +1,32 @@
 import { post } from 'utils/ipfsHash'
 import txHelper, { checkMetaMask } from './_txHelper'
+import validator from '../validator'
 
 async function createListing(_, input, context) {
   const { arbitrator, data, from, autoApprove } = input
   await checkMetaMask(context, from)
-  const ipfsHash = await post(context.contracts.ipfsRPC, data)
+
+  const ipfsData = {
+    "schemaId": "http://schema.originprotocol.com/listing_v1.0.0",
+    "listingType": "unit",
+    "category": "schema.forSale",
+    "subCategory": "schema.forSale.mushrooms",
+    "language": "en-US",
+    "title": data.title,
+    "description": "description",
+    "expiry": "1996-12-19T16:39:57-08:00",
+    "media": [],
+    "unitsTotal": 1,
+    "price": data.price,
+    "commission": {
+      "currency": "OGN",
+      "amount": "0"
+    }
+  }
+
+  validator('http://schema.originprotocol.com/listing_v1.0.0', ipfsData)
+
+  const ipfsHash = await post(context.contracts.ipfsRPC, ipfsData)
 
   let createListingCall
   const deposit = web3.utils.toWei(String(input.deposit), 'ether')

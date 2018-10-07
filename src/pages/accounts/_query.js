@@ -13,6 +13,9 @@ export default gql`
       accounts {
         ...balanceFields
       }
+      metaMaskAccount {
+        ...balanceFields
+      }
     }
   }
   ${fragments.Account.balance}

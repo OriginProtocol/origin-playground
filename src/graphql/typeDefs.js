@@ -96,10 +96,8 @@ export default `
   type Web3 {
     networkId: String
     nodeAccounts: [Account]
-    nodeAccountAt(idx: Int!): Account
     nodeAccount(id: String!): Account
     accounts: [Account]
-    accountAt(idx: Int!): Account
     account(id: String!): Account
     defaultAccount: Account
     transaction(id: ID!): Transaction
@@ -164,6 +162,7 @@ export default `
   }
 
   type Marketplace {
+    id: String
     address: String
     version: String
     token: Token
