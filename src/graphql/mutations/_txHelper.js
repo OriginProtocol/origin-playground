@@ -1,4 +1,4 @@
-import pubsub from '../pubsub'
+import pubsub from '../utils/pubsub'
 
 export async function checkMetaMask(context, from) {
   if (context.contracts.metaMask && context.contracts.metaMaskEnabled) {

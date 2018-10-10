@@ -1,9 +1,9 @@
-import MarketplaceContract from '../contracts/V00_Marketplace'
-import UserRegistryContract from '../contracts/V00_UserRegistry'
-import ClaimHolderRegisteredContract from '../contracts/ClaimHolderRegistered'
-import TokenContract from '../contracts/OriginToken'
-import eventCache from './eventCache'
-import pubsub from './pubsub'
+import MarketplaceContract from './contracts/V00_Marketplace'
+import UserRegistryContract from './contracts/V00_UserRegistry'
+import ClaimHolderRegisteredContract from './contracts/ClaimHolderRegistered'
+import TokenContract from './contracts/OriginToken'
+import eventCache from './utils/eventCache'
+import pubsub from './utils/pubsub'
 
 let metaMask, metaMaskEnabled, web3WS, wsSub
 const HOST = process.env.HOST || 'localhost'

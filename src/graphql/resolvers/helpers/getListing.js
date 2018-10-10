@@ -22,6 +22,12 @@ export default async (contract, args) => {
     if (e.event === 'ListingWithdrawn') {
       status = 'withdrawn'
     }
+    if (e.event === 'OfferFinalized') {
+      status = 'sold'
+    }
+    if (e.event === 'OfferRuling') {
+      status = 'sold'
+    }
   })
 
   return {

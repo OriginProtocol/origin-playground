@@ -1,4 +1,4 @@
-import pubsub from '../pubsub'
+import pubsub from '../utils/pubsub'
 
 export default {
   newBlock: { subscribe: () => pubsub.asyncIterator('NEW_BLOCK') },

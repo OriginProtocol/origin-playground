@@ -5,6 +5,8 @@ import getOffer from './helpers/getOffer'
 export default {
   events: async listing =>
     await listing.contract.eventCache.listings(listing.id),
+  totalEvents: async listing =>
+    (await listing.contract.eventCache.listings(listing.id)).length,
   ipfs: async (listing, args, context) => {
     const events = await listing.contract.eventCache.listings(listing.id)
     if (events.length) {

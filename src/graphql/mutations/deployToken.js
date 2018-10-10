@@ -1,4 +1,4 @@
-import Token from '../../contracts/OriginToken'
+import Token from '../contracts/OriginToken'
 
 import txHelper, { checkMetaMask } from './_txHelper'
 async function deployToken(_, { symbol, supply }, context) {

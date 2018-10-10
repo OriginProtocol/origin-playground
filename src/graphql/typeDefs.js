@@ -185,6 +185,7 @@ export default `
     offers: [Offer]
     getOffer(idx: Int!): Offer
     events: [Event]
+    totalEvents: Int
     createdEvent: Event
   }
 
@@ -262,6 +263,7 @@ export default `
     transactionHash: String
     transactionIndex: Int
     type: String
+    timestamp: Int
   }
 
   type EventRaw {

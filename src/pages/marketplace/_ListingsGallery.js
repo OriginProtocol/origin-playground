@@ -7,6 +7,15 @@ import { Card } from '@blueprintjs/core'
 import Price from 'components/Price'
 import Identity from 'components/Identity'
 
+function status(listing) {
+  console.log(listing.status)
+  if (listing.status === 'sold') {
+    return <div className="ribbon">Sold</div>
+  } else if (listing.status === 'withdrawn') {
+    return <div className="ribbon withdrawn">Withdrawn</div>
+  }
+}
+
 const Listings = ({ data, history }) => {
   if (!data.marketplace || !data.marketplace.allListings) return null
   return (
@@ -21,6 +30,7 @@ const Listings = ({ data, history }) => {
           <h5 className="bp3-heading ellip" style={{ maxWidth: 'none' }}>
             {a.ipfs ? a.ipfs.title : null}
           </h5>
+          {status(a)}
           {a.ipfs && a.ipfs.media && a.ipfs.media.length ? (
             <div
               className="main-pic"
@@ -39,7 +49,7 @@ const Listings = ({ data, history }) => {
           <div className="info">
             {`#${a.id}`}
             {a.createdEvent
-              ? ` created ${formatDate(a.createdEvent.block.timestamp)}`
+              ? ` created ${formatDate(a.createdEvent.timestamp)}`
               : ''}
           </div>
         </Card>
@@ -57,6 +67,23 @@ require('react-styl')(`
     grid-row-gap: 20px;
     grid-template-columns: repeat(auto-fill,minmax(265px, 1fr));
   .listing-card
+    position: relative
+    overflow: hidden
+    .ribbon
+      position: absolute;
+      background: #2989D8;
+      font-weight: bold;
+      color: #fff
+      line-height: 18px;
+      width: 100px;
+      text-align: center;
+      top: 20px;
+      right: -22px;
+      transform: rotate(45deg);
+      text-transform: uppercase;
+      font-size: 10px;
+      &.withdrawn
+        background: #F70505
     .main-pic
       height: 160px
       background-size: contain

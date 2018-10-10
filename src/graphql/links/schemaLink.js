@@ -1,6 +1,6 @@
 import { SchemaLink } from 'apollo-link-schema'
 
-import contracts from './context'
+import contracts from '../context'
 import schema from './schema'
 
 const link = new SchemaLink({

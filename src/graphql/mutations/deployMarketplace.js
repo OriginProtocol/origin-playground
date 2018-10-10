@@ -1,5 +1,4 @@
-import Marketplace from '../../contracts/V00_Marketplace'
-// import { resetContracts } from '../context'
+import Marketplace from '../contracts/V00_Marketplace'
 import txHelper, { checkMetaMask } from './_txHelper'
 
 async function deployMarketplace(

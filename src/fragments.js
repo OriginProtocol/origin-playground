@@ -24,6 +24,7 @@ export default {
       fragment basicListingFields on Listing {
         id
         status
+        totalEvents
         seller {
           id
         }
@@ -32,9 +33,7 @@ export default {
         }
         deposit
         createdEvent {
-          block {
-            timestamp
-          }
+          timestamp
         }
         ipfs {
           id

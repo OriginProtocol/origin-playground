@@ -1,6 +1,6 @@
 import { post } from 'utils/ipfsHash'
 import txHelper, { checkMetaMask } from './_txHelper'
-import validator from '../validator'
+import validator from '../utils/validator'
 
 async function createListing(_, input, context) {
   const { arbitrator, data, from, autoApprove } = input

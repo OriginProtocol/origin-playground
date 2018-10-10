@@ -23,6 +23,8 @@ const Listings = ({ data, history }) => {
           <th>Deposit</th>
           <th>Seller</th>
           <th>Created</th>
+          <th>Events</th>
+          <th>Status</th>
         </tr>
       </thead>
       <tbody>
@@ -44,7 +46,9 @@ const Listings = ({ data, history }) => {
             </td>
             <td>{currency({ amount: a.deposit, currency: 'OGN' })}</td>
             <td>{a.seller ? <Identity account={a.seller.id} /> : null}</td>
-            <td>{a.createdEvent ? formatDate(a.createdEvent.block.timestamp) : null}</td>
+            <td>{a.createdEvent ? formatDate(a.createdEvent.timestamp) : null}</td>
+            <td>{a.totalEvents}</td>
+            <td>{a.status}</td>
           </tr>
         ))}
       </tbody>
