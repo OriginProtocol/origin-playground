@@ -6,7 +6,7 @@
     <meta charset="UTF-8">
     <meta http-equiv="Content-Language" content="en">
     <link rel="icon" href="favicon.ico" />
-    <link rel="stylesheet" href="app.743c6981.css" />
+    <% _.forEach(htmlWebpackPlugin.files.css, function(file) { %><link rel="stylesheet" href="<%- file %>" /><% }); %>
   </head>
   <body><div id="app"><div class="p-3">Please wait...</div></div></body>
   <script src="vendor/web3.js"></script>
@@ -18,5 +18,5 @@
       openpgp.initWorker({ path: 'vendor/openpgp.worker.min.js' })
     }
   </script>
-  <script src="app.743c6981.js"></script>
+  <% _.forEach(htmlWebpackPlugin.files.js, function(file) { %><script src="<%- file %>"></script><% }); %>
 </html>

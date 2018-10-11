@@ -8,7 +8,6 @@ import Price from 'components/Price'
 import Identity from 'components/Identity'
 
 function status(listing) {
-  console.log(listing.status)
   if (listing.status === 'sold') {
     return <div className="ribbon">Sold</div>
   } else if (listing.status === 'withdrawn') {
@@ -69,6 +68,9 @@ require('react-styl')(`
   .listing-card
     position: relative
     overflow: hidden
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
     .ribbon
       position: absolute;
       background: #2989D8;

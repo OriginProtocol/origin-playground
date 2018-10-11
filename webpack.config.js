@@ -1,6 +1,10 @@
 var path = require('path')
 var webpack = require('webpack')
 const MiniCssExtractPlugin = require('mini-css-extract-plugin')
+const UglifyJsPlugin = require('uglifyjs-webpack-plugin')
+const CleanWebpackPlugin = require('clean-webpack-plugin')
+const OptimizeCSSAssetsPlugin = require('optimize-css-assets-webpack-plugin')
+const HtmlWebpackPlugin = require('html-webpack-plugin')
 
 const isProduction = process.env.NODE_ENV === 'production'
 
@@ -15,11 +19,10 @@ var config = {
   entry: {
     app: './src/index.js'
   },
-  devtool: 'cheap-module-source-map',
+  devtool: isProduction ? false : 'cheap-module-source-map',
   output: {
     filename: '[name].js',
-    path: path.resolve(__dirname, 'public'),
-    hashDigestLength: 8
+    path: path.resolve(__dirname, 'public')
   },
   externals: {
     Web3: 'web3'
@@ -41,7 +44,9 @@ var config = {
       {
         test: /\.css$/,
         use: [
-          isProduction ? MiniCssExtractPlugin.loader : 'style-loader',
+          {
+            loader: isProduction ? MiniCssExtractPlugin.loader : 'style-loader'
+          },
           {
             loader: 'css-loader'
           }
@@ -73,8 +78,9 @@ var config = {
       'Access-Control-Allow-Origin': '*'
     }
   },
-  mode: 'development',
+  mode: isProduction ? 'production' : 'development',
   plugins: [
+    new HtmlWebpackPlugin({ template: 'public/template.html', inject: false }),
     new webpack.EnvironmentPlugin({ HOST: 'localhost' }),
     new webpack.DefinePlugin({
       OfficialIdentities: JSON.stringify(OfficialIdentities)
@@ -82,17 +88,49 @@ var config = {
   ],
 
   optimization: {
-    splitChunks: {
-      cacheGroups: {
-        vendor: {
-          chunks: 'initial',
-          test: path.resolve(__dirname, 'node_modules'),
-          name: 'vendor',
-          enforce: true
-        }
-      }
-    }
+    // splitChunks: {
+    //   cacheGroups: {
+    //     app: {
+    //       chunks: 'all',
+    //       name: 'app',
+    //       enforce: true,
+    //       reuseExistingChunk: true,
+    //     }
+    //   }
+    // },
   }
+}
+
+if (isProduction) {
+  config.output.filename = '[name].[hash:8].js',
+  config.optimization.minimizer = [
+    new UglifyJsPlugin({
+      cache: true,
+      parallel: true,
+      sourceMap: false
+    }),
+    new OptimizeCSSAssetsPlugin({})
+  ]
+  config.plugins.push(
+    new CleanWebpackPlugin(['public/app.*', 'public/styles.*']),
+    new MiniCssExtractPlugin({
+      filename: '[name].[hash:8].css'
+    })
+  )
+  config.plugins.push(new webpack.IgnorePlugin(/redux-logger/))
+  // config.resolve.alias = {
+  //   react: 'react/umd/react.production.min.js',
+  //   'react-dom': 'react-dom/umd/react-dom.production.min.js',
+  //   'react-styl': 'react-styl/prod.js',
+  //   web3: path.resolve(__dirname, 'public/web3.min'),
+  //   redux: 'redux/dist/redux.min.js',
+  //   'react-redux': 'react-redux/dist/react-redux.min.js',
+  //   'react-router-dom': 'react-router-dom/umd/react-router-dom.min.js'
+  // }
+  // config.module.noParse = [
+  //   /^(react|react-dom|react-styl|redux|react-redux|react-router-dom)$/,
+  //   /web3/
+  // ]
 }
 
 module.exports = config

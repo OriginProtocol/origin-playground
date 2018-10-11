@@ -5,7 +5,7 @@ import { Navbar, Alignment, Icon } from '@blueprintjs/core'
 import Price from 'components/Price'
 import MetaMaskSwitcher from 'components/MetaMaskSwitcher'
 import Accounts from './accounts/Accounts'
-import Marketplace from './marketplace/Marketplace'
+import Listings from './marketplace/Listings'
 import Listing from './marketplace/Listing'
 import Contracts from './contracts/Contracts'
 import Explorer from './GraphIQL'
@@ -15,12 +15,15 @@ import Explorer from './GraphIQL'
 import TransactionToasts from './_TransactionToasts'
 import NodeInfo from './_NodeInfo'
 
-import 'normalize.css/normalize.css'
-import '@blueprintjs/core/lib/css/blueprint.css'
-import '@blueprintjs/table/lib/css/table.css'
-import '@blueprintjs/icons/lib/css/blueprint-icons.css'
-import '@blueprintjs/datetime/lib/css/blueprint-datetime.css'
-import 'graphiql/graphiql.css'
+if (process.env.NODE_ENV !== 'CSS') {
+  require('normalize.css/normalize.css')
+  require('@blueprintjs/core/lib/css/blueprint.css')
+  require('@blueprintjs/table/lib/css/table.css')
+  require('@blueprintjs/icons/lib/css/blueprint-icons.css')
+  require('@blueprintjs/datetime/lib/css/blueprint-datetime.css')
+  require('graphiql/graphiql.css')
+  require('../../public/css/app.css')
+}
 
 const App = () => (
   <>
@@ -37,13 +40,13 @@ const App = () => (
         >
           <Icon icon="shop" />
         </NavLink>
-        <NavLink
+        {/* <NavLink
           className="bp3-button bp3-minimal"
           activeClassName="bp3-active"
           to="/contracts"
         >
           Contracts
-        </NavLink>
+        </NavLink> */}
         <NavLink
           className="bp3-button bp3-minimal"
           activeClassName="bp3-active"
@@ -70,7 +73,7 @@ const App = () => (
     <Switch>
       <Route path="/accounts" component={Accounts} />
       <Route path="/marketplace/listings/:listingID" component={Listing} />
-      <Route path="/marketplace" component={Marketplace} />
+      <Route path="/marketplace" component={Listings} />
       <Route path="/contracts" component={Contracts} />
       <Route path="/explorer" component={Explorer} />
       <Redirect from="/" to="/marketplace" />
@@ -81,6 +84,8 @@ const App = () => (
 export default App
 
 require('react-styl')(`
+  body
+    min-width: 1000px
   .logo
     opacity: 0.75
     font-size: 1.2rem

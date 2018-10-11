@@ -54,6 +54,12 @@ export default function eventCache(contract, fromBlock = 0) {
     }
   }
 
+  async function allEvents(eventName) {
+    await getPastEvents()
+    return events.filter(e => {
+      return eventName ? e.event === eventName : true
+    })
+  }
   async function listings(listingId, eventName) {
     await getPastEvents()
     var listingTopic = web3.utils.padLeft(web3.utils.numberToHex(listingId), 64)
@@ -79,5 +85,5 @@ export default function eventCache(contract, fromBlock = 0) {
     })
   }
 
-  return { listings, offers, updateBlock }
+  return { listings, offers, allEvents, updateBlock }
 }

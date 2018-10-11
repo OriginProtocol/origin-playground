@@ -2,9 +2,24 @@ import React from 'react'
 import { withRouter } from 'react-router'
 import currency from 'utils/currency'
 import formatDate from 'utils/formatDate'
+import { Tag } from '@blueprintjs/core'
+import startCase from 'lodash/startCase'
 
 import Price from 'components/Price'
 import Identity from 'components/Identity'
+
+function status(listing) {
+  if (listing.status === 'active') {
+    return <Tag intent="primary">Active</Tag>
+  }
+  if (listing.status === 'withdrawn') {
+    return <Tag intent="danger">Withdrawn</Tag>
+  }
+  if (listing.status === 'sold') {
+    return <Tag intent="success">Sold</Tag>
+  }
+  return listing.status
+}
 
 const Listings = ({ data, history }) => {
   if (!data.marketplace || !data.marketplace.allListings) return null
@@ -16,6 +31,7 @@ const Listings = ({ data, history }) => {
       <thead>
         <tr>
           <th>ID</th>
+          <th>Status</th>
           <th>Category</th>
           <th>Title</th>
           <th>Price</th>
@@ -24,7 +40,6 @@ const Listings = ({ data, history }) => {
           <th>Seller</th>
           <th>Created</th>
           <th>Events</th>
-          <th>Status</th>
         </tr>
       </thead>
       <tbody>
@@ -34,7 +49,8 @@ const Listings = ({ data, history }) => {
             onClick={() => history.push(`/marketplace/listings/${a.id}`)}
           >
             <td>{a.id}</td>
-            <td>{a.ipfs ? a.ipfs.category : null}</td>
+            <td>{status(a)}</td>
+            <td>{a.ipfs ? startCase(a.ipfs.category.replace(/^schema\./, '')) : null}</td>
             <td>
               <div className="ellip">{a.ipfs ? a.ipfs.title : null}</div>
             </td>
@@ -48,7 +64,6 @@ const Listings = ({ data, history }) => {
             <td>{a.seller ? <Identity account={a.seller.id} /> : null}</td>
             <td>{a.createdEvent ? formatDate(a.createdEvent.timestamp) : null}</td>
             <td>{a.totalEvents}</td>
-            <td>{a.status}</td>
           </tr>
         ))}
       </tbody>

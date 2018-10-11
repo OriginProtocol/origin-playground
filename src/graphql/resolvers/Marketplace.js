@@ -54,5 +54,13 @@ export default {
       return null
     }
     return { id: await contract.methods.owner().call() }
+  },
+  events: async (_, { limit = 10, offset = 0 }, context) => {
+    const events = await context.contracts.marketplace.eventCache.allEvents()
+    return [...events].reverse().slice(offset, offset + limit)
+  },
+  totalEvents: async (_, args, context) => {
+    const events = await context.contracts.marketplace.eventCache.allEvents()
+    return events.length
   }
 }

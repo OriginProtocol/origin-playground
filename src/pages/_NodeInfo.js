@@ -3,6 +3,7 @@ import gql from 'graphql-tag'
 import { Subscription, Mutation } from 'react-apollo'
 import { Button, Popover, Position, Menu } from '@blueprintjs/core'
 import numberFormat from 'utils/numberFormat'
+import get from 'lodash/get'
 
 const NEW_BLOCKS_SUBSCRIPTION = gql`
   subscription onNewBlock {
@@ -24,6 +25,9 @@ const Subs = () => (
     {(setNetwork, { client }) => (
       <Subscription subscription={NEW_BLOCKS_SUBSCRIPTION}>
         {({ data, loading }) => {
+          if (!get(data, 'newBlock.number')) {
+            return null
+          }
           let networkName = 'Custom network'
           if (localStorage.ognNetwork === 'mainnet') {
             networkName = 'Ethereum Mainnet'

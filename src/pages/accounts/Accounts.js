@@ -9,6 +9,8 @@ import NodeAccounts from './_NodeAccounts'
 import WalletAccounts from './_WalletAccounts'
 import CreateWallet from './_CreateWallet'
 
+import Contracts from '../contracts/Contracts'
+
 import {
   CreateWalletMutation,
   DeployTokenMutation,
@@ -228,6 +230,8 @@ class Accounts extends Component {
                 icon="refresh"
                 onClick={() => refetch()}
               />
+              <hr style={{ marginTop: '1.5rem', marginBottom: '1rem' }} />
+              <Contracts />
             </div>
           )
         }}

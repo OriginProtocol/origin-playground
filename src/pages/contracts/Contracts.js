@@ -47,7 +47,7 @@ class Contracts extends Component {
           const marketplaces = data.marketplaces || []
           const tokens = data.tokens || []
           return (
-            <div className="p-3">
+            <div className="">
               <div
                 style={{
                   display: 'flex',

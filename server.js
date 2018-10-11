@@ -7,11 +7,11 @@ global.fetch = require('node-fetch')
 import typeDefs from './src/graphql/typeDefs'
 import resolvers from './src/graphql/resolvers'
 
-import MarketplaceContract from './src/contracts/V00_Marketplace'
-import UserRegistryContract from './src/contracts/V00_UserRegistry'
-import ClaimHolderRegisteredContract from './src/contracts/ClaimHolderRegistered'
-import TokenContract from './src/contracts/OriginToken'
-import eventCache from './src/graphql/eventCache'
+import MarketplaceContract from './src/graphql/contracts/V00_Marketplace'
+import UserRegistryContract from './src/graphql/contracts/V00_UserRegistry'
+import ClaimHolderRegisteredContract from './src/graphql/contracts/ClaimHolderRegistered'
+import TokenContract from './src/graphql/contracts/OriginToken'
+import eventCache from './src/graphql/utils/eventCache'
 
 const EventBlock = 6400000
 

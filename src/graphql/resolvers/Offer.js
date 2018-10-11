@@ -4,7 +4,7 @@ import getListing from './helpers/getListing'
 
 export default {
   listing: offer => getListing(offer.contract, { idx: offer.listingId }),
-  ipfs: offer =>
+  ipfs: (offer, args, context) =>
     new Promise(async (resolve, reject) => {
       const events = await offer.contract.eventCache.offers(
         offer.listingId,
@@ -16,7 +16,7 @@ export default {
       const hash = events[0].returnValues.ipfsHash
       let data
       try {
-        data = await get('http://localhost:5002', hash)
+        data = await get(context.contracts.ipfsGateway, hash)
       } catch (e) {
         return reject(e)
       }

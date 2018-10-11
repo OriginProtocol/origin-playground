@@ -172,6 +172,8 @@ export default `
     getListing(idx: Int!): Listing
     getOffer(idx: Int!, listingId: Int!): Offer
     allListings(offset: Int, limit: Int): [Listing]
+    totalEvents: Int
+    events(offset: Int, limit: Int): [Event]
   }
 
   type Listing {
