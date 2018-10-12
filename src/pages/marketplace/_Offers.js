@@ -21,6 +21,7 @@ import {
 import AccountButton from '../accounts/AccountButton'
 
 const Offers = ({ listing, offers, accounts }) => {
+  if (!offers.length) return <div>No offers yet!</div>
   return (
     <table className="bp3-html-table bp3-small">
       <thead>

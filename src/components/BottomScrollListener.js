@@ -44,7 +44,7 @@ class BottomScrollListener extends Component {
 
 BottomScrollListener.defaultProps = {
   debounce: 200,
-  offset: 0,
+  offset: 400,
   children: null
 }
 

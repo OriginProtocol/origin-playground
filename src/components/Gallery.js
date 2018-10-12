@@ -1,4 +1,5 @@
 import React, { Component } from 'react'
+import { ipfsGateway } from 'utils/config'
 
 class Gallery extends Component {
   state = { active: 0 }
@@ -10,7 +11,7 @@ class Gallery extends Component {
         <div
           className="main-pic"
           style={{
-            backgroundImage: `url(https://ipfs.originprotocol.com/${active.url.replace(
+            backgroundImage: `url(${ipfsGateway}/${active.url.replace(
               ':/',
               ''
             )})`
@@ -22,10 +23,7 @@ class Gallery extends Component {
               <img
                 key={idx}
                 onClick={() => this.setState({ active: idx })}
-                src={`https://ipfs.originprotocol.com/${m.url.replace(
-                  ':/',
-                  ''
-                )}`}
+                src={`${ipfsGateway}/${m.url.replace(':/', '')}`}
                 className={this.state.active === idx ? 'active' : ''}
               />
             ))}

@@ -3,12 +3,13 @@ import { getIpfsHashFromBytes32 } from 'utils/ipfsHash'
 import formatDate from 'utils/formatDate'
 
 import Identity from 'components/Identity'
+import { ipfsGateway } from 'utils/config'
 
 function ipfs(rawHash) {
   var hash = getIpfsHashFromBytes32(rawHash)
   return (
     <a
-      href={`http://localhost:9090/ipfs/${hash}`}
+      href={`${ipfsGateway}/ipfs/${hash}`}
       target="_blank"
       rel="noopener noreferrer"
     >

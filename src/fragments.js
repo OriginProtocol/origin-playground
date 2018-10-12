@@ -82,7 +82,10 @@ export default {
           buyer
           finalizes
           affiliate
-          commission
+          commission {
+            amount
+            currency
+          }
           value
           refund
           currency

@@ -4,7 +4,7 @@ import fragments from '../../../fragments'
 export default gql`
   query Listing($listingId: String!) {
     marketplace {
-      getListing(idx: $listingId) {
+      getListing(id: $listingId) {
         ...basicListingFields
         events {
           id

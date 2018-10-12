@@ -1,13 +1,14 @@
 import pubsub from '../utils/pubsub'
+import contracts from '../contracts'
 
-export async function checkMetaMask(context, from) {
-  if (context.contracts.metaMask && context.contracts.metaMaskEnabled) {
+export async function checkMetaMask(from) {
+  if (contracts.metaMask && contracts.metaMaskEnabled) {
     const net = await web3.eth.net.getId()
-    const mmNet = await context.contracts.metaMask.eth.net.getId()
+    const mmNet = await contracts.metaMask.eth.net.getId()
     if (net !== mmNet) {
       throw(new Error(`MetaMask is not on network ${net}`))
     }
-    const mmAccount = await context.contracts.metaMask.eth.getAccounts()
+    const mmAccount = await contracts.metaMask.eth.getAccounts()
     if (!mmAccount || mmAccount[0] !== from) {
       throw(new Error(`MetaMask is not set to account ${from}`))
     }
@@ -18,8 +19,7 @@ export default function txHelper({
   tx,
   mutation,
   onConfirmation,
-  onReceipt,
-  context
+  onReceipt
 }) {
   return new Promise((resolve, reject) => {
     let txHash
@@ -35,8 +35,8 @@ export default function txHelper({
       })
     })
       .once('receipt', receipt => {
-        if (context) {
-          context.contracts.marketplace.eventCache.updateBlock(
+        if (contracts.marketplace) {
+          contracts.marketplace.eventCache.updateBlock(
             receipt.blockNumber
           )
         }
@@ -52,8 +52,8 @@ export default function txHelper({
         })
       })
       .on('confirmation', function(confNumber, receipt) {
-        if (context) {
-          context.contracts.marketplace.eventCache.updateBlock(
+        if (contracts.marketplace) {
+          contracts.marketplace.eventCache.updateBlock(
             receipt.blockNumber
           )
         }

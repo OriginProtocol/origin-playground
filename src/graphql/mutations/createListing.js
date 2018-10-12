@@ -1,10 +1,11 @@
 import { post } from 'utils/ipfsHash'
 import txHelper, { checkMetaMask } from './_txHelper'
 import validator from '../utils/validator'
+import contracts from '../contracts'
 
-async function createListing(_, input, context) {
+async function createListing(_, input) {
   const { arbitrator, data, from, autoApprove } = input
-  await checkMetaMask(context, from)
+  await checkMetaMask(from)
 
   const ipfsData = {
     "schemaId": "http://schema.originprotocol.com/listing_v1.0.0",
@@ -26,7 +27,7 @@ async function createListing(_, input, context) {
 
   validator('http://schema.originprotocol.com/listing_v1.0.0', ipfsData)
 
-  const ipfsHash = await post(context.contracts.ipfsRPC, ipfsData)
+  const ipfsHash = await post(contracts.ipfsRPC, ipfsData)
 
   let createListingCall
   const deposit = web3.utils.toWei(String(input.deposit), 'ether')
@@ -39,14 +40,14 @@ async function createListing(_, input, context) {
       ['bytes32', 'uint', 'address'],
       [ipfsHash, deposit, arbitrator]
     )
-    createListingCall = context.contracts.ognExec.methods.approveAndCallWithSender(
-      context.contracts.marketplace._address,
+    createListingCall = contracts.ognExec.methods.approveAndCallWithSender(
+      contracts.marketplace._address,
       deposit,
       fnSig,
       params
     )
   } else {
-    createListingCall = context.contracts.marketplaceExec.methods.createListing(
+    createListingCall = contracts.marketplaceExec.methods.createListing(
       ipfsHash,
       deposit,
       arbitrator
@@ -58,7 +59,6 @@ async function createListing(_, input, context) {
       gas: 4612388,
       from: from || web3.eth.defaultAccount
     }),
-    context,
     mutation: 'createListing'
   })
 }

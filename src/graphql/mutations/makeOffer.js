@@ -1,10 +1,31 @@
 import { post } from 'utils/ipfsHash'
 import txHelper, { checkMetaMask } from './_txHelper'
+import validator from '../utils/validator'
+import contracts from '../contracts'
 
-async function makeOffer(_, data, context) {
-  await checkMetaMask(context, data.from)
-  const buyer = data.from || web3.eth.defaultAccount
-  const marketplace = context.contracts.marketplaceExec
+async function makeOffer(_, data) {
+  await checkMetaMask(data.from)
+
+  const ipfsData = {
+    schemaId: 'http://schema.originprotocol.com/offer_v1.0.0',
+    listingId: data.listingID,
+    listingType: 'unit',
+    unitsPurchased: 1,
+    totalPrice: {
+      amount: data.value,
+      currency: 'ETH'
+    },
+    commission: {
+      amount: data.commission,
+      currency: 'OGN'
+    },
+    finalizes: data.finalizes
+  }
+
+  validator('http://schema.originprotocol.com/offer_v1.0.0', ipfsData)
+
+  const buyer = data.from
+  const marketplace = contracts.marketplaceExec
 
   const affilaiteWhitelistDisabled = await marketplace.methods
     .allowedAffiliates(marketplace.options.address)
@@ -20,8 +41,9 @@ async function makeOffer(_, data, context) {
     }
   }
 
-  const ipfsHash = await post(context.contracts.ipfsRPC, { ...data, buyer })
+  const ipfsHash = await post(contracts.ipfsRPC, ipfsData)
   const commission = web3.utils.toWei(data.commission, 'ether')
+  const value = web3.utils.toWei(data.value, 'ether')
 
   const args = [
     data.listingID,
@@ -29,7 +51,7 @@ async function makeOffer(_, data, context) {
     data.finalizes,
     data.affiliate,
     commission,
-    data.value,
+    value,
     data.currency,
     data.arbitrator
   ]
@@ -40,13 +62,9 @@ async function makeOffer(_, data, context) {
   const tx = marketplace.methods.makeOffer(...args).send({
     gas: 4612388,
     from: buyer,
-    value: data.value
+    value
   })
-  return txHelper({
-    tx,
-    context,
-    mutation: 'makeOffer'
-  })
+  return txHelper({ tx, mutation: 'makeOffer' })
 }
 
 export default makeOffer

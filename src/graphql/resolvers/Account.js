@@ -1,9 +1,10 @@
 import balancesFromWei from 'utils/balancesFromWei'
+import contracts from '../contracts'
 
 export default {
-  balance: async (account, args, context) => {
+  balance: async (account) => {
     const wei = await web3.eth.getBalance(account.id)
-    return balancesFromWei(wei, context)
+    return balancesFromWei(wei)
   },
   role: account => {
     let roles = {}
@@ -23,10 +24,10 @@ export default {
     }
     return names[account.id]
   },
-  token: async (account, args, context) => {
+  token: async (account, args) => {
     if (args.symbol === 'OGN') {
-      if (!context.contracts.ogn || !context.contracts.ogn.options.address) return null
-      const balance = await context.contracts.ogn.methods
+      if (!contracts.ogn || !contracts.ogn.options.address) return null
+      const balance = await contracts.ogn.methods
         .balanceOf(account.id)
         .call()
       return {
@@ -38,8 +39,8 @@ export default {
     }
     return null
   },
-  identity: async (account, args, context) => {
-    const ur = context.contracts.userRegistry
+  identity: async (account) => {
+    const ur = contracts.userRegistry
     if (!ur || !ur.options.address) return null
     const id = await ur.methods.users(account.id).call()
     return { id }

@@ -172,7 +172,7 @@ export const WithdrawListingMutation = gql`
 export const MakeOfferMutation = gql`
   mutation MakeOffer(
     $listingID: String
-    $finalizes: String
+    $finalizes: Int
     $affiliate: String
     $commission: String
     $value: String

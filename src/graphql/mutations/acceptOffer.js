@@ -1,20 +1,19 @@
 import { post } from 'utils/ipfsHash'
 import txHelper, { checkMetaMask } from './_txHelper'
+import contracts from '../contracts'
 
-async function acceptOffer(_, data, context) {
-  await checkMetaMask(context, data.from)
-  const ipfsHash = await post(context.contracts.ipfsRPC, data)
-  const tx = context.contracts.marketplaceExec.methods
+async function acceptOffer(_, data) {
+  await checkMetaMask(data.from)
+  const ipfsHash = await post(contracts.ipfsRPC, {
+    schemaId: 'http://schema.originprotocol.com/offer-accept_v1.0.0'
+  })
+  const tx = contracts.marketplaceExec.methods
     .acceptOffer(data.listingID, data.offerID, ipfsHash)
     .send({
       gas: 4612388,
       from: data.from || web3.eth.defaultAccount
     })
-  return txHelper({
-    tx,
-    context,
-    mutation: 'acceptOffer'
-  })
+  return txHelper({ tx, mutation: 'acceptOffer' })
 }
 
 export default acceptOffer

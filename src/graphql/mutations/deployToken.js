@@ -1,9 +1,10 @@
 import Token from '../contracts/OriginToken'
+import contracts from '../contracts'
 
 import txHelper, { checkMetaMask } from './_txHelper'
-async function deployToken(_, { symbol, supply }, context) {
-  const web3 = context.contracts.web3Exec
-  await checkMetaMask(context, web3.eth.defaultAccount)
+async function deployToken(_, { symbol, supply }) {
+  const web3 = contracts.web3Exec
+  await checkMetaMask(web3.eth.defaultAccount)
   const Contract = new web3.eth.Contract(Token.abi)
   supply = web3.utils.toWei(supply, 'ether')
   const tx = Contract.deploy({
@@ -30,8 +31,8 @@ async function deployToken(_, { symbol, supply }, context) {
       }
       tokens[symbol] = receipt.contractAddress
       localStorage.tokens = JSON.stringify(tokens)
-      context.contracts.ogn.options.address = receipt.contractAddress
-      context.contracts[receipt.contractAddress] = context.contracts.ogn
+      contracts.ogn.options.address = receipt.contractAddress
+      contracts[receipt.contractAddress] = contracts.ogn
     }
   })
 }

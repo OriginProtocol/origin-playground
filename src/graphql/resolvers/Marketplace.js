@@ -1,5 +1,6 @@
 import getListing from './helpers/getListing'
 import offerFields from './helpers/offerFields'
+import contracts from '../contracts'
 
 export default {
   address: contract => {
@@ -23,15 +24,15 @@ export default {
     const ids = Array.from({ length: Number(totalListings) }, (v, i) => i)
       .reverse()
       .slice(offset, offset + limit)
-    return Promise.all(ids.map(idx => getListing(contract, { idx })))
+    return Promise.all(ids.map(id => getListing(contract, { id })))
   },
   getOffer: async (contract, args) => {
     if (!contract) {
       return null
     }
-    const offer = await contract.methods.offers(args.listingId, args.idx).call()
+    const offer = await contract.methods.offers(args.listingId, args.id).call()
     return {
-      id: args.idx,
+      id: args.id,
       listingId: args.listingId,
       ...offerFields(offer),
       contract
@@ -55,12 +56,12 @@ export default {
     }
     return { id: await contract.methods.owner().call() }
   },
-  events: async (_, { limit = 10, offset = 0 }, context) => {
-    const events = await context.contracts.marketplace.eventCache.allEvents()
+  events: async (_, { limit = 10, offset = 0 }) => {
+    const events = await contracts.marketplace.eventCache.allEvents()
     return [...events].reverse().slice(offset, offset + limit)
   },
-  totalEvents: async (_, args, context) => {
-    const events = await context.contracts.marketplace.eventCache.allEvents()
+  totalEvents: async () => {
+    const events = await contracts.marketplace.eventCache.allEvents()
     return events.length
   }
 }

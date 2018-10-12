@@ -79,9 +79,9 @@ class Listing extends Component {
             return (
               <>
                 <div style={{ display: 'flex' }}>
-                  {!media.length ? null : (
+                  {!media.length && !listingData.description ? null : (
                     <div style={{ maxWidth: 300, margin: '20px 20px 0 0' }}>
-                      <Gallery pics={media} />
+                      {!media.length ? null :<Gallery pics={media} />}
                       <div className="mt-2">{listingData.description}</div>
                     </div>
                   )}

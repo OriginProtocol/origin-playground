@@ -55,7 +55,7 @@ const Configs = {
 
 const context = {}
 
-export function setContext(net) {
+export function setNetwork(net) {
   const config = Configs[net]
   if (!config) {
     return
@@ -169,7 +169,6 @@ export function toggleMetaMask() {
 }
 
 if (typeof window !== 'undefined' && process.env.NODE_ENV !== 'CSS') {
-  window.context = context
   if (window.web3) {
     metaMask = new Web3(web3.currentProvider)
     metaMaskEnabled = window.localStorage.metaMaskEnabled ? true : false
@@ -179,7 +178,7 @@ if (typeof window !== 'undefined' && process.env.NODE_ENV !== 'CSS') {
   Configs.localhost.V00_Marketplace = window.localStorage.marketplaceContract
   Configs.localhost.V00_UserRegistry = window.localStorage.userRegistryContract
 
-  setContext(window.localStorage.ognNetwork || 'mainnet')
+  setNetwork(window.localStorage.ognNetwork || 'mainnet')
 
   window.context = context
 }

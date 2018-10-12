@@ -159,7 +159,6 @@
     "globals": {
       "Web3": true,
       "web3": true,
-      "OfficialIdentities": true,
       "openpgp": true
     },
     "env": {

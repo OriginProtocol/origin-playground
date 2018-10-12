@@ -1,14 +1,15 @@
 import { get } from 'utils/ipfsHash'
+import contracts from '../contracts'
 
 export default {
-  claims: (identity, args, context) =>
+  claims: (identity) =>
     new Promise(async resolve => {
 
-      const contract = context.contracts.claimHolderRegistered
+      const contract = contracts.claimHolderRegistered
       contract.options.address = identity.id
 
       const claims = await contract.getPastEvents('ClaimAdded', {
-        fromBlock: context.contracts.EventBlock
+        fromBlock: contracts.EventBlock
       })
 
       resolve(
@@ -35,14 +36,14 @@ export default {
         })
       )
     }),
-  profile: async function(identity, args, context) {
+  profile: async function(identity) {
     if (identity.id.indexOf('0x0000') === 0) return null
 
-    const contract = context.contracts.claimHolderRegistered
+    const contract = contracts.claimHolderRegistered
     contract.options.address = identity.id
 
     const claims = await contract.getPastEvents('ClaimAdded', {
-      fromBlock: context.contracts.EventBlock,
+      fromBlock: contracts.EventBlock,
       filter: { topic: '13'}
     })
 
@@ -53,7 +54,7 @@ export default {
 
     let data
     try {
-      data = await get(context.contracts.ipfsGateway, ipfsHash)
+      data = await get(contracts.ipfsGateway, ipfsHash)
     } catch (e) {
       return null
     }

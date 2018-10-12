@@ -4,7 +4,6 @@ import gql from 'graphql-tag'
 
 import { Button } from '@blueprintjs/core'
 
-// import { resetContracts } from '../../graphql/context'
 import NodeAccounts from './_NodeAccounts'
 import WalletAccounts from './_WalletAccounts'
 import CreateWallet from './_CreateWallet'

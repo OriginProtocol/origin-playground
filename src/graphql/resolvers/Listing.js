@@ -1,4 +1,5 @@
 import { get } from 'utils/ipfsHash'
+import contracts from '../contracts'
 
 import getOffer from './helpers/getOffer'
 
@@ -7,7 +8,7 @@ export default {
     await listing.contract.eventCache.listings(listing.id),
   totalEvents: async listing =>
     (await listing.contract.eventCache.listings(listing.id)).length,
-  ipfs: async (listing, args, context) => {
+  ipfs: async (listing) => {
     const events = await listing.contract.eventCache.listings(listing.id)
     if (events.length) {
       let ipfsHash
@@ -21,7 +22,7 @@ export default {
       })
       let data
       try {
-        data = await get(context.contracts.ipfsGateway, ipfsHash)
+        data = await get(contracts.ipfsGateway, ipfsHash)
       } catch (e) {
         return null
       }
@@ -46,7 +47,7 @@ export default {
     const offers = []
     for (const id of Array.from({ length: Number(totalOffers) }, (v, i) => i)) {
       offers.push(
-        await getOffer(listing.contract, { listingId: listing.id, idx: id })
+        await getOffer(listing.contract, { listingId: listing.id, id })
       )
     }
     return offers

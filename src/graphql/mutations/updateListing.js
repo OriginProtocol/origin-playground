@@ -1,10 +1,11 @@
 import { post } from 'utils/ipfsHash'
 import txHelper, { checkMetaMask } from './_txHelper'
+import contracts from '../contracts'
 
-async function updateListing(_, args, context) {
+async function updateListing(_, args) {
   const { listingID, data, from, autoApprove } = args
-  await checkMetaMask(context, from)
-  const ipfsHash = await post(context.contracts.ipfsRPC, data)
+  await checkMetaMask(from)
+  const ipfsHash = await post(contracts.ipfsRPC, data)
 
   let updateListingCall
   const additionalDeposit = web3.utils.toWei(
@@ -20,14 +21,14 @@ async function updateListing(_, args, context) {
       ['uint256', 'bytes32', 'uint256'],
       [listingID, ipfsHash, additionalDeposit]
     )
-    updateListingCall = context.contracts.ognExec.methods.approveAndCallWithSender(
-      context.contracts.marketplace._address,
+    updateListingCall = contracts.ognExec.methods.approveAndCallWithSender(
+      contracts.marketplace._address,
       additionalDeposit,
       fnSig,
       params
     )
   } else {
-    updateListingCall = context.contracts.marketplaceExec.methods.updateListing(
+    updateListingCall = contracts.marketplaceExec.methods.updateListing(
       listingID,
       ipfsHash,
       additionalDeposit
@@ -38,11 +39,7 @@ async function updateListing(_, args, context) {
     gas: 4612388,
     from: from || web3.eth.defaultAccount
   })
-  return txHelper({
-    tx,
-    context,
-    mutation: 'updateListing'
-  })
+  return txHelper({ tx, mutation: 'updateListing' })
 }
 
 export default updateListing

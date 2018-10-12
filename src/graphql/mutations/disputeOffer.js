@@ -1,11 +1,12 @@
 import { post } from 'utils/ipfsHash'
 import txHelper, { checkMetaMask } from './_txHelper'
+import contracts from '../contracts'
 
-async function disputeOffer(_, data, context) {
-  await checkMetaMask(context, data.from)
-  const ipfsHash = await post(context.contracts.ipfsRPC, data)
+async function disputeOffer(_, data) {
+  await checkMetaMask(data.from)
+  const ipfsHash = await post(contracts.ipfsRPC, data)
 
-  const tx = context.contracts.marketplaceExec.methods
+  const tx = contracts.marketplaceExec.methods
     .dispute(data.listingID, data.offerID, ipfsHash)
     .send({
       gas: 4612388,
@@ -13,7 +14,6 @@ async function disputeOffer(_, data, context) {
     })
   return txHelper({
     tx,
-    context,
     mutation: 'disputeOffer'
   })
 }

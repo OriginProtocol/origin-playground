@@ -35,7 +35,7 @@ const Events = () => (
   <div className="mt-3">
     <Query
       query={query}
-      variables={{ offset: 0, limit: 10 }}
+      variables={{ offset: 0, limit: 20 }}
       notifyOnNetworkStatusChange={true}
     >
       {({ data, error, fetchMore, networkStatus }) => {

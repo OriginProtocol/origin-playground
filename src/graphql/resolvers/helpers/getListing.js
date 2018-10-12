@@ -4,12 +4,12 @@ export default async (contract, args) => {
     ipfsHash,
     status = 'active'
   try {
-    listing = await contract.methods.listings(args.idx).call()
+    listing = await contract.methods.listings(args.id).call()
   } catch (e) {
     return null
   }
 
-  const events = await contract.eventCache.listings(args.idx)
+  const events = await contract.eventCache.listings(args.id)
 
   events.forEach(e => {
     if (e.event === 'ListingCreated') {
@@ -31,7 +31,7 @@ export default async (contract, args) => {
   })
 
   return {
-    id: String(args.idx),
+    id: args.id,
     ipfs: ipfsHash ? { id: ipfsHash } : null,
     deposit: listing.deposit,
     arbitrator: listing.depositManager ? { id: listing.depositManager } : null,

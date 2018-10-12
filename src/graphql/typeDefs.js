@@ -61,14 +61,14 @@ export default `
     ): Transaction
 
     makeOffer(
-      listingID: String,
-      finalizes: String,
-      affiliate: String,
-      commission: String,
-      value: String,
-      currency: String,
-      arbitrator: String,
-      from: String,
+      listingID: String
+      finalizes: Int
+      affiliate: String
+      commission: String
+      value: String
+      currency: String
+      arbitrator: String
+      from: String
       withdraw: String
     ): Transaction
 
@@ -87,7 +87,7 @@ export default `
 
     acceptOffer(listingID: String!, offerID: String!, from: String): Transaction
     withdrawOffer(listingID: String!, offerID: String!, from: String): Transaction
-    finalizeOffer(listingID: String!, offerID: String!, from: String): Transaction
+    finalizeOffer(listingID: String!, offerID: String!, from: String, rating: Int, review: String): Transaction
     disputeOffer(listingID: String!, offerID: String!, from: String): Transaction
     addFunds(listingID: String!, offerID: String!, amount: String!, from: String): Transaction
     updateRefund(listingID: String!, offerID: String!, amount: String!, from: String): Transaction
@@ -131,7 +131,7 @@ export default `
     account: String
     symbol: String
     balance: String
-    allowance(contract: String!): String
+    allowance(contract: String): String
   }
 
   type Token {
@@ -169,15 +169,15 @@ export default `
     owner: Account
     account: Account
     totalListings: Int
-    getListing(idx: Int!): Listing
-    getOffer(idx: Int!, listingId: Int!): Offer
+    getListing(id: String!): Listing
+    getOffer(id: String!, listingId: String!): Offer
     allListings(offset: Int, limit: Int): [Listing]
     totalEvents: Int
     events(offset: Int, limit: Int): [Event]
   }
 
   type Listing {
-    id: Int!
+    id: String!
     status: String
     seller: Account
     deposit: String
@@ -185,7 +185,7 @@ export default `
     ipfs: ListingData
     totalOffers: Int
     offers: [Offer]
-    getOffer(idx: Int!): Offer
+    getOffer(id: String!): Offer
     events: [Event]
     totalEvents: Int
     createdEvent: Event
@@ -207,8 +207,8 @@ export default `
   }
 
   type Offer {
-    id: Int!
-    listingId: Int!
+    id: String!
+    listingId: String!
     listing: Listing
     value: String
     commission: String
@@ -226,7 +226,7 @@ export default `
   type OfferData {
     id: ID!
     buyer: String
-    finalizes: String
+    finalizes: Int
     affiliate: String
     commission: Price
     value: String

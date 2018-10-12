@@ -1,7 +1,7 @@
-import { setContext } from '../context'
+import * as contracts from '../contracts'
 
 async function setNetwork(_, { network }) {
-  setContext(network)
+  contracts.setNetwork(network)
   return true
 }
 

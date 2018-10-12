@@ -23,7 +23,9 @@ export default {
         .getBlock(event.blockNumber)
         .then(block => {
           timestamps[event.blockNumber] = block.timestamp
-          window.localStorage.blocktimes = JSON.stringify(timestamps)
+          if (typeof window !== 'undefined') {
+            window.localStorage.blocktimes = JSON.stringify(timestamps)            
+          }
           resolve(block.timestamp)
         })
         .catch(reject)

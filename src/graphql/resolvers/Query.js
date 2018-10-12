@@ -1,8 +1,10 @@
+import contracts from '../contracts'
+
 let ethPrice
 
 export default {
   web3: () => ({}),
-  marketplace: (_, args, context) => context.contracts.marketplace,
+  marketplace: () => contracts.marketplace,
   contracts: () => {
     let contracts = []
     try {
@@ -10,11 +12,10 @@ export default {
     } catch (e) {
       /* Ignore  */
     }
-    console.log(contracts)
     return contracts
   },
-  marketplaces: (_, args, context) => context.contracts.marketplaces,
-  tokens: (_, args, context) => context.contracts.tokens,
+  marketplaces: () => contracts.marketplaces,
+  tokens: () => contracts.tokens,
   ethUsd: () => new Promise((resolve, reject) => {
     if (ethPrice) { return resolve(ethPrice)}
     fetch("https://api.coinmarketcap.com/v2/ticker/1027/")

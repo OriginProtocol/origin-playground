@@ -163,10 +163,10 @@ class MakeOffer extends Component {
     const variables = {
       listingID: String(this.props.listing.id),
       from: this.state.from,
-      finalizes: String(Math.floor(Number(this.state.finalizes) / 1000)),
+      finalizes: Math.floor(Number(this.state.finalizes) / 1000),
       affiliate,
       commission: affiliate === ZeroAddress ? '0' : this.state.commission,
-      value: web3.utils.toWei(this.state.value, 'ether'),
+      value: this.state.value,
       currency: ZeroAddress,
       arbitrator: this.state.arbitrator
     }

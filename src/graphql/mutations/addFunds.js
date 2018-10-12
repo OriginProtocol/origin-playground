@@ -1,22 +1,19 @@
 import { post } from 'utils/ipfsHash'
 import txHelper, { checkMetaMask } from './_txHelper'
+import contracts from '../contracts'
 
-async function addFunds(_, data, context) {
-  await checkMetaMask(context, data.from)
-  const ipfsHash = await post(context.contracts.ipfsRPC, data)
+async function addFunds(_, data) {
+  await checkMetaMask(data.from)
+  const ipfsHash = await post(contracts.ipfsRPC, data)
 
-  const tx = context.contracts.marketplaceExec.methods
+  const tx = contracts.marketplaceExec.methods
     .addFunds(data.listingID, data.offerID, ipfsHash, data.amount)
     .send({
       gas: 4612388,
       from: data.from || web3.eth.defaultAccount,
       value: data.amount
     })
-  return txHelper({
-    tx,
-    context,
-    mutation: 'addFunds'
-  })
+  return txHelper({ tx, mutation: 'addFunds' })
 }
 
 export default addFunds

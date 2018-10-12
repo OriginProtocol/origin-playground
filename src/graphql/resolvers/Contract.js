@@ -1,9 +1,10 @@
 import balancesFromWei from 'utils/balancesFromWei'
+import contracts from '../contracts'
 
 export default {
-  balance: async (contract, args, context) => {
+  balance: async (contract) => {
     const wei = await web3.eth.getBalance(contract.id)
-    return balancesFromWei(wei, context)
+    return balancesFromWei(wei)
   },
   type: contract => {
     let types = {}
@@ -23,9 +24,9 @@ export default {
     }
     return names[contract.id]
   },
-  token: async (contract, args, context) => {
+  token: async (contract, args) => {
     if (args.symbol === 'OGN') {
-      const balance = await context.contracts.ogn.methods
+      const balance = await contracts.ogn.methods
         .balanceOf(contract.id)
         .call()
       return {

@@ -1,3 +1,5 @@
+import contracts from '../contracts'
+
 export default {
   networkId: () => web3.eth.net.getId(),
   nodeAccounts: () => new Promise((resolve) => {
@@ -24,11 +26,11 @@ export default {
       ...transaction
     }
   },
-  metaMaskAvailable: (_, args, context) => context.contracts.metaMask ? true : false,
-  metaMaskEnabled: (_, args, context) => context.contracts.metaMaskEnabled,
-  metaMaskAccount: async (_, args, context) => {
-    if (!context.contracts.metaMask) return null
-    const accounts = await context.contracts.metaMask.eth.getAccounts()
+  metaMaskAvailable: () => contracts.metaMask ? true : false,
+  metaMaskEnabled: () => contracts.metaMaskEnabled,
+  metaMaskAccount: async () => {
+    if (!contracts.metaMask) return null
+    const accounts = await contracts.metaMask.eth.getAccounts()
     return { id: accounts[0] }
   }
 }

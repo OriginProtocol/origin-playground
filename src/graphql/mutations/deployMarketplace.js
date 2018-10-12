@@ -1,13 +1,10 @@
 import Marketplace from '../contracts/V00_Marketplace'
 import txHelper, { checkMetaMask } from './_txHelper'
+import contracts from '../contracts'
 
-async function deployMarketplace(
-  _,
-  { token, version, from, autoWhitelist },
-  context
-) {
-  const web3 = context.contracts.web3Exec
-  await checkMetaMask(context, from)
+async function deployMarketplace(_, { token, version, from, autoWhitelist }) {
+  const web3 = contracts.web3Exec
+  await checkMetaMask(from)
   const Contract = new web3.eth.Contract(Marketplace.abi)
   const tx = Contract.deploy({
     data: '0x' + Marketplace.data,
@@ -32,10 +29,10 @@ async function deployMarketplace(
       marketplaces[version] = receipt.contractAddress
       localStorage.marketplaces = JSON.stringify(marketplaces)
 
-      context.contracts.marketplace.options.address = receipt.contractAddress
-      context.contracts.marketplace.eventCache.updateBlock(receipt.blockNumber)
+      contracts.marketplace.options.address = receipt.contractAddress
+      contracts.marketplace.eventCache.updateBlock(receipt.blockNumber)
 
-      const Token = context.contracts[token]
+      const Token = contracts[token]
       if (!autoWhitelist || !Token) {
         return
       }
@@ -55,8 +52,8 @@ async function deployMarketplace(
 
   // return new Promise((resolve, reject) => {
   //   if (
-  //     context.contracts.marketplaces &&
-  //     context.contracts.marketplaces.find(m => m.version === version)
+  //     contracts.marketplaces &&
+  //     contracts.marketplaces.find(m => m.version === version)
   //   ) {
   //     return reject('Version already exists')
   //   }
@@ -82,11 +79,11 @@ async function deployMarketplace(
   //       localStorage.marketplaces = JSON.stringify(marketplaces)
   //
   //       resetContracts()
-  //       context.contracts.marketplace.eventCache.updateBlock(
+  //       contracts.marketplace.eventCache.updateBlock(
   //         receipt.blockNumber
   //       )
   //
-  //       const Token = context.contracts[token]
+  //       const Token = contracts[token]
   //       if (!autoWhitelist || !Token) {
   //         resolve(receipt.contractAddress)
   //         return

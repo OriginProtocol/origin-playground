@@ -1,7 +1,7 @@
 import balancesFromWei from 'utils/balancesFromWei'
 import storeWallet from './_storeWallet'
 
-export default (_, args, context) => {
+export default (_, args) => {
   const existing = Object.keys(web3.eth.accounts.wallet)
     .filter(k => k.match(/^[0-9]$/))
     .map(idx => web3.eth.accounts.wallet[idx].address)
@@ -14,5 +14,5 @@ export default (_, args, context) => {
 
   const { name, role } = args
   storeWallet({ id, name, role, privateKey: wallet[id].privateKey })
-  return { id, role, name, balance: balancesFromWei(id, context) }
+  return { id, role, name, balance: balancesFromWei(id) }
 }

@@ -1,20 +1,17 @@
 import { post } from 'utils/ipfsHash'
 import txHelper, { checkMetaMask } from './_txHelper'
+import contracts from '../contracts'
 
-async function addAffiliate(_, data, context) {
-  await checkMetaMask(context, data.from)
-  const ipfsHash = await post(context.contracts.ipfsRPC, data)
-  const tx = context.contracts.marketplaceExec.methods
+async function addAffiliate(_, data) {
+  await checkMetaMask(data.from)
+  const ipfsHash = await post(contracts.ipfsRPC, data)
+  const tx = contracts.marketplaceExec.methods
     .addAffiliate(data.affiliate, ipfsHash)
     .send({
       gas: 4612388,
       from: data.from || web3.eth.defaultAccount
     })
-  return txHelper({
-    tx,
-    context,
-    mutation: 'addAffiliate'
-  })
+  return txHelper({ tx, mutation: 'addAffiliate' })
 }
 
 export default addAffiliate

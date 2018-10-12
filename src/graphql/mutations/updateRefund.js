@@ -1,21 +1,18 @@
 import { post } from 'utils/ipfsHash'
 import txHelper, { checkMetaMask } from './_txHelper'
+import contracts from '../contracts'
 
-async function updateRefund(_, data, context) {
-  await checkMetaMask(context, data.from)
-  const ipfsHash = await post(context.contracts.ipfsRPC, data)
+async function updateRefund(_, data) {
+  await checkMetaMask(data.from)
+  const ipfsHash = await post(contracts.ipfsRPC, data)
 
-  const tx = context.contracts.marketplaceExec.methods
+  const tx = contracts.marketplaceExec.methods
     .updateRefund(data.listingID, data.offerID, data.amount, ipfsHash)
     .send({
       gas: 4612388,
       from: data.from || web3.eth.defaultAccount
     })
-  return txHelper({
-    tx,
-    context,
-    mutation: 'updateRefund'
-  })
+  return txHelper({ tx, mutation: 'updateRefund' })
 }
 
 export default updateRefund

@@ -1,11 +1,11 @@
 export default async (contract, args) => {
-  const offer = await contract.methods.offers(args.listingId, args.idx).call()
+  const offer = await contract.methods.offers(args.listingId, args.id).call()
   let ipfsHash,
     status = offer.status,
     lastEvent,
     withdrawnBy
 
-  const events = await contract.eventCache.offers(args.listingId, args.idx)
+  const events = await contract.eventCache.offers(args.listingId, args.id)
 
   events.forEach(e => {
     if (e.event === 'OfferCreated') {
@@ -26,7 +26,7 @@ export default async (contract, args) => {
   }
 
   return {
-    id: args.idx,
+    id: args.id,
     listingId: String(args.listingId),
     status,
     contract,

@@ -51,7 +51,7 @@ class Listings extends Component {
     return (
       <Query
         query={query}
-        variables={{ offset: 0, limit: 10 }}
+        variables={{ offset: 0, limit: 15 }}
         notifyOnNetworkStatusChange={true}
       >
         {({ error, data, fetchMore, networkStatus, refetch }) => {
@@ -81,8 +81,11 @@ class Listings extends Component {
             }
           })
 
+          const noMore = selectedTabId !== 'listings' || Number(data.marketplace.totalListings) <= numListings
+
           return (
             <BottomScrollListener
+              offset={this.state.mode === 'list' ? 50 : 200}
               onBottom={() => {
                 nextPage(fetchMore, numListings)
               }}
@@ -100,11 +103,10 @@ class Listings extends Component {
                 ) : this.state.mode === 'list' ? (
                   <ListingsList data={data} />
                 ) : (
-                  <ListingsGallery data={data} />
+                  <ListingsGallery data={data} noMore={noMore} />
                 )}
 
-                {selectedTabId !== 'listings' ||
-                Number(data.marketplace.totalListings) <= numListings ? null : (
+                {noMore || this.state.mode === 'gallery' ? null : (
                   <Button
                     text="Load more..."
                     loading={networkStatus === 3}

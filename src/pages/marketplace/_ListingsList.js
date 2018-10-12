@@ -60,10 +60,10 @@ const Listings = ({ data, history }) => {
                 amount={a.ipfs && a.ipfs.price ? a.ipfs.price.amount : 0}
               />
             </td>
-            <td>{currency({ amount: a.deposit, currency: 'OGN' })}</td>
+            <td>{a.deposit !== '0' ? currency({ amount: a.deposit, currency: 'OGN' }) : null}</td>
             <td>{a.seller ? <Identity account={a.seller.id} /> : null}</td>
             <td>{a.createdEvent ? formatDate(a.createdEvent.timestamp) : null}</td>
-            <td>{a.totalEvents}</td>
+            <td>{a.totalEvents > 1 ? a.totalEvents : null}</td>
           </tr>
         ))}
       </tbody>

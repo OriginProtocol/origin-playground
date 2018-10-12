@@ -1,8 +1,9 @@
 import React from 'react'
 import { withRouter } from 'react-router'
 import formatDate from 'utils/formatDate'
+import { ipfsGateway } from 'utils/config'
 
-import { Card } from '@blueprintjs/core'
+import { Card, Spinner } from '@blueprintjs/core'
 
 import Price from 'components/Price'
 import Identity from 'components/Identity'
@@ -15,7 +16,7 @@ function status(listing) {
   }
 }
 
-const Listings = ({ data, history }) => {
+const Listings = ({ data, history, noMore }) => {
   if (!data.marketplace || !data.marketplace.allListings) return null
   return (
     <div className="mt-3 listings-grid">
@@ -34,7 +35,7 @@ const Listings = ({ data, history }) => {
             <div
               className="main-pic"
               style={{
-                backgroundImage: `url(https://ipfs.originprotocol.com/${a.ipfs.media[0].url.replace(
+                backgroundImage: `url(${ipfsGateway}/${a.ipfs.media[0].url.replace(
                   ':/',
                   ''
                 )})`
@@ -53,6 +54,19 @@ const Listings = ({ data, history }) => {
           </div>
         </Card>
       ))}
+      {noMore ? null : (
+        <Card className="listing-card">
+          <h5 className="bp3-heading bp3-skeleton">New Listing</h5>
+          <div
+            className="main-pic"
+            style={{ display: 'flex', justifyContent: 'center' }}
+          >
+            <Spinner />
+          </div>
+          <div className="price bp3-skeleton">Price</div>
+          <div className="info bp3-skeleton">Info</div>
+        </Card>
+      )}
     </div>
   )
 }
