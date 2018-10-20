@@ -18,14 +18,41 @@ export default `
     contracts: [Contract]
     contract(id: String!): Contract
     tokens: [Token]
+    token(id: String!): Token
     ethUsd: String
+    messaging(id: String!): Messaging
+  }
+
+  type Messaging {
+    id: String
+    enabled: Boolean
+    conversations: [Conversation]
+  }
+
+  type Conversation {
+    id: String!
+    timestamp: String
+    messages: [Message]
+  }
+
+  type Message {
+    id: String
+    address: String
+    hash: String
+    index: Int
+    msg: MessageContent
+  }
+
+  type MessageContent {
+    content: String
+    created: String
   }
 
   type Mutation {
     refetch: Boolean
     setNetwork(network: String): Boolean
     toggleMetaMask: Boolean
-    deployToken(name: String!, symbol: String!, decimals: String!, supply: String!): Transaction
+    deployToken(name: String!, symbol: String!, decimals: String!, supply: String!, type: String, from: String): Transaction
     transferToken(token: String!, from: String!, to: String!, value: String!): Transaction
     updateTokenAllowance(token: String!, from: String!, to: String!, value: String!): Transaction
     deployMarketplace(token: String!, version: String, from: String, autoWhitelist: Boolean): Transaction
@@ -39,7 +66,7 @@ export default `
 
     createListing(
       deposit: String!
-      arbitrator: String
+      depositManager: String
       from: String
       data: NewListingInput
       autoApprove: Boolean
@@ -91,6 +118,9 @@ export default `
     disputeOffer(listingID: String!, offerID: String!, from: String): Transaction
     addFunds(listingID: String!, offerID: String!, amount: String!, from: String): Transaction
     updateRefund(listingID: String!, offerID: String!, amount: String!, from: String): Transaction
+
+    enableMessaging: Boolean
+    sendMessage(to: String!, content: String!): Boolean
   }
 
   type Web3 {
@@ -128,8 +158,8 @@ export default `
 
   type TokenHolder {
     id: String!
-    account: String
-    symbol: String
+    account: Account
+    token: Token
     balance: String
     allowance(contract: String): String
   }
@@ -198,6 +228,7 @@ export default `
     currencyId: String
     price: Price
     category: String
+    categoryStr: String
     media: [Media]
   }
 
@@ -333,12 +364,19 @@ export default `
     title: String!
     description: String
     category: String
+    currency: String
     price: PriceInput
+    media: [MediaInput]
   }
 
   input PriceInput {
     amount: String
     currency: String
+  }
+
+  input MediaInput {
+    url: String
+    contentType: String
   }
 
   input MakeOfferInput {

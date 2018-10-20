@@ -1,7 +1,14 @@
 import React, { Component } from 'react'
 import { Query } from 'react-apollo'
 
-import { Button, ButtonGroup, Spinner, Tabs, Tab } from '@blueprintjs/core'
+import {
+  Button,
+  ButtonGroup,
+  Spinner,
+  Tabs,
+  Tab,
+  Tooltip
+} from '@blueprintjs/core'
 
 import BottomScrollListener from 'components/BottomScrollListener'
 import { get, set } from 'utils/store'
@@ -81,7 +88,9 @@ class Listings extends Component {
             }
           })
 
-          const noMore = selectedTabId !== 'listings' || Number(data.marketplace.totalListings) <= numListings
+          const noMore =
+            selectedTabId !== 'listings' ||
+            Number(data.marketplace.totalListings) <= numListings
 
           return (
             <BottomScrollListener
@@ -130,13 +139,7 @@ class Listings extends Component {
   }
   renderBreadcrumbs({ refetch, networkStatus, totalListings, selectedTabId }) {
     return (
-      <div
-        style={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center'
-        }}
-      >
+      <div style={{ display: 'flex', alignItems: 'center' }}>
         <Tabs
           selectedTabId={selectedTabId}
           renderActiveTabPanelOnly={true}
@@ -154,38 +157,44 @@ class Listings extends Component {
           <Tab id="listings" title={`Listings (${totalListings})`} />
           <Tab id="activity" title="Activity" />
         </Tabs>
-        <div style={{ display: 'flex' }}>
-          {selectedTabId !== 'listings' ? null : (
-            <ButtonGroup>
-              <Button
-                icon="media"
-                active={this.state.mode === 'gallery'}
-                onClick={() => {
-                  set('listingsPage.mode', 'gallery')
-                  this.setState({ mode: 'gallery' })
-                }}
-              />
-              <Button
-                icon="list"
-                active={this.state.mode === 'list'}
-                onClick={() => {
-                  set('listingsPage.mode', 'list')
-                  this.setState({ mode: 'list' })
-                }}
-              />
-            </ButtonGroup>
-          )}
+        <div style={{ display: 'flex', marginLeft: 30 }}>
           <Button
             onClick={() => this.setState({ createListing: true })}
-            className="ml-2"
+            intent="primary"
             text="Create Listing"
           />
-          <Button
-            icon="refresh"
-            loading={networkStatus === 4}
-            className="ml-2"
-            onClick={() => refetch()}
-          />
+          {selectedTabId !== 'listings' ? null : (
+            <ButtonGroup className="ml-2">
+              <Tooltip content="Gallery Mode">
+                <Button
+                  icon="media"
+                  active={this.state.mode === 'gallery'}
+                  onClick={() => {
+                    set('listingsPage.mode', 'gallery')
+                    this.setState({ mode: 'gallery' })
+                  }}
+                />
+              </Tooltip>
+              <Tooltip content="List Mode">
+                <Button
+                  icon="list"
+                  active={this.state.mode === 'list'}
+                  onClick={() => {
+                    set('listingsPage.mode', 'list')
+                    this.setState({ mode: 'list' })
+                  }}
+                />
+              </Tooltip>
+            </ButtonGroup>
+          )}
+          <Tooltip content="Refresh">
+            <Button
+              icon="refresh"
+              loading={networkStatus === 4}
+              className="ml-2"
+              onClick={() => refetch()}
+            />
+          </Tooltip>
         </div>
       </div>
     )

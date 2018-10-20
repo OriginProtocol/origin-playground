@@ -72,20 +72,6 @@ class MakeOffer extends Component {
               <ErrorCallout error={error} />
               <div style={{ display: 'flex' }}>
                 <div style={{ flex: 1, marginRight: 20 }}>
-                  <FormGroup label="Buyer">
-                    <HTMLSelect
-                      fill={true}
-                      {...input('from')}
-                      options={this.props.accounts
-                        .filter(a => a.role === 'Buyer')
-                        .map(a => ({
-                          label: `${(a.name || a.id).substr(0, 24)}`,
-                          value: a.id
-                        }))}
-                    />
-                  </FormGroup>
-                </div>
-                <div style={{ flex: 1, marginRight: 20 }}>
                   <FormGroup label="Amount">
                     <InputGroup
                       {...input('value')}
@@ -93,7 +79,7 @@ class MakeOffer extends Component {
                     />
                   </FormGroup>
                 </div>
-                <div style={{ flex: 1 }}>
+                <div style={{ flex: 1, marginRight: 20 }}>
                   <FormGroup label="Finalizes">
                     <DateInput
                       value={this.state.finalizes}
@@ -110,25 +96,6 @@ class MakeOffer extends Component {
                     />
                   </FormGroup>
                 </div>
-              </div>
-              <div style={{ display: 'flex' }}>
-                <div style={{ flex: 1, marginRight: 20 }}>
-                  <FormGroup label="Affiliate">
-                    <HTMLSelect
-                      fill={true}
-                      {...input('affiliate')}
-                      options={affiliates}
-                    />
-                  </FormGroup>
-                </div>
-                <div style={{ flex: 1, marginRight: 20 }}>
-                  <FormGroup label="Commission">
-                    <InputGroup
-                      {...input('commission')}
-                      rightElement={<Tag minimal={true}>OGN</Tag>}
-                    />
-                  </FormGroup>
-                </div>
                 <div style={{ flex: 1 }}>
                   <FormGroup label="Arbitrator">
                     <HTMLSelect
@@ -138,6 +105,48 @@ class MakeOffer extends Component {
                         { label: 'Origin', value: web3.eth.defaultAccount }
                       ]}
                     />
+                  </FormGroup>
+                </div>
+              </div>
+              <div style={{ display: 'flex' }}>
+                <div style={{ flex: 1, marginRight: 20 }}>
+                  <FormGroup label="Buyer">
+                    <HTMLSelect
+                      fill={true}
+                      {...input('from')}
+                      options={this.props.accounts
+                        .filter(a => a.role === 'Buyer')
+                        .map(a => ({
+                          label: `${(a.name || a.id).substr(0, 24)}`,
+                          value: a.id
+                        }))}
+                    />
+                  </FormGroup>
+                </div>
+                <div style={{ flex: 1, marginRight: 20 }}>
+                  <FormGroup label="Affiliate">
+                    <HTMLSelect
+                      fill={true}
+                      {...input('affiliate')}
+                      options={affiliates}
+                    />
+                  </FormGroup>
+                </div>
+                <div style={{ flex: 1 }}>
+                  <FormGroup label="Commission">
+                    {this.state.affiliate === ZeroAddress ? (
+                      <InputGroup
+                        disabled={true}
+                        value="0"
+                        rightElement={<Tag minimal={true}>OGN</Tag>}
+                      />
+                    ) : (
+                      <InputGroup
+                        disabled={this.state.affiliate === ZeroAddress}
+                        {...input('commission')}
+                        rightElement={<Tag minimal={true}>OGN</Tag>}
+                      />
+                    )}
                   </FormGroup>
                 </div>
               </div>

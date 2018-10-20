@@ -3,7 +3,6 @@ import { withRouter } from 'react-router'
 import currency from 'utils/currency'
 import formatDate from 'utils/formatDate'
 import { Tag } from '@blueprintjs/core'
-import startCase from 'lodash/startCase'
 
 import Price from 'components/Price'
 import Identity from 'components/Identity'
@@ -50,7 +49,7 @@ const Listings = ({ data, history }) => {
           >
             <td>{a.id}</td>
             <td>{status(a)}</td>
-            <td>{a.ipfs ? startCase(a.ipfs.category.replace(/^schema\./, '')) : null}</td>
+            <td>{a.ipfs ? a.ipfs.categoryStr : null}</td>
             <td>
               <div className="ellip">{a.ipfs ? a.ipfs.title : null}</div>
             </td>

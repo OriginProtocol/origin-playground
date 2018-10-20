@@ -18,6 +18,32 @@ function ipfs(rawHash) {
   )
 }
 
+function eventName(e) {
+  const [, type, target] = e.event.split(/(Offer|Listing)/)
+  const { listingID, offerID } = e.returnValues
+  // console.log(e.event.split(/(Offer|Listing)/))
+  if (type === 'Offer') {
+    return (
+      <>
+        <a
+          href={`#/marketplace/listings/${listingID}`}
+        >{`${type} ${listingID}-${offerID} ${target}`}</a>
+      </>
+    )
+  } else if (type === 'Listing') {
+    // return `${type} ${e.returnValues.listingID} ${target}`
+    return (
+      <>
+        <a href={`#/marketplace/listings/${listingID}`}>{`${type} ${
+          e.returnValues.listingID
+        } ${target}`}</a>
+      </>
+    )
+  }
+  return `${e.event} ${e.returnValues.listingID || ''}-${e.returnValues
+    .offerID || ''} `
+}
+
 class EventsTable extends Component {
   render() {
     return (
@@ -27,8 +53,8 @@ class EventsTable extends Component {
             <th>Time</th>
             <th>Event</th>
             <th>Sender</th>
-            <th>Listing</th>
-            <th>Offer</th>
+            {/* <th>Listing</th>
+            <th>Offer</th> */}
             <th>IPFS Hash</th>
           </tr>
         </thead>
@@ -36,11 +62,12 @@ class EventsTable extends Component {
           {this.props.events.map(e => (
             <tr key={e.id}>
               <td>{formatDate(e.block.timestamp)}</td>
-              <td>{e.event}</td>
-              <td><Identity account={e.returnValues.party} />
+              <td>{eventName(e)}</td>
+              <td>
+                <Identity account={e.returnValues.party} />
               </td>
-              <td>{e.returnValues.listingID}</td>
-              <td>{e.returnValues.offerID}</td>
+              {/* <td>{e.returnValues.listingID}</td>
+              <td>{e.returnValues.offerID}</td> */}
               <td>{ipfs(e.returnValues.ipfsHash)}</td>
             </tr>
           ))}

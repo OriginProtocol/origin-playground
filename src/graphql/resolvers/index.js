@@ -9,6 +9,8 @@ import TokenHolder from './TokenHolder'
 import Event from './Event'
 import Token from './Token'
 import Identity from './Identity'
+import Conversation from './Conversation'
+import Messaging from './Messaging'
 import Mutation from '../mutations'
 
 export default {
@@ -23,5 +25,7 @@ export default {
   Offer,
   Token,
   TokenHolder,
-  Identity
+  Identity,
+  Conversation,
+  Messaging
 }

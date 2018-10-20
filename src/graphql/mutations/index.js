@@ -23,6 +23,8 @@ import addData from './addData'
 import updateListing from './updateListing'
 import setNetwork from './setNetwork'
 import toggleMetaMask from './toggleMetaMask'
+import enableMessaging from './enableMessaging'
+import sendMessage from './sendMessage'
 
 export default {
   addAffiliate,
@@ -50,5 +52,7 @@ export default {
   updateListing,
   setNetwork,
   toggleMetaMask,
+  enableMessaging,
+  sendMessage,
   refetch: () => true
 }

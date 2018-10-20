@@ -1,3 +1,4 @@
+import startCase from 'lodash/startCase'
 import { get } from 'utils/ipfsHash'
 import contracts from '../contracts'
 
@@ -25,6 +26,9 @@ export default {
         data = await get(contracts.ipfsGateway, ipfsHash)
       } catch (e) {
         return null
+      }
+      if (data.category) {
+        data.categoryStr = startCase(data.category.replace(/^schema\./, ''))
       }
       return { ...data, id: ipfsHash }
     }

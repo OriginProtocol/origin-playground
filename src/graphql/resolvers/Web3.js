@@ -31,6 +31,7 @@ export default {
   metaMaskAccount: async () => {
     if (!contracts.metaMask) return null
     const accounts = await contracts.metaMask.eth.getAccounts()
+    if (!accounts || !accounts.length) return null
     return { id: accounts[0] }
   }
 }

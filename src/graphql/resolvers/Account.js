@@ -2,7 +2,7 @@ import balancesFromWei from 'utils/balancesFromWei'
 import contracts from '../contracts'
 
 export default {
-  balance: async (account) => {
+  balance: async account => {
     const wei = await web3.eth.getBalance(account.id)
     return balancesFromWei(wei)
   },
@@ -25,21 +25,19 @@ export default {
     return names[account.id]
   },
   token: async (account, args) => {
-    if (args.symbol === 'OGN') {
-      if (!contracts.ogn || !contracts.ogn.options.address) return null
-      const balance = await contracts.ogn.methods
-        .balanceOf(account.id)
-        .call()
+    const token = contracts.tokens.find(
+      t => t.id === args.symbol || t.symbol === args.symbol
+    )
+    if (token) {
       return {
         id: `${args.symbol}_${account.id}`,
-        account: account.id,
-        symbol: args.symbol,
-        balance
+        account: { id: account.id },
+        token
       }
     }
     return null
   },
-  identity: async (account) => {
+  identity: async account => {
     const ur = contracts.userRegistry
     if (!ur || !ur.options.address) return null
     const id = await ur.methods.users(account.id).call()

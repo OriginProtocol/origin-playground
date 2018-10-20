@@ -41,12 +41,16 @@ export const DeployTokenMutation = gql`
     $symbol: String
     $decimals: String
     $supply: String
+    $type: String
+    $from: String
   ) {
     deployToken(
       name: $name
       symbol: $symbol
       decimals: $decimals
       supply: $supply
+      type: $type
+      from: $from
     ) {
       id
     }
@@ -114,14 +118,14 @@ export const DeployMarketplaceMutation = gql`
 export const CreateListingMutation = gql`
   mutation CreateListing(
     $deposit: String
-    $arbitrator: String
+    $depositManager: String
     $from: String
     $data: NewListingInput
     $autoApprove: Boolean
   ) {
     createListing(
       deposit: $deposit
-      arbitrator: $arbitrator
+      depositManager: $depositManager
       from: $from
       data: $data
       autoApprove: $autoApprove

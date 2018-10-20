@@ -9,7 +9,6 @@ export default {
         name
         balance {
           eth
-          usd
           wei
         }
         ogn: token(symbol: "OGN") {
@@ -38,6 +37,7 @@ export default {
         ipfs {
           id
           category
+          categoryStr
           title
           description
           currencyId

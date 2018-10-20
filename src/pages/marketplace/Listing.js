@@ -4,6 +4,7 @@ import { Link } from 'react-router-dom'
 
 import {
   Button,
+  ButtonGroup,
   NonIdealState,
   AnchorButton,
   Tooltip,
@@ -18,7 +19,7 @@ import withAccounts from './hoc/withAccounts'
 import { MakeOffer, WithdrawListing, AddData, UpdateListing } from './mutations'
 import Offers from './_Offers'
 import EventsTable from './_EventsTable'
-import AccountButton from '../accounts/AccountButton'
+import Identity from 'components/Identity'
 import Price from 'components/Price'
 import Gallery from 'components/Gallery'
 
@@ -81,7 +82,7 @@ class Listing extends Component {
                 <div style={{ display: 'flex' }}>
                   {!media.length && !listingData.description ? null : (
                     <div style={{ maxWidth: 300, margin: '20px 20px 0 0' }}>
-                      {!media.length ? null :<Gallery pics={media} />}
+                      {!media.length ? null : <Gallery pics={media} />}
                       <div className="mt-2">{listingData.description}</div>
                     </div>
                   )}
@@ -109,11 +110,27 @@ class Listing extends Component {
                         id="offers"
                         title="Offers"
                         panel={
-                          <Offers
-                            listing={listing}
-                            listingId={listingId}
-                            offers={listing.offers}
-                          />
+                          <>
+                            <Offers
+                              listing={listing}
+                              listingId={listingId}
+                              offers={listing.offers}
+                            />
+
+                            <Button
+                              intent="primary"
+                              onClick={() => this.setState({ makeOffer: true })}
+                            >
+                              {`Make Offer for `}
+                              <Price
+                                amount={
+                                  listingData.price
+                                    ? listingData.price.amount
+                                    : 0
+                                }
+                              />
+                            </Button>
+                          </>
                         }
                       />
                       <Tab
@@ -163,13 +180,16 @@ class Listing extends Component {
     )
     return (
       <div style={{ marginBottom: 10 }}>
-        {`${listingData.category} by `}
-        <AccountButton account={listing.seller} />
+        {`${listingData.categoryStr} by `}
+        <Identity account={listing.seller} />
         <span style={{ marginRight: 10 }}>
           {` for `}
-          <Price amount={listingData.price ? listingData.price.amount : 0} />
-          {`. Abitrator `}
-          <AccountButton account={listing.arbitrator} />
+          <Price
+            amount={listingData.price ? listingData.price.amount : 0}
+            showEth={true}
+          />
+          {`. Deposit managed by `}
+          <Identity account={listing.arbitrator} />
           <span style={{ marginLeft: 10 }}>
             {currency({ amount: listing.deposit, currency: 'OGN' })}
           </span>
@@ -236,30 +256,26 @@ class Listing extends Component {
           <span className="bp3-breadcrumb bp3-breadcrumb-current">
             {`Listing #${listingId}`}
           </span>
-        </li>
-        <li>
-          <Button onClick={() => this.setState({ makeOffer: true })}>
-            Make Offer
-          </Button>
-          <Button
-            icon="arrow-left"
-            style={{ marginLeft: 10 }}
-            disabled={listingId === 1}
-            onClick={() => {
-              this.props.history.push(
-                `/marketplace/listings/${Number(listingId - 1)}`
-              )
-            }}
-          />
-          <Button
-            icon="arrow-right"
-            style={{ marginLeft: 10 }}
-            onClick={() => {
-              this.props.history.push(
-                `/marketplace/listings/${Number(listingId + 1)}`
-              )
-            }}
-          />
+          <ButtonGroup>
+            <Button
+              icon="arrow-left"
+              style={{ marginLeft: 10 }}
+              disabled={listingId === 1}
+              onClick={() => {
+                this.props.history.push(
+                  `/marketplace/listings/${Number(listingId - 1)}`
+                )
+              }}
+            />
+            <Button
+              icon="arrow-right"
+              onClick={() => {
+                this.props.history.push(
+                  `/marketplace/listings/${Number(listingId + 1)}`
+                )
+              }}
+            />
+          </ButtonGroup>
         </li>
       </ul>
     )

@@ -13,6 +13,9 @@ const query = gql`
       address
       totalListings
       version
+      token {
+        id
+      }
       owner {
         id
       }
@@ -31,6 +34,12 @@ const query = gql`
 import DeployToken from './_DeployToken'
 import DeployMarketplace from './_DeployMarketplace'
 import AddAffiliate from './_AddAffiliate'
+
+function totalSupply(supply, decimals) {
+  const supplyBN = web3.utils.toBN(supply)
+  const decimalsBN = web3.utils.toBN(web3.utils.padRight('1', decimals + 1))
+  return supplyBN.div(decimalsBN).toString()
+}
 
 class Contracts extends Component {
   state = {}
@@ -82,7 +91,7 @@ class Contracts extends Component {
                         <Address address={m.address} />
                       </td>
                       <td>{m.decimals}</td>
-                      <td>{m.totalSupply}</td>
+                      <td>{totalSupply(m.totalSupply, m.decimals)}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -118,7 +127,9 @@ class Contracts extends Component {
                     <tr key={m.address}>
                       <td>{m.version}</td>
                       <td>{m.totalListings}</td>
-                      <td>{m.token ? m.token.symbol : null}</td>
+                      <td>
+                        <Address address={m.token} />
+                      </td>
                       <td>
                         <Address address={m.address} />
                       </td>

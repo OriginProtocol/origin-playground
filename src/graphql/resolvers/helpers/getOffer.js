@@ -12,13 +12,13 @@ export default async (contract, args) => {
       ipfsHash = e.returnValues.ipfsHash
     } else if (e.event === 'OfferUpdated') {
       ipfsHash = e.returnValues.ipfsHash
+    } else if (e.event === 'OfferFinalized') {
+      status = 4
     }
     lastEvent = e
   })
 
-  if (lastEvent.event === 'OfferFinalized') {
-    status = 4
-  } else if (lastEvent.event === 'OfferWithdrawn') {
+  if (lastEvent.event === 'OfferWithdrawn') {
     status = 0
     withdrawnBy = { id: lastEvent.returnValues.party }
   } else if (lastEvent.event === 'OfferRuling') {

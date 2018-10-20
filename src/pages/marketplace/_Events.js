@@ -64,19 +64,17 @@ const Events = () => (
         })
 
         return (
-          <BottomScrollListener
-            onBottom={() => {
-              nextPage(fetchMore, numEvents)
-            }}
-          >
+          <BottomScrollListener onBottom={() => nextPage(fetchMore, numEvents)}>
             <>
               <EventsTable events={data.marketplace.events} />
-              <Button
-                text="Load more..."
-                loading={networkStatus === 3}
-                className="mt-3"
-                onClick={() => nextPage(fetchMore, numEvents)}
-              />
+              {numEvents >= data.marketplace.totalEvents ? null : (
+                <Button
+                  text="Load more..."
+                  loading={networkStatus === 3}
+                  className="mt-3"
+                  onClick={() => nextPage(fetchMore, numEvents)}
+                />
+              )}
             </>
           </BottomScrollListener>
         )

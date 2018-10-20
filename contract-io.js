@@ -12,7 +12,7 @@ originTest.contractService.contracts.V00_Marketplace.networks['4'].address
 
 const contracts = originTest.contractService.contracts
 var ans = Object.keys(contracts).reduce((m, k) => {
-    m[k] = contracts[k].networks['1'].address
+    m[k] = contracts[k].networks['999'].address
   return m
 }, {})
 copy(JSON.stringify(ans))

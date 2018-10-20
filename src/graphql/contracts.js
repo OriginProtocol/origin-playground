@@ -1,9 +1,12 @@
 import MarketplaceContract from './contracts/V00_Marketplace'
 import UserRegistryContract from './contracts/V00_UserRegistry'
 import ClaimHolderRegisteredContract from './contracts/ClaimHolderRegistered'
-import TokenContract from './contracts/OriginToken'
+import OriginTokenContract from './contracts/OriginToken'
+import TokenContract from './contracts/Token'
 import eventCache from './utils/eventCache'
 import pubsub from './utils/pubsub'
+
+import msg from './utils/messagingInstance'
 
 let metaMask, metaMaskEnabled, web3WS, wsSub
 const HOST = process.env.HOST || 'localhost'
@@ -18,7 +21,16 @@ const Configs = {
     OriginIdentity: '0x1af44feeb5737736b6beb42fe8e5e6b7bb7391cd',
     OriginToken: '0x8207c1ffc5b6804f6024322ccf34f29c3541ae26',
     V00_Marketplace: '0x819bb9964b6ebf52361f1ae42cf4831b921510f9',
-    V00_Marketplace_Epoch: '6436157'
+    V00_Marketplace_Epoch: '6436157',
+    tokens: [
+      {
+        id: '0x89d24a6b4ccb1b6faa2625fe562bdd9a23260359' ,
+        type: 'Standard',
+        name: 'DAI Stablecoin',
+        symbol: 'DAI',
+        decimals: '18'
+      }
+    ]
   },
   rinkeby: {
     provider: 'https://rinkeby.infura.io',
@@ -35,7 +47,7 @@ const Configs = {
     provider: 'https://rinkeby.infura.io',
     providerWS: 'wss://rinkeby.infura.io/ws',
     ipfsGateway: 'https://ipfs.staging.originprotocol.com',
-    ipfsRPC: `https://ipfs.staging.originprotocol.com`,
+    ipfsRPC: `https://ipfs.staging.originprotocol.com`
   },
   kovanTst: {
     provider: 'https://kovan.infura.io',
@@ -55,11 +67,48 @@ const Configs = {
 
 const context = {}
 
+
+msg.events.on('initialized', accountKey => {
+  console.log("Messaging initialized", accountKey)
+})
+msg.events.on('new', accountKey => {
+  console.log("Messaging new", accountKey)
+})
+
+// detect existing messaging account
+msg.events.on('ready', accountKey => {
+  console.log("Messaging ready", accountKey)
+})
+// detect existing messaging account
+msg.events.on('pending_conv', conv => {
+  console.log("Messaging pending_conv", conv)
+})
+
+// detect new decrypted messages
+msg.events.on('msg', obj => {
+  console.log("Messaging msg", obj)
+  // if (obj.decryption) {
+  //   const { roomId, keys } = obj.decryption
+  //
+  //   origin.messaging.initRoom(roomId, keys)
+  // }
+  //
+  // this.props.addMessage(obj)
+  //
+  // this.debouncedFetchUser(obj.senderAddress)
+})
+
+// To Do: handle incoming messages when no Origin Messaging Private Key is available
+msg.events.on('emsg', obj => {
+  console.error('A message has arrived that could not be decrypted:', obj)
+})
+
 export function setNetwork(net) {
   const config = Configs[net]
   if (!config) {
     return
   }
+  context.net = net
 
   context.ipfsGateway = config.ipfsGateway
   context.ipfsRPC = config.ipfsRPC
@@ -78,22 +127,12 @@ export function setNetwork(net) {
 
   window.web3 = new Web3(config.provider)
   context.web3Exec = web3
+
+  context.messaging = msg
+  msg.web3 = web3
+
   context.metaMaskEnabled = metaMaskEnabled
   web3WS = new Web3(config.providerWS)
-  wsSub = web3WS.eth.subscribe('newBlockHeaders').on('data', blockHeaders => {
-    pubsub.publish('NEW_BLOCK', {
-      newBlock: { ...blockHeaders, id: blockHeaders.hash }
-    })
-  })
-  web3.eth.getBlockNumber().then(block => {
-    web3.eth.getBlock(block).then(blockHeaders => {
-      if (blockHeaders) {
-        pubsub.publish('NEW_BLOCK', {
-          newBlock: { ...blockHeaders, id: blockHeaders.hash }
-        })
-      }
-    })
-  })
   if (window.localStorage.privateKeys) {
     JSON.parse(window.localStorage.privateKeys).forEach(key =>
       web3.eth.accounts.wallet.add(key)
@@ -125,13 +164,56 @@ export function setNetwork(net) {
     context.marketplaces = []
   }
 
-  context.ogn = new web3.eth.Contract(TokenContract.abi, config.OriginToken)
-  context[config.OriginToken] = context.ogn
+  wsSub = web3WS.eth.subscribe('newBlockHeaders').on('data', blockHeaders => {
+    context.marketplace.eventCache.updateBlock(blockHeaders.number)
+    pubsub.publish('NEW_BLOCK', {
+      newBlock: { ...blockHeaders, id: blockHeaders.hash }
+    })
+  })
+  web3.eth.getBlockNumber().then(block => {
+    web3.eth.getBlock(block).then(blockHeaders => {
+      if (blockHeaders) {
+        context.marketplace.eventCache.updateBlock(blockHeaders.number)
+        pubsub.publish('NEW_BLOCK', {
+          newBlock: { ...blockHeaders, id: blockHeaders.hash }
+        })
+      }
+    })
+  })
+
+  context.tokens = config.tokens || []
   if (config.OriginToken) {
-    context.tokens = [{ id: config.OriginToken }]
-  } else {
-    context.tokens = []
+    context.ogn = new web3.eth.Contract(
+      OriginTokenContract.abi,
+      config.OriginToken
+    )
+    context[config.OriginToken] = context.ogn
+    context.tokens.unshift({
+      id: config.OriginToken,
+      type: 'OriginToken',
+      name: 'Origin Token',
+      symbol: 'OGN',
+      decimals: '18',
+      supply: '1000000000'
+    })
   }
+  try {
+    const storedTokens = JSON.parse(window.localStorage[`${net}Tokens`])
+    storedTokens.forEach(token => {
+      if (context.tokens.find(t => t.id === token.id)) {
+        return
+      }
+      context.tokens.push(token)
+    })
+  } catch (e) { /* Ignore */ }
+
+  context.tokens.forEach(token => {
+    const contractDef =
+      token.type === 'OriginToken' ? OriginTokenContract : TokenContract
+    const contract = new web3.eth.Contract(contractDef.abi, token.id)
+    token.contract = contract
+    token.contractExec = contract
+  })
 
   if (metaMask) {
     context.metaMask = metaMask
@@ -139,7 +221,16 @@ export function setNetwork(net) {
       MarketplaceContract.abi,
       config.V00_Marketplace
     )
-    context.ognMM = new metaMask.eth.Contract(TokenContract.abi, config.OriginToken)
+    context.ognMM = new metaMask.eth.Contract(
+      OriginTokenContract.abi,
+      config.OriginToken
+    )
+    context.tokens.forEach(token => {
+      token.contractMM = new metaMask.eth.Contract(
+        token.contract.options.jsonInterface,
+        token.contract.options.address
+      )
+    })
   }
   setMetaMask()
 }
@@ -150,11 +241,13 @@ function setMetaMask() {
     context.web3Exec = metaMask
     context.marketplaceExec = context.marketplaceMM
     context.ognExec = context.ognMM
+    context.tokens.forEach(token => (token.contractExec = token.contractMM))
   } else {
     context.metaMaskEnabled = false
     context.web3Exec = web3
     context.marketplaceExec = context.marketplace
     context.ognExec = context.ogn
+    context.tokens.forEach(token => (token.contractExec = token.contract))
   }
 }
 

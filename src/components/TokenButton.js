@@ -1,22 +1,17 @@
 import React, { Component } from 'react'
 import { Mutation } from 'react-apollo'
 import gql from 'graphql-tag'
+
 import {
-  HTMLTable,
-  Icon,
   Popover,
   Position,
   Button,
   Menu
 } from '@blueprintjs/core'
 
-import SendFromNodeBtn from './_SendFromNodeBtn'
-import RemoveWalletBtn from './_RemoveWalletBtn'
-import AccountButton from '../accounts/AccountButton'
-import Toaster from '../Toaster'
-import Price from 'components/Price'
-
 import numberFormat from 'utils/numberFormat'
+
+import Toaster from '../pages/Toaster'
 
 const TransferToken = gql`
   mutation TransferToken(
@@ -26,14 +21,7 @@ const TransferToken = gql`
     $value: String!
   ) {
     transferToken(token: $token, from: $from, to: $to, value: $value) {
-      to {
-        id
-        balance
-      }
-      from {
-        id
-        balance
-      }
+      id
     }
   }
 `
@@ -107,60 +95,4 @@ class TokenButton extends Component {
   }
 }
 
-const WalletAccounts = ({
-  maxNodeAccount,
-  data: { accounts, defaultAccount = {} }
-}) => {
-  return (
-    <HTMLTable small={true} bordered={true} className="mt-3 mb-3">
-      <thead>
-        <tr>
-          <th>Wallet</th>
-          <th>Role</th>
-          <th>Name</th>
-          <th>Eth</th>
-          <th>USD</th>
-          <th>OGN</th>
-          <th />
-        </tr>
-      </thead>
-      <tbody>
-        {accounts.map(a => (
-          <tr key={a.id}>
-            <td>
-              <AccountButton account={a} />
-            </td>
-            <td>{a.role}</td>
-            <td>{a.name}</td>
-            <td>{a.balance.eth}</td>
-            <td><Price amount={a.balance.eth} /></td>
-            <td>
-              {a.ogn ? (
-                <TokenButton
-                  current={a}
-                  accounts={accounts}
-                  balance={a.ogn.balance}
-                />
-              ) : (
-                ''
-              )}
-            </td>
-            <td>
-              <SendFromNodeBtn from={maxNodeAccount} to={a.id} value="0.5" />
-              <RemoveWalletBtn address={a.id} />
-              {defaultAccount && defaultAccount.id === a.id ? (
-                <Icon
-                  icon="tick-circle"
-                  intent="success"
-                  style={{ marginLeft: 6, verticalAlign: -4 }}
-                />
-              ) : null}
-            </td>
-          </tr>
-        ))}
-      </tbody>
-    </HTMLTable>
-  )
-}
-
-export default WalletAccounts
+export default TokenButton

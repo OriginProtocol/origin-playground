@@ -139,7 +139,9 @@
       "maxLength": 100
     },
     "description": {
-      "type": "string"
+      "type": "string",
+      "minLength": 10,
+      "maxLength": 1024
     },
     "expiry": {
       "type": "string",

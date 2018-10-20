@@ -21,9 +21,9 @@ import {
 import AccountButton from '../accounts/AccountButton'
 
 const Offers = ({ listing, offers, accounts }) => {
-  if (!offers.length) return <div>No offers yet!</div>
+  if (!offers.length) return null
   return (
-    <table className="bp3-html-table bp3-small">
+    <table className="bp3-html-table bp3-small mb-3">
       <thead>
         <tr>
           <th>ID</th>
@@ -232,7 +232,7 @@ class OfferRow extends Component {
         <td>
           {commission ? (
             <>
-              {currency(commission)}
+              {currency({ ...commission, converted: true })}
               <Icon
                 style={{ verticalAlign: '-0.2rem', margin: '0 0.2rem' }}
                 icon="arrow-right"

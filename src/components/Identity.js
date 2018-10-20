@@ -23,7 +23,10 @@ const IdentityQuery = gql`
 
 class Identity extends Component {
   render() {
-    const { account } = this.props
+    let { account } = this.props
+    if (typeof account === 'object') {
+      account = account.id
+    }
     if (!account) return null
     return (
       <Query query={IdentityQuery} variables={{ account }}>
@@ -31,6 +34,9 @@ class Identity extends Component {
           if (loading || error) return account.substr(0, 6)
           try {
             const { firstName, lastName } = data.web3.account.identity.profile
+            if (!firstName && !lastName) {
+              return <span>{account.substr(0, 6)}</span>
+            }
             return (
               <span>{`${firstName} ${lastName}`}</span>
             )

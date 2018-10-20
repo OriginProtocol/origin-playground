@@ -2,7 +2,7 @@ import txHelper, { checkMetaMask } from './_txHelper'
 import contracts from '../contracts'
 
 async function transferToken(_, { token, from, to, value }) {
-  const contract = contracts[`${token.toLowerCase()}Exec`]
+  const contract = contracts.tokens.find(t => t.symbol.toLowerCase() === token.toLowerCase()).contractExec
   await checkMetaMask(from)
   if (!contract || !contract.options.address) {
     console.log(token, 'not found')

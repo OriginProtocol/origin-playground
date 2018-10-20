@@ -9,19 +9,25 @@ import {
   ControlGroup,
   HTMLSelect,
   Slider,
-  Checkbox
+  Checkbox,
+  TextArea
 } from '@blueprintjs/core'
 
 import rnd from 'utils/rnd'
 import withAccounts from '../hoc/withAccounts'
+import withTokens from 'hoc/withTokens'
 
 import { CreateListingMutation } from '../../../mutations'
 import ErrorCallout from 'components/ErrorCallout'
+import SelectAccount from 'components/SelectAccount'
+import ImagePicker from 'components/ImagePicker'
 
 export function showOGN(account) {
   if (!account.ogn) return ''
-  const balance = web3.utils.fromWei(account.ogn.balance, 'ether')
-  const allowance = web3.utils.fromWei(account.ogn.allowance, 'ether')
+  if (!account.ogn.balance) return ''
+  if (!account.ogn.allowance) return ''
+  const balance = web3.utils.fromWei(String(account.ogn.balance), 'ether')
+  const allowance = web3.utils.fromWei(String(account.ogn.allowance), 'ether')
   return ` (${balance} OGN available, ${allowance} allowed)`
 }
 
@@ -34,13 +40,15 @@ class CreateListing extends Component {
 
     this.state = {
       title: 'Cool Bike',
-      currencyId: 'ETH',
+      currency: '0x0000000000000000000000000000000000000000',
       price: '0.1',
-      arbitrator: arbitrator ? arbitrator.id : '',
+      depositManager: arbitrator ? arbitrator.id : '',
       from: seller ? seller.id : '',
-      deposit: 50,
+      deposit: 5,
       category: 'For Sale',
-      autoApprove: true
+      description: 'A very nice bike',
+      autoApprove: true,
+      media: []
     }
   }
 
@@ -49,6 +57,18 @@ class CreateListing extends Component {
       value: this.state[field],
       onChange: e => this.setState({ [field]: e.currentTarget.value })
     })
+
+    const currencyOpts = [
+      {
+        label: 'ETH',
+        value: '0x0000000000000000000000000000000000000000'
+      },
+      ...this.props.tokens.map(token => ({
+        label: token.symbol,
+        value: token.id
+      }))
+    ]
+
     return (
       <Mutation
         mutation={CreateListingMutation}
@@ -63,73 +83,6 @@ class CreateListing extends Component {
           >
             <div className="bp3-dialog-body">
               <ErrorCallout error={error} />
-              <div style={{ display: 'flex' }}>
-                <div style={{ flex: 3, marginRight: 20 }}>
-                  <FormGroup label="Seller">
-                    <HTMLSelect
-                      {...input('from')}
-                      fill={true}
-                      options={this.props.accounts
-                        .filter(a => a.role === 'Seller')
-                        .map(a => ({
-                          label: `${(a.name || a.id).substr(0, 24)} ${showOGN(
-                            a
-                          )}`,
-                          value: a.id
-                        }))}
-                    />
-                  </FormGroup>
-                </div>
-                <div style={{ flex: 1 }}>
-                  <FormGroup label="Auto-Approve">
-                    <Checkbox
-                      checked={this.state.autoApprove}
-                      onChange={e =>
-                        this.setState({ autoApprove: e.target.checked })
-                      }
-                    />
-                  </FormGroup>
-                </div>
-              </div>
-
-              <div style={{ display: 'flex' }}>
-                <div style={{ flex: 1, marginRight: 20 }}>
-                  <FormGroup label="Price">
-                    <ControlGroup fill={true}>
-                      <InputGroup {...input('price')} />
-                      <HTMLSelect
-                        style={{ minWidth: 65 }}
-                        {...input('currencyId')}
-                        options={['DAI', 'ETH', 'OGN']}
-                      />
-                    </ControlGroup>
-                  </FormGroup>
-                </div>
-                <div style={{ flex: 1, marginRight: 20 }}>
-                  <FormGroup label="Arbitrator">
-                    <HTMLSelect
-                      fill={true}
-                      {...input('arbitrator')}
-                      options={[
-                        { label: 'Origin', value: web3.eth.defaultAccount }
-                      ]}
-                    />
-                  </FormGroup>
-                </div>
-                <div style={{ flex: 1, padding: '0 5px' }}>
-                  <FormGroup label="Deposit" labelInfo="(OGN)">
-                    <Slider
-                      fill={true}
-                      min={0}
-                      max={100}
-                      stepSize={5}
-                      labelStepSize={25}
-                      onChange={deposit => this.setState({ deposit })}
-                      value={this.state.deposit}
-                    />
-                  </FormGroup>
-                </div>
-              </div>
               <div style={{ display: 'flex' }}>
                 <div style={{ flex: 1, marginRight: 20 }}>
                   <FormGroup label="Category">
@@ -148,6 +101,72 @@ class CreateListing extends Component {
                 <div style={{ flex: 2 }}>
                   <FormGroup label="Title">
                     <InputGroup {...input('title')} />
+                  </FormGroup>
+                </div>
+              </div>
+              <FormGroup>
+                <TextArea
+                  fill={true}
+                  placeholder="Description (min 10 characters)"
+                  {...input('description')}
+                />
+              </FormGroup>
+              <FormGroup>
+                <ImagePicker onChange={media => this.setState({ media })} />
+              </FormGroup>
+              <div style={{ display: 'flex' }}>
+                <div style={{ flex: 1.5, marginRight: 20 }}>
+                  <FormGroup label="Price">
+                    <ControlGroup fill={true}>
+                      <InputGroup {...input('price')} />
+                      <HTMLSelect
+                        style={{ minWidth: 65 }}
+                        {...input('currency')}
+                        options={currencyOpts}
+                      />
+                    </ControlGroup>
+                  </FormGroup>
+                </div>
+
+                <div style={{ flex: 1, marginRight: 30, padding: '0 5px' }}>
+                  <FormGroup label="Deposit" labelInfo="(OGN)">
+                    <Slider
+                      fill={true}
+                      min={0}
+                      max={100}
+                      stepSize={5}
+                      labelStepSize={25}
+                      onChange={deposit => this.setState({ deposit })}
+                      value={this.state.deposit}
+                    />
+                  </FormGroup>
+                </div>
+                <div style={{ flex: 1 }}>
+                  <FormGroup label="Auto-Approve">
+                    <Checkbox
+                      checked={this.state.autoApprove}
+                      onChange={e =>
+                        this.setState({ autoApprove: e.target.checked })
+                      }
+                    />
+                  </FormGroup>
+                </div>
+              </div>
+              <div style={{ display: 'flex' }}>
+                <div style={{ flex: 2, marginRight: 20 }}>
+                  <FormGroup label="Seller">
+                    <SelectAccount {...input('from')} />
+                  </FormGroup>
+                </div>
+                <div style={{ flex: 1 }}>
+                  <FormGroup label="Deposit Manager">
+                    <HTMLSelect
+                      fill={true}
+                      {...input('depositManager')}
+                      options={[
+                        { label: 'Origin', value: web3.eth.defaultAccount }
+                      ]}
+                    />
                   </FormGroup>
                 </div>
               </div>
@@ -173,17 +192,19 @@ class CreateListing extends Component {
     return {
       variables: {
         deposit: String(this.state.deposit),
-        arbitrator: this.state.arbitrator,
+        depositManager: this.state.depositManager,
         from: this.state.from,
         autoApprove: this.state.autoApprove,
         data: {
           title: this.state.title,
-          price: { currency: this.state.currencyId, amount: this.state.price },
-          category: this.state.category
+          description: this.state.description,
+          price: { currency: this.state.currency, amount: this.state.price },
+          category: this.state.category,
+          media: this.state.media
         }
       }
     }
   }
 }
 
-export default withAccounts(CreateListing, 'marketplace')
+export default withTokens(withAccounts(CreateListing, 'marketplace'))

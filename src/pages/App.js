@@ -7,6 +7,7 @@ import MetaMaskSwitcher from 'components/MetaMaskSwitcher'
 import Accounts from './accounts/Accounts'
 import Listings from './marketplace/Listings'
 import Listing from './marketplace/Listing'
+import Messaging from './messaging/Messaging'
 import Contracts from './contracts/Contracts'
 import Explorer from './GraphIQL'
 
@@ -50,6 +51,13 @@ const App = () => (
         <NavLink
           className="bp3-button bp3-minimal"
           activeClassName="bp3-active"
+          to="/messaging"
+        >
+          <Icon icon="chat" />
+        </NavLink>
+        <NavLink
+          className="bp3-button bp3-minimal"
+          activeClassName="bp3-active"
           to="/accounts"
         >
           <Icon icon="settings" />
@@ -76,6 +84,7 @@ const App = () => (
       <Route path="/marketplace" component={Listings} />
       <Route path="/contracts" component={Contracts} />
       <Route path="/explorer" component={Explorer} />
+      <Route path="/messaging" component={Messaging} />
       <Redirect from="/" to="/marketplace" />
     </Switch>
   </>
@@ -106,6 +115,8 @@ require('react-styl')(`
     margin-bottom: 0
   .mb-2
     margin-bottom: 0.5rem
+  .mb-3
+    margin-bottom: 1rem
   .ml-2
     margin-left: 0.5rem
   .mr-2

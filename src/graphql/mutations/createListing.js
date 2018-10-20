@@ -4,7 +4,7 @@ import validator from '../utils/validator'
 import contracts from '../contracts'
 
 async function createListing(_, input) {
-  const { arbitrator, data, from, autoApprove } = input
+  const { depositManager, data, from, autoApprove } = input
   await checkMetaMask(from)
 
   const ipfsData = {
@@ -14,9 +14,9 @@ async function createListing(_, input) {
     "subCategory": "schema.forSale.mushrooms",
     "language": "en-US",
     "title": data.title,
-    "description": "description",
+    "description": data.description,
     "expiry": "1996-12-19T16:39:57-08:00",
-    "media": [],
+    "media": data.media,
     "unitsTotal": 1,
     "price": data.price,
     "commission": {
@@ -38,7 +38,7 @@ async function createListing(_, input) {
     )
     const params = web3.eth.abi.encodeParameters(
       ['bytes32', 'uint', 'address'],
-      [ipfsHash, deposit, arbitrator]
+      [ipfsHash, deposit, depositManager]
     )
     createListingCall = contracts.ognExec.methods.approveAndCallWithSender(
       contracts.marketplace._address,
@@ -50,7 +50,7 @@ async function createListing(_, input) {
     createListingCall = contracts.marketplaceExec.methods.createListing(
       ipfsHash,
       deposit,
-      arbitrator
+      depositManager
     )
   }
 
