@@ -56,6 +56,7 @@ class EventsTable extends Component {
             {/* <th>Listing</th>
             <th>Offer</th> */}
             <th>IPFS Hash</th>
+            <th>#</th>
           </tr>
         </thead>
         <tbody>
@@ -69,6 +70,7 @@ class EventsTable extends Component {
               {/* <td>{e.returnValues.listingID}</td>
               <td>{e.returnValues.offerID}</td> */}
               <td>{ipfs(e.returnValues.ipfsHash)}</td>
+              <td>{e.blockNumber}</td>
             </tr>
           ))}
         </tbody>

@@ -65,15 +65,9 @@ class OfferRow extends Component {
 
   render() {
     const { offer, listing } = this.props
-    let row
-    if (offer.status === 0 || offer.status >= 4) {
-      row = this.renderInactiveRow()
-    } else {
-      row = this.renderActiveRow()
-    }
     return (
       <>
-        {row}
+        {this.renderActiveRow()}
         <AcceptOffer
           isOpen={this.state.acceptOffer}
           listing={listing}
@@ -145,9 +139,7 @@ class OfferRow extends Component {
 
   renderActiveRow() {
     const { offer, listing, accounts } = this.props
-    if (offer.status === 0 || offer.status >= 4) {
-      return this.renderInactiveRow()
-    }
+
     const buyerPresent = accounts.find(
       a => offer.buyer && a.id === offer.buyer.id
     )
@@ -204,55 +196,6 @@ class OfferRow extends Component {
               onClick={() => {
                 this.setState({ addData: true })
               }}
-            />
-          </Tooltip>
-        </td>
-      </tr>
-    )
-  }
-
-  renderInactiveRow() {
-    const { offer } = this.props
-    const offerData = offer.ipfs || {}
-    let commission
-    if (typeof offerData.commission === 'string') {
-      commission = { amount: offerData.commission, currency: 'OGN' }
-    } else if (offerData.commission && offerData.commission.amount) {
-      commission = offerData.commission
-    }
-    return (
-      <tr className="vm">
-        <td>{offer.id}</td>
-        <td>{status(offer)}</td>
-        <td>{price(offerData)}</td>
-        <td>{price(offerData, 'refund')}</td>
-        <td>
-          <AccountButton account={offerData.buyer} />
-        </td>
-        <td>
-          {commission ? (
-            <>
-              {currency({ ...commission, converted: true })}
-              <Icon
-                style={{ verticalAlign: '-0.2rem', margin: '0 0.2rem' }}
-                icon="arrow-right"
-              />
-              <AccountButton account={offerData.affiliate} />
-            </>
-          ) : null}
-        </td>
-        <td>
-          <AccountButton account={offerData.arbitrator} />
-        </td>
-        <td />
-        <td style={{ borderLeft: '1px solid rgba(16, 22, 26, 0.15)' }} />
-        <td />
-        <td />
-        <td>
-          <Tooltip content="Add Data">
-            <AnchorButton
-              icon="comment"
-              onClick={() => this.setState({ addData: true })}
             />
           </Tooltip>
         </td>
@@ -401,7 +344,7 @@ function price(offer, field = 'value') {
 
 function status(offer) {
   if (offer.status === 0) {
-    if (offer.withdrawnBy && offer.withdrawnBy.id !== offer.ipfs.buyer) {
+    if (offer.withdrawnBy && offer.withdrawnBy.id !== offer.buyer.id) {
       return <Tag icon="cross">Declined</Tag>
     }
     return <Tag icon="trash">Withdrawn</Tag>
@@ -427,7 +370,7 @@ function status(offer) {
     )
   }
   if (offer.status === 5) {
-    return <Tag intent="success">Dispute Resolved</Tag>
+    return <Tag intent="success" icon="tick">Dispute Resolved</Tag>
   }
   return offer.status
 }

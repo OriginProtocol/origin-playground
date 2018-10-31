@@ -52,7 +52,7 @@ class Listing extends Component {
             }
 
             const listing = data.marketplace.getListing
-            const listingData = listing ? listing.ipfs : null
+            const listingData = listing
 
             if (!listing || !listingData) {
               return (
@@ -75,7 +75,7 @@ class Listing extends Component {
               selectedTabId = 'events'
             }
 
-            const media = (data.marketplace.getListing.ipfs || {}).media || []
+            const media = (data.marketplace.getListing || {}).media || []
 
             return (
               <>
@@ -178,9 +178,10 @@ class Listing extends Component {
     const sellerPresent = accounts.find(
       a => listing.seller && a.id === listing.seller.id
     )
+    const units = listing.unitsTotal <= 1 ? '' : `${listing.unitsTotal} items `
     return (
       <div style={{ marginBottom: 10 }}>
-        {`${listingData.categoryStr} by `}
+        {`${units}${listingData.categoryStr} by `}
         <Identity account={listing.seller} />
         <span style={{ marginRight: 10 }}>
           {` for `}

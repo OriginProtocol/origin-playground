@@ -48,7 +48,8 @@ class CreateListing extends Component {
       category: 'For Sale',
       description: 'A very nice bike',
       autoApprove: true,
-      media: []
+      media: [],
+      unitsTotal: '1'
     }
   }
 
@@ -98,9 +99,14 @@ class CreateListing extends Component {
                     />
                   </FormGroup>
                 </div>
-                <div style={{ flex: 2 }}>
+                <div style={{ flex: 2, marginRight: 20 }}>
                   <FormGroup label="Title">
                     <InputGroup {...input('title')} />
+                  </FormGroup>
+                </div>
+                <div style={{ flex: 1 }}>
+                  <FormGroup label="Units">
+                    <InputGroup {...input('unitsTotal')} />
                   </FormGroup>
                 </div>
               </div>
@@ -200,7 +206,8 @@ class CreateListing extends Component {
           description: this.state.description,
           price: { currency: this.state.currency, amount: this.state.price },
           category: this.state.category,
-          media: this.state.media
+          media: this.state.media,
+          unitsTotal: Number(this.state.unitsTotal)
         }
       }
     }

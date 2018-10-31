@@ -200,7 +200,6 @@ export default `
     account: Account
     totalListings: Int
     getListing(id: String!): Listing
-    getOffer(id: String!, listingId: String!): Offer
     allListings(offset: Int, limit: Int): [Listing]
     totalEvents: Int
     events(offset: Int, limit: Int): [Event]
@@ -208,27 +207,31 @@ export default `
 
   type Listing {
     id: String!
-    status: String
+
+    # On-chain:
     seller: Account
     deposit: String
     arbitrator: Account
-    ipfs: ListingData
-    totalOffers: Int
+
+    # Connections
     offers: [Offer]
     getOffer(id: String!): Offer
+    totalOffers: Int
     events: [Event]
     totalEvents: Int
     createdEvent: Event
-  }
 
-  type ListingData {
-    id: ID!
+    # Computed
+    status: String
+
+    # IPFS
     title: String
     description: String
     currencyId: String
     price: Price
     category: String
     categoryStr: String
+    unitsTotal: Int
     media: [Media]
   }
 
@@ -240,7 +243,11 @@ export default `
   type Offer {
     id: String!
     listingId: String!
+
+    # Connections
     listing: Listing
+
+    # On-Chain
     value: String
     commission: String
     refund: String
@@ -250,20 +257,8 @@ export default `
     arbitrator: Account
     finalizes: Int
     status: Int
-    withdrawnBy: Account
-    ipfs: OfferData
-  }
 
-  type OfferData {
-    id: ID!
-    buyer: String
-    finalizes: Int
-    affiliate: String
-    commission: Price
-    value: String
-    refund: String
-    currency: String
-    arbitrator: String
+    withdrawnBy: Account
   }
 
   type Transaction {
@@ -366,6 +361,7 @@ export default `
     category: String
     currency: String
     price: PriceInput
+    unitsTotal: Int
     media: [MediaInput]
   }
 

@@ -17,7 +17,7 @@ async function createListing(_, input) {
     "description": data.description,
     "expiry": "1996-12-19T16:39:57-08:00",
     "media": data.media,
-    "unitsTotal": 1,
+    "unitsTotal": data.unitsTotal,
     "price": data.price,
     "commission": {
       "currency": "OGN",

@@ -5,6 +5,7 @@ import OriginTokenContract from './contracts/OriginToken'
 import TokenContract from './contracts/Token'
 import eventCache from './utils/eventCache'
 import pubsub from './utils/pubsub'
+import EventSource from './utils/OriginEventSource'
 
 import msg from './utils/messagingInstance'
 
@@ -163,6 +164,11 @@ export function setNetwork(net) {
   } else {
     context.marketplaces = []
   }
+
+  context.eventSource = new EventSource({
+    marketplaceContract: context.marketplace,
+    ipfsGateway: context.ipfsGateway
+  })
 
   wsSub = web3WS.eth.subscribe('newBlockHeaders').on('data', blockHeaders => {
     context.marketplace.eventCache.updateBlock(blockHeaders.number)

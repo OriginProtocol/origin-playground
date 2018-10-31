@@ -1,5 +1,3 @@
-import getListing from './helpers/getListing'
-import offerFields from './helpers/offerFields'
 import contracts from '../contracts'
 
 export default {
@@ -15,7 +13,7 @@ export default {
     }
     return contract.methods.totalListings().call()
   },
-  getListing,
+  getListing: (contract, args) => contracts.eventSource.getListing(args.id),
   allListings: async (contract, { limit = 10, offset = 0 }) => {
     if (!contract) {
       return null
@@ -24,19 +22,7 @@ export default {
     const ids = Array.from({ length: Number(totalListings) }, (v, i) => i)
       .reverse()
       .slice(offset, offset + limit)
-    return Promise.all(ids.map(id => getListing(contract, { id })))
-  },
-  getOffer: async (contract, args) => {
-    if (!contract) {
-      return null
-    }
-    const offer = await contract.methods.offers(args.listingId, args.id).call()
-    return {
-      id: args.id,
-      listingId: args.listingId,
-      ...offerFields(offer),
-      contract
-    }
+    return Promise.all(ids.map(id => contracts.eventSource.getListing(id)))
   },
   account: contract => {
     if (!contract) {

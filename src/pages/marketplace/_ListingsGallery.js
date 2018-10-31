@@ -28,14 +28,14 @@ const Listings = ({ data, history, noMore }) => {
           className="listing-card"
         >
           <h5 className="bp3-heading ellip" style={{ maxWidth: 'none' }}>
-            {a.ipfs ? a.ipfs.title : null}
+            {a.title}
           </h5>
           {status(a)}
-          {a.ipfs && a.ipfs.media && a.ipfs.media.length ? (
+          {a.media && a.media.length ? (
             <div
               className="main-pic"
               style={{
-                backgroundImage: `url(${ipfsGateway}/${a.ipfs.media[0].url.replace(
+                backgroundImage: `url(${ipfsGateway}/${a.media[0].url.replace(
                   ':/',
                   ''
                 )})`
@@ -43,7 +43,7 @@ const Listings = ({ data, history, noMore }) => {
             />
           ) : null}
           <div className="price">
-            <Price amount={a.ipfs && a.ipfs.price ? a.ipfs.price.amount : 0} />
+            <Price amount={a.price ? a.price.amount : 0} />
             {a.seller ? <Identity account={a.seller.id} /> : ''}
           </div>
           <div className="info">

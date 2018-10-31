@@ -24,12 +24,12 @@ class UpdateListing extends Component {
     super()
 
     this.state = {
-      title: props.listing.ipfs.title || '',
-      currencyId: props.listing.ipfs.price ? props.listing.ipfs.price.currency : 'ETH',
-      price: props.listing.ipfs.price ? props.listing.ipfs.price.amount : '0.1',
+      title: props.listing.title || '',
+      currencyId: props.listing.price ? props.listing.price.currency : 'ETH',
+      price: props.listing.price ? props.listing.price.amount : '0.1',
       from: props.listing.seller.id || '',
       additionalDeposit: 0,
-      category: props.listing.ipfs.category || 'For Sale',
+      category: props.listing.category || 'For Sale',
       autoApprove: true
     }
   }

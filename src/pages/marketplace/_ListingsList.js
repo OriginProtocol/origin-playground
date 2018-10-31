@@ -49,14 +49,14 @@ const Listings = ({ data, history }) => {
           >
             <td>{a.id}</td>
             <td>{status(a)}</td>
-            <td>{a.ipfs ? a.ipfs.categoryStr : null}</td>
+            <td>{a.categoryStr}</td>
             <td>
-              <div className="ellip">{a.ipfs ? a.ipfs.title : null}</div>
+              <div className="ellip">{a.title}</div>
             </td>
-            <td>{a.ipfs ? currency(a.ipfs.price) : null}</td>
+            <td>{currency(a.price)}</td>
             <td>
               <Price
-                amount={a.ipfs && a.ipfs.price ? a.ipfs.price.amount : 0}
+                amount={a.price ? a.price.amount : 0}
               />
             </td>
             <td>{a.deposit !== '0' ? currency({ amount: a.deposit, currency: 'OGN' }) : null}</td>

@@ -22,10 +22,10 @@ export default {
       if (ethPrice) {
         return resolve(ethPrice)
       }
-      fetch('https://api.coinmarketcap.com/v2/ticker/1027/')
+      fetch('https://min-api.cryptocompare.com/data/price?fsym=ETH&tsyms=USD')
         .then(response => response.json())
         .then(response => {
-          ethPrice = response.data.quotes.USD.price
+          ethPrice = response.USD
           resolve(ethPrice)
         })
         .catch(reject)

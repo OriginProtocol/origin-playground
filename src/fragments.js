@@ -34,21 +34,20 @@ export default {
         createdEvent {
           timestamp
         }
-        ipfs {
-          id
-          category
-          categoryStr
-          title
-          description
-          currencyId
-          price {
-            amount
-            currency
-          }
-          media {
-            url
-            contentType
-          }
+
+        category
+        categoryStr
+        title
+        description
+        currencyId
+        unitsTotal
+        price {
+          amount
+          currency
+        }
+        media {
+          url
+          contentType
         }
       }
     `
@@ -75,21 +74,6 @@ export default {
         }
         withdrawnBy {
           id
-        }
-
-        ipfs {
-          id
-          buyer
-          finalizes
-          affiliate
-          commission {
-            amount
-            currency
-          }
-          value
-          refund
-          currency
-          arbitrator
         }
       }
     `

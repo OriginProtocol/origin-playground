@@ -4,6 +4,7 @@ export default function eventCache(contract, fromBlock = 0) {
     lastLookup = 0,
     processing = false,
     queue = []
+
   // try {
   //   ({ events, lastLookup } = JSON.parse(
   //     window.localStorage.eventCache
