@@ -2,6 +2,11 @@ pragma solidity ^0.4.22;
 
 import './ERC725.sol';
 
+// **Warning!** This file is a protoype version of our work around ERC 725.
+// This file is now out of date and **should not be used**.
+// Our current identity contracts are here:
+// https://github.com/OriginProtocol/origin/tree/master/origin-contracts/contracts/identity
+
 contract KeyHolder is ERC725 {
 
     uint256 executionNonce;
