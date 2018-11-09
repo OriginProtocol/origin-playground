@@ -4,6 +4,12 @@ Head to https://www.originprotocol.com/developers to learn more about what we're
 
 # Origin Identity Playground
 
+----
+
+**Warning!** This repo contains only our protoyping work around ERC 725. It is now out of date and **should not be used**. Our current identity contracts are [here](https://github.com/OriginProtocol/origin/tree/master/origin-contracts/contracts/identity).
+
+----
+
 This app is a working implementation of the [ERC 725](https://github.com/ethereum/EIPs/issues/725) and [ERC 735](https://github.com/ethereum/EIPs/issues/735) proposals for managing a unique identity on the blockchain.
 
 Using ERC 725, a smart contract can protect function calls from being executed unless the sender has a verified claim
