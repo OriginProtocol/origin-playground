@@ -33,7 +33,7 @@
     "express": "^4.16.3",
     "express-session": "^1.15.6",
     "ganache-core": "2.2.1",
-    "ipfs": "^0.31.7",
+    "ipfs": "^0.36.0",
     "ipfs-api": "^24.0.1",
     "oauth": "^0.9.15",
     "prettier": "^1.14.2",
